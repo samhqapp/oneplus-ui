@@ -76,17 +76,25 @@ private struct OnePlusPlot: View {
 final class OnePlusChartPaths {
     let line: Path
     let area: Path
-    private static let cache: NSCache<NSString, OnePlusChartPaths> = {
-        let cache = NSCache<NSString, OnePlusChartPaths>(); cache.countLimit = 128; return cache
+    private let values: [Double]
+    private let range: ClosedRange<Double>
+    private let smoothed: Bool
+    private static let cache: NSCache<NSNumber, OnePlusChartPaths> = {
+        let cache = NSCache<NSNumber, OnePlusChartPaths>(); cache.countLimit = 128; return cache
     }()
+    // A hash key avoids formatting the whole series into a string on every body pass; equality guards collisions.
     static func cached(values: [Double], range: ClosedRange<Double>, smoothed: Bool = false) -> OnePlusChartPaths {
-        let key = "\(range)|\(values)|\(smoothed)" as NSString
-        if let result = cache.object(forKey: key) { return result }
+        var hasher = Hasher()
+        hasher.combine(values); hasher.combine(range.lowerBound); hasher.combine(range.upperBound); hasher.combine(smoothed)
+        let key = NSNumber(value: hasher.finalize())
+        if let result = cache.object(forKey: key), result.smoothed == smoothed, result.range == range,
+           result.values == values { return result }
         let result = OnePlusChartPaths(values: values, range: range, smoothed: smoothed)
         cache.setObject(result, forKey: key)
         return result
     }
     init(values: [Double], range: ClosedRange<Double>, smoothed: Bool = false) {
+        self.values = values; self.range = range; self.smoothed = smoothed
         var line = Path()
         var area = Path()
         let lower = range.lowerBound.isFinite ? range.lowerBound : 0

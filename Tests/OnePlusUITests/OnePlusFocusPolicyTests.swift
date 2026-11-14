@@ -131,7 +131,7 @@ final class OnePlusFocusPolicyTests: XCTestCase {
         let control = FocusTestControl(frame: .init(x: 10, y: 10, width: 100, height: 28))
         window.contentView?.addSubview(control)
         policy.configure(window)
-        for event in [NSWindow.didBecomeKeyNotification, NSWindow.didUpdateNotification] {
+        for event in [NSWindow.didBecomeKeyNotification] {
             for invalid in 0..<4 {
                 control.isHidden = false; control.isEnabled = true
                 control.frame.origin.y = 10
@@ -147,6 +147,32 @@ final class OnePlusFocusPolicyTests: XCTestCase {
                 XCTAssertTrue(window.firstResponder === window, "event=\(event.rawValue) invalid=\(invalid) frame=\(control.frame) visible=\(control.visibleRect)")
             }
         }
+    }
+
+    func testWindowsWithoutTheReaderKeepNativeFocus() throws {
+        let policy = OnePlusFocusPolicy.shared
+        policy.stop()
+        defer { policy.stop(); policy.refresh() }
+        policy.install()
+        policy.update(fullKeyboardAccess: false, voiceOver: false)
+        let window = FocusTestWindow(contentRect: .init(x: -10000, y: -10000, width: 300, height: 150),
+                                     styleMask: .borderless, backing: .buffered, defer: false)
+        let control = FocusTestControl(frame: .init(x: 10, y: 10, width: 100, height: 28))
+        control.focusRingType = .exterior
+        window.contentView?.addSubview(control)
+        window.initialFirstResponder = control
+        for event in [NSWindow.didBecomeKeyNotification, NSWindow.didUpdateNotification] {
+            NotificationCenter.default.post(name: event, object: window)
+        }
+        XCTAssertFalse(policy.manages(window))
+        XCTAssertTrue(window.initialFirstResponder === control)
+        XCTAssertTrue(window.makeFirstResponder(control), "Unmanaged windows keep native focus.")
+        XCTAssertEqual(control.focusRingType, .exterior)
+        // AppKit resigns hidden or disabled responders itself; a clipped one stays, and only the policy would clear it.
+        control.frame.origin.y = 500
+        XCTAssertTrue(window.firstResponder === control)
+        NotificationCenter.default.post(name: NSWindow.didBecomeKeyNotification, object: window)
+        XCTAssertTrue(window.firstResponder === control, "The policy must not clear focus in an unmanaged window.")
     }
 }
 

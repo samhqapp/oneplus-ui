@@ -44,22 +44,21 @@ public final class OnePlusFocusPolicy {
             forName: .init("com.apple.KeyboardUIModeChanged"), object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.refresh() }
             }
+        // Only windows that host OnePlusFocusReader (or call configure) are managed; per-event didUpdate work is avoided.
         observers.append(center.addObserver(forName: NSWindow.didBecomeKeyNotification, object: nil, queue: .main) { [weak self] note in
             let window = note.object as? NSWindow
             MainActor.assumeIsolated {
-                if let window { self?.configure(window) }
-            }
-        })
-        observers.append(center.addObserver(forName: NSWindow.didUpdateNotification, object: nil, queue: .main) { [weak self] note in
-            let window = note.object as? NSWindow
-            MainActor.assumeIsolated {
-                if let window { self?.configure(window) }
+                if let window, self?.manages(window) == true { Self.clearInvalidFocus(in: window) }
             }
         })
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp, .leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] event in
-            self?.refresh()
-            if Self.isPointerEvent(event.type), let window = event.window {
+            guard let self else { return event }
+            self.refresh()
+            guard let window = event.window, self.manages(window) else { return event }
+            if Self.isPointerEvent(event.type) {
                 Self.dismissPointerFocus(in: window, at: event.locationInWindow)
+            } else if event.type == .keyDown {
+                Self.clearInvalidFocus(in: window)
             }
             return event
         }
@@ -85,15 +84,17 @@ public final class OnePlusFocusPolicy {
         let value = Self.visualsEnabled(fullKeyboardAccess: fullKeyboardAccess, voiceOver: voiceOver)
         guard showsFocus != value else { return }
         showsFocus = value
-        for window in NSApp.windows {
+        for window in windows.allObjects {
             configureRings(window.contentView)
             window.contentView?.needsDisplay = true
         }
     }
 
+    func manages(_ window: NSWindow) -> Bool { windows.member(window) != nil }
+
     public func configure(_ window: NSWindow) {
         install()
-        guard windows.member(window) == nil else {
+        guard !manages(window) else {
             Self.clearInvalidFocus(in: window)
             return
         }
@@ -150,7 +151,7 @@ public final class OnePlusFocusPolicy {
     static func allows(_ responder: NSResponder?, in window: NSWindow, pointer: Bool) -> Bool {
         if !shared.installed { return true }
         if responder == nil || responder === window { return true }
-        if shared.windows.member(window) == nil { return true }
+        if !shared.manages(window) { return true }
         return acceptsFocus(isVisible: window.isVisible, pointer: pointer && !shared.showsFocus,
                             textInput: isTextInput(responder), selectionInput: isSelectionInput(responder))
     }
@@ -167,6 +168,7 @@ public final class OnePlusFocusPolicy {
 
 extension NSWindow {
     @objc fileprivate func onePlusMakeFirstResponder(_ responder: NSResponder?) -> Bool {
+        guard OnePlusFocusPolicy.shared.manages(self) else { return onePlusMakeFirstResponder(responder) }
         let pointer = OnePlusFocusPolicy.isPointerEvent(NSApp.currentEvent?.type)
         guard OnePlusFocusPolicy.allows(responder, in: self, pointer: pointer) else { return false }
         if let view = responder as? NSView {

@@ -69,6 +69,7 @@ private final class OnePlusVisibilityView: NSView {
     var includeOccluded: Bool
     private weak var observedWindow: NSWindow?
     private var observers: [NSObjectProtocol] = []
+    private var visibleObservation: NSKeyValueObservation?
     private var pending: DispatchWorkItem?
     private var lastValue: Bool?
 
@@ -95,11 +96,14 @@ private final class OnePlusVisibilityView: NSView {
                          NSWindow.didBecomeKeyNotification,
                          NSWindow.didResignKeyNotification,
                          NSWindow.willCloseNotification]
-                + (includeOccluded ? [NSWindow.didUpdateNotification] : [])
             for name in notifications {
                 observers.append(center.addObserver(forName: name, object: window, queue: .main) { [weak self] _ in
                     MainActor.assumeIsolated { self?.refresh() }
                 })
+            }
+            // didUpdate fires after every event; order-in and order-out changes arrive through KVO instead.
+            visibleObservation = window.observe(\.isVisible) { [weak self] _, _ in
+                MainActor.assumeIsolated { self?.refresh() }
             }
         }
         refresh()
@@ -126,6 +130,7 @@ private final class OnePlusVisibilityView: NSView {
         pending = nil
         observers.forEach(NotificationCenter.default.removeObserver)
         observers.removeAll()
+        visibleObservation = nil
         observedWindow = nil
         lastValue = nil
     }

@@ -10,6 +10,7 @@ public final class OnePlusMenuPresenter: NSObject {
     private weak var anchor: NSView?
     private var monitors: [Any] = []
     private var observers: [NSObjectProtocol] = []
+    private var workspaceObserver: NSObjectProtocol?
 
     public override init() {
         super.init()
@@ -60,6 +61,14 @@ public final class OnePlusMenuPresenter: NSObject {
         window.orderFrontRegardless()
         if takesFocus { window.makeKey() }
         NotificationCenter.default.post(name: Self.didShowNotification, object: self)
+    }
+
+    /// Arms the dismissal monitors for a panel the host orders itself while the app is inactive.
+    /// It never orders the panel front, so it never activates the app.
+    public func armDismissal(anchoredTo view: NSView) {
+        anchor = view
+        removeMonitors()
+        installMonitors()
     }
 
     public func performClose(_ sender: Any?) { close() }
@@ -118,6 +127,11 @@ public final class OnePlusMenuPresenter: NSObject {
                                             object: NSApp, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.close() }
         })
+        // A Space switch (for example into a full-screen app) dismisses the panel like a native menu.
+        workspaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.close() }
+            }
         if let owner = anchor?.window {
             for name in [NSWindow.didMoveNotification, NSWindow.willCloseNotification] {
                 observers.append(center.addObserver(forName: name, object: owner, queue: .main) { [weak self] _ in
@@ -132,6 +146,8 @@ public final class OnePlusMenuPresenter: NSObject {
         monitors.removeAll()
         observers.forEach(NotificationCenter.default.removeObserver)
         observers.removeAll()
+        if let workspaceObserver { NSWorkspace.shared.notificationCenter.removeObserver(workspaceObserver) }
+        workspaceObserver = nil
     }
 }
 

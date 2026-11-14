@@ -70,7 +70,7 @@ private struct OnePlusTableConfigurator: NSViewRepresentable {
             if table.rowSizeStyle != .custom { table.rowSizeStyle = .custom }
             if table.rowHeight != OnePlusTable.rowHeight(density) { table.rowHeight = OnePlusTable.rowHeight(density) }
             if table.intercellSpacing != .zero { table.intercellSpacing = .zero }
-            table.backgroundColor = NSColor(OnePlusColor.panel)
+            if table.backgroundColor !== panelColor { table.backgroundColor = panelColor }
             if !table.gridStyleMask.isEmpty { table.gridStyleMask = [] }
             if let scroll = table.enclosingScrollView, scroll.borderType != .noBorder {
                 scroll.borderType = .noBorder
@@ -78,9 +78,11 @@ private struct OnePlusTableConfigurator: NSViewRepresentable {
             let lines = table.subviews.compactMap { $0 as? OnePlusTableLines }.first ?? OnePlusTableLines(table: table)
             if lines.superview == nil { table.addSubview(lines) }
             lines.updateRowBackgrounds()
-            table.focusRingType = .none
+            if table.focusRingType != .none { table.focusRingType = .none }
+            var headerChanged = false
             if !(table.headerView is OnePlusTableHeaderView) {
                 table.headerView = OnePlusTableHeaderView(frame: NSRect(x: 0, y: 0, width: table.bounds.width, height: OnePlusTable.headerHeight))
+                headerChanged = true
             }
             for (index, column) in table.tableColumns.enumerated() {
                 let model = columns.indices.contains(index) ? columns[index] : nil
@@ -97,10 +99,13 @@ private struct OnePlusTableConfigurator: NSViewRepresentable {
                     header?.columnAlignment != resolvedAlignment {
                     column.headerCell = OnePlusTableHeaderCell(textCell: column.title,
                         leadingInset: leading, trailingInset: trailing, alignment: resolvedAlignment)
+                    headerChanged = true
                 }
             }
-            table.headerView?.needsDisplay = true
+            // Live tables relayout on every sample; redraw the header only when a cell changed.
+            if headerChanged { table.headerView?.needsDisplay = true }
         }
+        private static let panelColor = NSColor(OnePlusColor.panel)
     }
 }
 
