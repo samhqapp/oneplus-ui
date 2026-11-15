@@ -45,9 +45,9 @@ private struct OnePlusPlot: View {
                     grid.addLine(to: CGPoint(x: width, y: y * height))
                     context.stroke(grid, with: .color(OnePlusColor.chartGrid), lineWidth: 1)
                 }
-                context.withCGContext { cg in
+                if let clip = OnePlusChartPattern.clip(paths.area.applying(transform)) { context.withCGContext { cg in
                     cg.saveGState()
-                    cg.addPath(paths.area.applying(transform).cgPath)
+                    cg.addPath(clip.cgPath)
                     cg.clip()
                     cg.beginTransparencyLayer(auxiliaryInfo: nil)
                     cg.setFillColorSpace(CGColorSpace(patternBaseSpace: CGColorSpaceCreateDeviceRGB())!)
@@ -62,7 +62,7 @@ private struct OnePlusPlot: View {
                     cg.drawLinearGradient(gradient, start: .zero, end: CGPoint(x: 0, y: height), options: [])
                     cg.endTransparencyLayer()
                     cg.restoreGState()
-                }
+                } }
             }
             context.stroke(line, with: .color(color.opacity(quietBackground ? 0.35 : 1)),
                            style: StrokeStyle(lineWidth: quietBackground ? 1 : 1.2, lineCap: .round, lineJoin: .round))

@@ -85,4 +85,10 @@ public enum OnePlusChartPattern {
                          matrix: .identity, xStep: 4, yStep: 4, tiling: .constantSpacing,
                          isColored: false, callbacks: &callbacks)!
     }()
+
+    // A pattern layer under a zero-area clip (a flat series at the floor) allocates an unbounded bitmap.
+    static func clip(_ area: Path) -> Path? {
+        let bounds = area.boundingRect
+        return bounds.isEmpty || !bounds.width.isFinite || !bounds.height.isFinite ? nil : area
+    }
 }

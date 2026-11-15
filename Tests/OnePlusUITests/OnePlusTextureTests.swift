@@ -105,4 +105,15 @@ final class OnePlusTextureTests: XCTestCase {
             XCTAssertEqual(chart.greenComponent, 0.8, accuracy: 0.01)
         }
     }
+
+    func testChartDitherSkipsZeroAreaClips() {
+        let transform = CGAffineTransform(scaleX: 200, y: 58)
+        let flat = OnePlusChartPaths(values: [0, 0, 0], range: 0...100).area.applying(transform)
+        XCTAssertNil(OnePlusChartPattern.clip(flat))
+        let tiny = OnePlusChartPaths(values: [10, 60], range: 0...100).area.applying(.init(scaleX: 200, y: 0))
+        XCTAssertNil(OnePlusChartPattern.clip(tiny))
+        XCTAssertNil(OnePlusChartPattern.clip(Path()))
+        let live = OnePlusChartPaths(values: [10, 60], range: 0...100).area.applying(transform)
+        XCTAssertNotNil(OnePlusChartPattern.clip(live))
+    }
 }
