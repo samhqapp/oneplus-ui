@@ -69,7 +69,46 @@ public struct OnePlusStepperField: View {
         self.title = title; _value = value; self.range = range; self.step = max(1, step); self.unit = unit
         _draft = State(initialValue: String(value.wrappedValue))
     }
+    @Environment(\.onePlusLinearControlLook) private var look
+
     public var body: some View {
+        if let look { linearBody(look) } else { regularBody }
+    }
+
+    /// The applet look (Depth): a recessed 24 pt field with raised minus and plus caps around a right-aligned
+    /// 13 pt value and a 12 pt unit.
+    private func linearBody(_ look: OnePlusLinearControlLook) -> some View {
+        let shape = RoundedRectangle(cornerRadius: look.radius)
+        return HStack(spacing: 0) {
+            stepButton(plus: false, "Decrease \(title)", -step, look)
+            TextField(title, text: $draft).textFieldStyle(.plain).linearText().multilineTextAlignment(.trailing)
+                .frame(width: look.stepperValueWidth).focused($focused).onSubmit(commit)
+                .onKeyPress(.upArrow) { change(by: step); return .handled }
+                .onKeyPress(.downArrow) { change(by: -step); return .handled }
+                .accessibilityLabel(title).accessibilityHint(error ?? "")
+            if let unit {
+                Text(unit).linearText(color: OnePlusLinearColor.muted)
+                    .padding(.leading, 3).padding(.trailing, 2).accessibilityHidden(true)
+            }
+            stepButton(plus: true, "Increase \(title)", step, look)
+        }
+        .padding(.horizontal, (look.height - look.stepperCap) / 2)
+        .frame(height: look.height)
+        .background { OnePlusDepthRecess(shape, focused: focused) }
+        .overlay { if error != nil { shape.strokeBorder(OnePlusColor.dangerLine, lineWidth: 1) } }
+        .help(error ?? "")
+        .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+        .onChange(of: value) { _, newValue in draft = String(newValue); error = nil }
+        .onChange(of: focused) { _, newValue in if !newValue { commit() } }
+    }
+
+    private func stepButton(plus: Bool, _ label: String, _ delta: Int, _ look: OnePlusLinearControlLook) -> some View {
+        Button { change(by: delta) } label: { OnePlusDepthStepGlyph(plus: plus) }
+            .buttonStyle(OnePlusDepthCapButtonStyle(size: look.stepperCap, radius: look.stepperCapRadius))
+            .focusEffectDisabled().accessibilityLabel(label)
+    }
+
+    private var regularBody: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 0) {
                 TextField(title, text: $draft).textFieldStyle(.plain).onePlusText(.control)

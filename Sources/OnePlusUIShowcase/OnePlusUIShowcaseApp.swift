@@ -69,7 +69,7 @@ private struct OnePlusUIShowcase: View {
                                    OnePlusMenuTab("battery", "Battery", systemImage: "battery.100"),
                                    OnePlusMenuTab("sensors", "Sensors", systemImage: "thermometer.medium"),
                                    OnePlusMenuTab("processes", "Processes", systemImage: "list.bullet")]
-    private let pages = ["Foundation", "Typography", "Buttons", "Inputs", "Popup menus", "Data", "Native tables", "Fixed regions", "Settings", "Task Manager", "Menu panel", "Applets", "Compact forms", "Rows and tabs", "Feedback", "Version 15"]
+    private let pages = ["Foundation", "Typography", "Buttons", "Inputs", "Popup menus", "Data", "Native tables", "Fixed regions", "Settings", "Task Manager", "Menu panel", "Applets", "Compact forms", "Rows and tabs", "Feedback", "Version 15", "Version 15 applets"]
     private let samples: [Double] = [16, 18, 15, 22, 19, 17, 24, 42, 33, 24, 22, 21, 28, 19, 24, 21, 20, 26, 24, 28]
     private var compact: Bool { page == "Task Manager" }
     private var canvas: OnePlusWindowCanvas {
@@ -97,6 +97,8 @@ private struct OnePlusUIShowcase: View {
                 PageRegionsShowcase(header: pageHeader)
             } else if page == "Version 15" {
                 LinearShowcase()
+            } else if page == "Version 15 applets" {
+                LinearAppletShowcase()
             } else {
                 OnePlusPage {
                     pageHeader
@@ -608,6 +610,7 @@ private struct OnePlusUIShowcase: View {
         case "Menu panel": "menubar.rectangle"
         case "Applets", "Compact forms": "macwindow"
         case "Version 15": "sparkles.rectangle.stack"
+        case "Version 15 applets": "macwindow.badge.plus"
         default: "bubble.left"
         }
     }

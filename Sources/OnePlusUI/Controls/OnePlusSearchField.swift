@@ -61,22 +61,29 @@ public struct OnePlusSidebarSearch: View {
 }
 
 /// The v15 sidebar search: 28 pt, field fill, 12 pt text, and a `⌘K` key chip. Command-K focuses it.
+/// `.applet`: 26 pt, the magnifier 8 pt in, 13 pt text, the applet field look, no key chip; Command-F focuses it.
 public struct OnePlusLinearSearchField: View {
+    public enum Style: Sendable { case sidebar, applet }
     @Binding private var text: String
     private let prompt: String
     private let focusTrigger: Int
     private let identifier: String?
+    private let style: Style
     @State private var shortcutFocusTrigger = 0
     @Environment(\.isEnabled) private var enabled
-    public init(_ prompt: String = "Search", text: Binding<String>, accessibilityIdentifier: String? = nil, focusTrigger: Int = 0) {
-        self.prompt = prompt; _text = text; identifier = accessibilityIdentifier; self.focusTrigger = focusTrigger
+    @Environment(\.onePlusLinearControlLook) private var look
+    public init(_ prompt: String = "Search", text: Binding<String>, accessibilityIdentifier: String? = nil, focusTrigger: Int = 0,
+                style: Style = .sidebar) {
+        self.prompt = prompt; _text = text; identifier = accessibilityIdentifier; self.focusTrigger = focusTrigger; self.style = style
     }
     public var body: some View {
+        let applet = style == .applet
         OnePlusNativeSearch(prompt: prompt, text: $text, focusTrigger: focusTrigger &+ shortcutFocusTrigger, identifier: identifier,
-                            hint: "⌘K", fontSize: OnePlusLinearMetrics.control, enabled: enabled, linear: true)
-            .frame(height: OnePlusLinearMetrics.searchHeight)
+                            hint: applet ? nil : "⌘K", fontSize: applet ? OnePlusLinearMetrics.body : OnePlusLinearMetrics.control,
+                            enabled: enabled, linear: true, appletLook: applet ? look ?? .depth : nil)
+            .frame(height: applet ? OnePlusLinearMetrics.appletField : OnePlusLinearMetrics.searchHeight)
             .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
-            .background { Button("Focus search") { shortcutFocusTrigger &+= 1 }.keyboardShortcut("k").hidden() }
+            .background { Button("Focus search") { shortcutFocusTrigger &+= 1 }.keyboardShortcut(applet ? "f" : "k").hidden() }
     }
 }
 
@@ -89,15 +96,20 @@ private struct OnePlusNativeSearch: NSViewRepresentable {
     let fontSize: CGFloat
     let enabled: Bool
     var linear = false
+    var appletLook: OnePlusLinearControlLook?
 
     func makeNSView(context: Context) -> OnePlusSearchView { OnePlusSearchView() }
     func updateNSView(_ view: OnePlusSearchView, context: Context) {
         if view.linear != linear { view.linear = linear; view.needsDisplay = true }
+        let applet = appletLook.map { (field: NSColor($0.field), line: NSColor($0.fieldLine)) }
+        if (view.applet == nil) != (applet == nil) { view.needsLayout = true }
+        view.applet = applet; view.needsDisplay = true
         view.changed = { text = $0 }
         view.field.placeholderString = prompt
         if linear {
             view.field.placeholderAttributedString = NSAttributedString(string: prompt, attributes: [
-                .foregroundColor: NSColor(OnePlusLinearColor.muted), .font: NSFont.systemFont(ofSize: fontSize)])
+                .foregroundColor: NSColor(appletLook == nil ? OnePlusLinearColor.muted : OnePlusLinearColor.appletMuted),
+                .font: NSFont.systemFont(ofSize: fontSize)])
         }
         view.field.setAccessibilityLabel(prompt)
         view.field.setAccessibilityIdentifier(identifier)
@@ -131,6 +143,10 @@ class OnePlusSearchView: NSView, NSSearchFieldDelegate {
             field.textColor = NSColor(linear ? OnePlusLinearColor.ink : OnePlusColor.controlInk)
         }
     }
+    /// The applet field look; nil for the sidebar search.
+    var applet: (field: NSColor, line: NSColor)?
+    /// The native magnifier then sits 8 pt from the bezel edge, as in the applet mockup.
+    private static let appletTextStart: CGFloat = 2
     private var hintChip: NSRect {
         let width = ceil(hint.attributedStringValue.size().width) + 10
         return NSRect(x: bounds.width - 6 - width, y: (bounds.height - 18) / 2, width: width, height: 18)
@@ -168,7 +184,8 @@ class OnePlusSearchView: NSView, NSSearchFieldDelegate {
             let lineHeight = field.font.map { textLayout.defaultLineHeight(for: $0) } ?? 15
             let chip = hintChip
             let trailing = hint.isHidden ? 6 : bounds.width - chip.minX + 4
-            field.frame = NSRect(x: 8, y: (bounds.height - lineHeight) / 2, width: max(0, bounds.width - 8 - trailing), height: lineHeight)
+            let start: CGFloat = applet == nil ? 8 : Self.appletTextStart
+            field.frame = NSRect(x: start, y: (bounds.height - lineHeight) / 2, width: max(0, bounds.width - start - trailing), height: lineHeight)
             let hintHeight = ceil(hint.attributedStringValue.size().height)
             hint.frame = NSRect(x: chip.minX, y: chip.midY - hintHeight / 2, width: chip.width, height: hintHeight)
             return
@@ -204,9 +221,10 @@ class OnePlusSearchView: NSView, NSSearchFieldDelegate {
         if linear {
             let showFocus = focused && OnePlusFocusPolicy.shared.showsFocus
             let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 6, yRadius: 6)
-            NSColor(OnePlusLinearColor.field).setFill(); path.fill()
+            (applet?.field ?? NSColor(OnePlusLinearColor.field)).setFill(); path.fill()
             if hovered && field.isEnabled && !focused { NSColor(OnePlusLinearColor.hover).setFill(); path.fill() }
-            NSColor(showFocus ? OnePlusColor.focus : OnePlusLinearColor.line).setStroke(); path.lineWidth = 1; path.stroke()
+            (showFocus ? NSColor(OnePlusColor.focus) : applet?.line ?? NSColor(OnePlusLinearColor.line)).setStroke()
+            path.lineWidth = 1; path.stroke()
             if !hint.isHidden {
                 let chip = NSBezierPath(roundedRect: hintChip.insetBy(dx: 0.5, dy: 0.5), xRadius: 4, yRadius: 4)
                 NSColor(OnePlusLinearColor.kbd).setFill(); chip.fill()

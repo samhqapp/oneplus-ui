@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.0
+
+- Add the DESIGN.md v15 applet parts ("Filled groups"): `OnePlusLinearApplet`
+  shell and titlebar, settings gear, form, captioned filled groups, rows,
+  slider rows, list rows with swatches and icon actions, tab row, toolbar,
+  applet search (`style: .applet`), `OnePlusLinearSelect`, the `.soft`
+  primary and `.destructive` button kinds, `OnePlusLinearSlider`, and
+  `OnePlusLinearColorWell`, with the applet tokens.
+- Add `OnePlusLinearControlLook` (`.depth`), the one style point for the applet
+  controls: recessed tracks, gently raised knobs and caps, a fine top highlight.
+  `OnePlusLinearSegmented`, `OnePlusLinearSwitchStyle`, and `OnePlusStepperField`
+  take it inside an applet; without it they look as before.
+- Add the "Quiet" motion: `OnePlusLinearMotion` tokens, the
+  `.onePlusLinearMotion(_:)` switch (default `.instant`), and
+  `OnePlusLinearContentSwitch`. The switch knob and segment thumb slide under
+  Quiet; instant surfaces do not change.
+- Add the showcase page "Version 15 applets" and render, APCA, and motion tests.
+
 ## 1.1.1
 
 - `OnePlusLinearToolRow`: the unset favorite star hides only its paint at rest,

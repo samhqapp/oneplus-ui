@@ -9,12 +9,17 @@ public struct OnePlusLinearButtonStyle: ButtonStyle {
         case plain
         /// The raised text button (`Open App`): 28 pt, button fill, ring, 13 pt medium.
         case raised
+        /// The applet primary action (`Pick Color`): 24 pt, soft gray fill, no border, 13 pt medium.
+        case soft
+        /// The applet destructive action (`Reset to Factory Defaults`): full width, 30 pt, red tint, red text.
+        case destructive
     }
     let kind: Kind
     let radius: CGFloat
     let selected: Bool
-    public init(_ kind: Kind = .plain, radius: CGFloat = OnePlusLinearMetrics.radius, selected: Bool = false) {
-        self.kind = kind; self.radius = radius; self.selected = selected
+    public init(_ kind: Kind = .plain, radius: CGFloat? = nil, selected: Bool = false) {
+        self.kind = kind; self.selected = selected
+        self.radius = radius ?? (kind == .destructive ? OnePlusLinearMetrics.appletDestructiveRadius : OnePlusLinearMetrics.radius)
     }
     public func makeBody(configuration: Configuration) -> some View {
         OnePlusLinearButtonBody(label: configuration.label, pressed: configuration.isPressed,
@@ -33,20 +38,39 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
     let radius: CGFloat
     let selected: Bool
 
+    private var isPressed: Bool { pressed || sample == .pressed }
+    private var isHovered: Bool { hover || sample == .hover }
+
     private var fill: Color {
-        guard enabled else { return .clear }
-        if pressed || sample == .pressed { return OnePlusLinearColor.pressed }
-        if selected { return OnePlusLinearColor.selection }
-        return hover || sample == .hover ? OnePlusLinearColor.hover : .clear
+        switch kind {
+        case .soft:
+            guard enabled else { return OnePlusLinearColor.softButton }
+            return isPressed ? OnePlusLinearColor.softButtonPressed : isHovered ? OnePlusLinearColor.softButtonHover : OnePlusLinearColor.softButton
+        case .destructive:
+            guard enabled else { return OnePlusLinearColor.destructiveFill }
+            return isPressed ? OnePlusLinearColor.destructivePressed : isHovered ? OnePlusLinearColor.destructiveHover : OnePlusLinearColor.destructiveFill
+        case .plain, .raised:
+            guard enabled else { return .clear }
+            if isPressed { return OnePlusLinearColor.pressed }
+            if selected { return OnePlusLinearColor.selection }
+            return isHovered ? OnePlusLinearColor.hover : .clear
+        }
     }
 
     var body: some View {
         Group {
-            if kind == .raised {
+            switch kind {
+            case .raised:
                 label.linearText(weight: .medium)
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.button)
                     .linearRaised(radius: radius)
-            } else {
+            case .soft:
+                label.labelStyle(OnePlusLinearLabelStyle()).linearText(weight: .medium)
+                    .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.appletButton)
+            case .destructive:
+                label.linearText(color: OnePlusLinearColor.destructiveText)
+                    .frame(maxWidth: .infinity).frame(height: OnePlusLinearMetrics.appletDestructive)
+            case .plain:
                 label
             }
         }
@@ -58,6 +82,13 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
         .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
         .contentShape(RoundedRectangle(cornerRadius: radius))
         .onHover { hover = $0 }
+    }
+}
+
+/// A glyph at the label's size and a 6 pt gap, sharing one center line.
+private struct OnePlusLinearLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 6) { configuration.icon.imageScale(.small); configuration.title }
     }
 }
 
@@ -79,63 +110,6 @@ public struct OnePlusLinearIconButton: View {
         }
         .buttonStyle(OnePlusLinearButtonStyle())
         .help(help).accessibilityLabel(help)
-    }
-}
-
-/// The v15 switch: 26 x 16 track, 12 pt knob. The label is used for accessibility only.
-public struct OnePlusLinearSwitchStyle: ToggleStyle {
-    public init() {}
-    public func makeBody(configuration: Configuration) -> some View {
-        Button { configuration.isOn.toggle() } label: {
-            Capsule().fill(configuration.isOn ? OnePlusLinearColor.switchOn : OnePlusLinearColor.switchOff)
-                .overlay(alignment: configuration.isOn ? .trailing : .leading) {
-                    Circle().fill(configuration.isOn ? OnePlusLinearColor.knobOn : OnePlusLinearColor.knobOff)
-                        .shadow(color: .black.opacity(0.2), radius: 0.5, y: 1)
-                        .frame(width: OnePlusLinearMetrics.knob, height: OnePlusLinearMetrics.knob)
-                        .padding(.horizontal, 2)
-                }
-                .frame(width: OnePlusLinearMetrics.switchSize.width, height: OnePlusLinearMetrics.switchSize.height)
-        }
-        .buttonStyle(OnePlusLinearButtonStyle(radius: OnePlusLinearMetrics.switchSize.height / 2))
-        .accessibilityRepresentation { Toggle(isOn: configuration.$isOn) { configuration.label } }
-    }
-}
-
-/// A compact segmented control: 22 pt track, 40 x 18 segments, 11 pt labels.
-/// A choice for which `isChoiceEnabled` returns false is dimmed and takes no click, hover, or arrow-key selection.
-public struct OnePlusLinearSegmented<Value: Hashable>: View {
-    private let choices: [(Value, String)]
-    @Binding private var selection: Value
-    private let label: String
-    private let isChoiceEnabled: (Value) -> Bool
-    public init(choices: [(Value, String)], selection: Binding<Value>, accessibilityLabel: String,
-                isChoiceEnabled: @escaping (Value) -> Bool = { _ in true }) {
-        self.choices = choices; _selection = selection; label = accessibilityLabel; self.isChoiceEnabled = isChoiceEnabled
-    }
-    public var body: some View {
-        HStack(spacing: 2) {
-            ForEach(choices, id: \.0) { value, title in
-                let on = value == selection
-                Button { if isChoiceEnabled(value) { selection = value } } label: {
-                    Text(title).linearText(OnePlusLinearMetrics.caption, weight: on ? .medium : .regular,
-                                           color: on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
-                        .frame(width: OnePlusLinearMetrics.segment.width, height: OnePlusLinearMetrics.segment.height)
-                        .linearSegmentSelected(on, radius: 4)
-                }
-                .buttonStyle(OnePlusLinearButtonStyle(radius: 4))
-                .disabled(!isChoiceEnabled(value))
-                .accessibilityAddTraits(on ? .isSelected : [])
-            }
-        }
-        .linearTrack(radius: OnePlusLinearMetrics.radius)
-        .accessibilityElement(children: .contain).accessibilityLabel(label)
-        .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
-            guard press.modifiers.isEmpty else { return .ignored }
-            if let next = OnePlusSegmented<Value>.nextSelection(in: choices.map(\.0), current: selection,
-                                                              direction: press.key == .leftArrow ? -1 : 1,
-                                                              isChoiceEnabled: isChoiceEnabled) { selection = next }
-            return .handled
-        }
     }
 }
 

@@ -275,6 +275,59 @@ Dark text roles are lighter than the mockup so they meet APCA Lc 60 for labels
 and Lc 45 for captions. CPU numbers use `cpuText`, which is lighter than the
 `cpu` chart line in Dark.
 
+### Applets
+
+The v15 applet look ("Filled groups") for the small tool and settings windows.
+The showcase page **Version 15 applets** composes Ruler Defaults and Color
+Picker from these parts. Reference renders: `docs/design/v15/applet-*.png`.
+
+| Part | Use |
+|---|---|
+| `OnePlusLinearApplet(_:canvas:actions:content:)` | Shell: body-colored 48 pt title area with no line, title after the lights, trailing actions. With a `canvas` it applies the fixed-window chrome. Sets the `.quiet` control look. |
+| `OnePlusLinearAppletTitlebar(_:actions:)` | The title area alone, for a custom shell. |
+| `OnePlusLinearAppletSettingsButton(isActive:action:)` | 24 pt gear left of the primary action; Command-comma. |
+| `OnePlusLinearAppletForm { sections } footer: { }` | Scrolling body: 16 pt gutter, sections 16 pt apart, footer 20 pt below. |
+| `OnePlusLinearAppletSection(_:) { rows }`, `OnePlusLinearAppletGroup { rows }` | Caption above a filled group (10 pt radius, no border); hairlines start at the text edge. |
+| `OnePlusLinearAppletRow(_:detail:) { control }`, `OnePlusLinearAppletRow(_:value:)` | 36 pt row: label (and second line) leading, control or value trailing. |
+| `OnePlusLinearAppletSliderRow(_:value:in:step:format:)` | Label, 150 pt slider, live value in a 36 pt column. |
+| `OnePlusLinearAppletListRow(_:monospaced:metadata:actions:leading:)`, `OnePlusLinearSwatch(_:)` | List row with swatch or icon, metadata, icon actions, full-row hover. |
+| `OnePlusLinearAppletTabRow(tabs:selection:trailing:)` | Text tabs with counts and the accent underline on a 32 pt row. |
+| `OnePlusLinearAppletToolbar { }` | Fixed search and select row, 12 pt above and below. |
+| `OnePlusLinearSearchField(_:text:style: .applet)` | 26 pt search with a magnifier; Command-F. |
+| `OnePlusLinearSelect(choices:selection:accessibilityLabel:style:width:)` | `.field` (26 pt bezel) or `.text` (tab-row filter); opens `OnePlusPopupMenu`. |
+| `OnePlusLinearButtonStyle(.soft)` | Primary action: soft gray fill, 24 pt, no border. |
+| `OnePlusLinearButtonStyle(.destructive)` | Full-width 30 pt red-tint button with red text. |
+| `OnePlusLinearSegmented`, `OnePlusLinearSwitchStyle`, `OnePlusLinearSlider(_:value:in:step:)`, `OnePlusStepperField`, `OnePlusLinearColorWell(_:color:showsAlpha:)` | Controls; inside an applet they take the control look. |
+
+Control look: `OnePlusLinearControlLook` in `\.onePlusLinearControlLook` is
+the one style point for the applet controls. The applet sets `.depth`, the
+owner's pick: recessed tracks, gently raised knobs and caps with a fine top
+highlight (`OnePlusLinearColor.depth*` tokens). Sizes: segmented 112 x 24
+(36 x 20 segments), switch 30 x 18 in a 40 x 24 hit area, slider 140 pt with
+a 6 pt track and 16 pt knob, stepper 24 pt with 20 pt minus and plus caps,
+color well 44 x 24. Reference: MacPowerToys
+`docs/design/v15/controls-depth.html`. Without a look, the segmented control
+and switch keep their panel look.
+
+AppKit hosts (the Ruler windows) use the same dynamic tokens:
+`NSColor(OnePlusLinearColor.appletWindow)` for the window background and the
+`OnePlusLinearMetrics.applet*` numbers, or host the SwiftUI groups.
+
+### Motion
+
+`OnePlusLinearMotion` holds the "Quiet" tokens: curve `cubic-bezier(0.25, 1,
+0.5, 1)`, `knob` 0.14 s, `slider` 0.16 s, `contentIn` 0.16 s, `contentOut`
+0.12 s, `contentOffset` 4 pt.
+
+- `.onePlusLinearMotion(.quiet)` turns the motion on for a surface. The
+  default is `.instant`, so the main window and the menu panel do not move
+  until the app turns it on. Reduce Motion makes every change instant.
+- With Quiet on, the switch knob and the segment thumb slide, the slider knob
+  slides on a change from code (it follows the pointer while dragged), and
+  `OnePlusLinearContentSwitch(value) { }` fades new content in with a 4 pt
+  rise. Nothing moves on hover or press, nothing staggers, and numbers change
+  at once. Every move can be interrupted and ends in the rest layout.
+
 ## Add a variant
 
 1. Read the corresponding `DESIGN.md` recipe and check the existing component.
