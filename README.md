@@ -256,7 +256,7 @@ showcase page **Version 15** composes both surfaces with the mockup data.
 | `OnePlusLinearTextTabs(tabs:selection:)` | Text tabs with counts and the accent underline on the toolbar line. |
 | `OnePlusLinearPaneBody { }` | Scrolling body with the 24 pt gutter and 16 pt section gap. |
 | `OnePlusLinearSection(_:count:) { rows }` | Section caption plus a grouped list. |
-| `OnePlusLinearToolRow(_:summary:icon:isEnabled:isFavorite:open:)` | 36 pt tool row: star on hover, focus, or when set; switch; chevron. |
+| `OnePlusLinearToolRow(_:summary:icon:isEnabled:isFavorite:open:)` | 36 pt tool row: star on hover, focus, or when set; switch; chevron. At rest the unset star is unpainted but stays a "Favorite" toggle for VoiceOver and the keyboard. |
 | `OnePlusLinearList(style:) { rows }` | Grouped rows with hairline separators (`.window`, `.panel`). |
 | `OnePlusLinearPanel { blocks } footer: { }` | 356 pt panel shell with no top bar. |
 | `OnePlusLinearPanelHeader(_:note:columns:)`, `.processes()` | 24 pt block header with right-aligned column titles. |
@@ -264,7 +264,7 @@ showcase page **Version 15** composes both surfaces with the mockup data.
 | `OnePlusLinearTile(height:chart:usage:) { }` | Metric tile; `OnePlusLinearChart` draws history, `OnePlusLinearUsage` a bar. |
 | `OnePlusLinearTileLabel`, `OnePlusLinearTileValue`, `OnePlusLinearTileSplit`, `OnePlusLinearInlineValue` | Tile content rows. |
 | `OnePlusLinearControlRow(_:systemImage:status:) { control }` | 32 pt Fan or Kwake row. |
-| `OnePlusLinearSegmented(choices:selection:accessibilityLabel:)` | 40 x 18 segments in a quiet track. |
+| `OnePlusLinearSegmented(choices:selection:accessibilityLabel:isChoiceEnabled:)` | 40 x 18 segments in a quiet track. A choice where `isChoiceEnabled` is false dims to 0.38 and takes no click, hover, or arrow key; the others stay active. |
 | `OnePlusLinearSwitchStyle()` | 26 x 16 switch for `Toggle`. |
 | `OnePlusLinearProcessRow(_:icon:cpu:memory:color:)` | 30 pt process row; CPU number and `%` in the data color. |
 | `OnePlusLinearActionBar([OnePlusLinearAction])` | One joined action bar with full-segment hover. |

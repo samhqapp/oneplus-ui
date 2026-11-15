@@ -119,6 +119,57 @@ final class OnePlusLinearTests: XCTestCase {
         }
     }
 
+    func testUnsetFavoriteStarStaysInTheAccessibilityTreeAtRest() throws {
+        var favorite = false
+        let binding = Binding(get: { favorite }, set: { favorite = $0 })
+        let host = NSHostingView(rootView: OnePlusLinearToolRow("Ruler", summary: "Measure", icon: Image(systemName: "ruler"),
+                                                                isEnabled: .constant(true), isFavorite: binding) {}
+            .environment(\.onePlusControlState, .rest).frame(width: 338))
+        let window = attach(host, size: CGSize(width: 338, height: 36))
+        defer { window.close() }
+        let nodes = accessibilityTree(of: host, in: window)
+        // Open, Favorite, and Enable each keep a key-loop proxy.
+        XCTAssertEqual(host.subviews.filter(\.canBecomeKeyView).count, 3)
+        let star = try XCTUnwrap(nodes.first { $0.accessibilityLabel() == "Favorite" })
+        XCTAssertEqual(star.accessibilityValue() as? String, "Off")
+        XCTAssertTrue(star.accessibilityPerformPress())
+        XCTAssertTrue(favorite)
+    }
+
+    func testDisabledSegmentTakesNoClickAndArrowKeysSkipIt() throws {
+        var fan = "Auto"
+        let binding = Binding(get: { fan }, set: { fan = $0 })
+        let host = NSHostingView(rootView: OnePlusLinearSegmented(choices: [("Auto", "Auto"), ("Cool", "Cool"), ("Max", "Max")],
+                                                                  selection: binding, accessibilityLabel: "Fan",
+                                                                  isChoiceEnabled: { $0 != "Cool" }))
+        let window = attach(host, size: CGSize(width: 128, height: 22))
+        defer { window.close() }
+        let elements = accessibilityTree(of: host, in: window)
+        let cool = try XCTUnwrap(elements.first { $0.accessibilityLabel() == "Cool" })
+        XCTAssertFalse(cool.isAccessibilityEnabled())
+        _ = cool.accessibilityPerformPress()
+        XCTAssertEqual(fan, "Auto")
+        XCTAssertTrue(try XCTUnwrap(elements.first { $0.accessibilityLabel() == "Max" }).accessibilityPerformPress())
+        XCTAssertEqual(fan, "Max")
+        let enabled: (String) -> Bool = { $0 != "Cool" }
+        let order = ["Auto", "Cool", "Max"]
+        XCTAssertEqual(OnePlusSegmented<String>.nextSelection(in: order, current: "Max", direction: -1, isChoiceEnabled: enabled), "Auto")
+        XCTAssertEqual(OnePlusSegmented<String>.nextSelection(in: order, current: "Auto", direction: 1, isChoiceEnabled: enabled), "Max")
+    }
+
+    /// SwiftUI builds its accessibility nodes only for a window on screen (here offscreen, behind every
+    /// window, never key) once an assistive client asks, as VoiceOver does.
+    private func accessibilityTree(of host: NSView, in window: NSWindow) -> [NSAccessibilityElement] {
+        window.orderBack(nil)
+        NSApp.accessibilitySetValue(true, forAttribute: NSAccessibility.Attribute(rawValue: "AXEnhancedUserInterface"))
+        func walk(_ children: [Any]?) -> [NSAccessibilityElement] {
+            // The SwiftUI node class answers the NSAccessibility methods without declaring the protocol.
+            let nodes = (children ?? []).map { unsafeBitCast($0 as AnyObject, to: NSAccessibilityElement.self) }
+            return nodes + nodes.flatMap { walk($0.accessibilityChildren()) }
+        }
+        return walk(host.accessibilityChildren())
+    }
+
     func testTextTokensMeetAPCAOnEveryV15Surface() throws {
         let surfaces = [OnePlusLinearColor.window, OnePlusLinearColor.sidebar, OnePlusLinearColor.panelShell,
                         OnePlusLinearColor.panelTile, OnePlusLinearColor.panelFooter, OnePlusLinearColor.button]

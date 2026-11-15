@@ -102,24 +102,28 @@ public struct OnePlusLinearSwitchStyle: ToggleStyle {
 }
 
 /// A compact segmented control: 22 pt track, 40 x 18 segments, 11 pt labels.
+/// A choice for which `isChoiceEnabled` returns false is dimmed and takes no click, hover, or arrow-key selection.
 public struct OnePlusLinearSegmented<Value: Hashable>: View {
     private let choices: [(Value, String)]
     @Binding private var selection: Value
     private let label: String
-    public init(choices: [(Value, String)], selection: Binding<Value>, accessibilityLabel: String) {
-        self.choices = choices; _selection = selection; label = accessibilityLabel
+    private let isChoiceEnabled: (Value) -> Bool
+    public init(choices: [(Value, String)], selection: Binding<Value>, accessibilityLabel: String,
+                isChoiceEnabled: @escaping (Value) -> Bool = { _ in true }) {
+        self.choices = choices; _selection = selection; label = accessibilityLabel; self.isChoiceEnabled = isChoiceEnabled
     }
     public var body: some View {
         HStack(spacing: 2) {
             ForEach(choices, id: \.0) { value, title in
                 let on = value == selection
-                Button { selection = value } label: {
+                Button { if isChoiceEnabled(value) { selection = value } } label: {
                     Text(title).linearText(OnePlusLinearMetrics.caption, weight: on ? .medium : .regular,
                                            color: on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
                         .frame(width: OnePlusLinearMetrics.segment.width, height: OnePlusLinearMetrics.segment.height)
                         .linearSegmentSelected(on, radius: 4)
                 }
                 .buttonStyle(OnePlusLinearButtonStyle(radius: 4))
+                .disabled(!isChoiceEnabled(value))
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
         }
@@ -128,7 +132,8 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
         .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
             guard press.modifiers.isEmpty else { return .ignored }
             if let next = OnePlusSegmented<Value>.nextSelection(in: choices.map(\.0), current: selection,
-                                                              direction: press.key == .leftArrow ? -1 : 1) { selection = next }
+                                                              direction: press.key == .leftArrow ? -1 : 1,
+                                                              isChoiceEnabled: isChoiceEnabled) { selection = next }
             return .handled
         }
     }

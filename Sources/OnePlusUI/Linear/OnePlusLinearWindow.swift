@@ -234,7 +234,8 @@ public struct OnePlusLinearPaneBody<Content: View>: View {
 }
 
 /// A 36 pt tool row: 20 pt icon, name, one-line summary, favorite star, enable switch, chevron.
-/// The whole row opens the tool. The star shows on hover, keyboard focus, or when set.
+/// The whole row opens the tool. The star paints on hover, keyboard focus, or when set; at rest it stays
+/// an unpainted "Favorite" toggle for VoiceOver and Full Keyboard Access.
 public struct OnePlusLinearToolRow: View {
     private let name: String
     private let summary: String
@@ -289,17 +290,19 @@ public struct OnePlusLinearToolRow: View {
     @ViewBuilder private var star: some View {
         if let isFavorite {
             let set = isFavorite.wrappedValue
+            // Hide only the glyph paint: an opacity-0 button leaves the accessibility tree and keyboard focus loop.
+            let visible = set || hovering || starFocused
             Button { isFavorite.wrappedValue.toggle() } label: {
                 Image(systemName: set ? "star.fill" : "star").font(.system(size: 11))
-                    .foregroundStyle(set ? OnePlusLinearColor.accent : OnePlusLinearColor.muted)
+                    .foregroundStyle(!visible ? Color.clear : set ? OnePlusLinearColor.accent : OnePlusLinearColor.muted)
                     .frame(width: OnePlusLinearMetrics.starSlot, height: OnePlusLinearMetrics.starSlot)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain).focused($starFocused)
-            .focusEffectDisabled(!OnePlusFocusPolicy.shared.showsFocus)
-            .opacity(set || hovering || starFocused ? 1 : 0)
-            .help(set ? "Remove from Favorites" : "Add to Favorites")
-            .accessibilityLabel(set ? "Remove \(name) from Favorites" : "Add \(name) to Favorites")
+            .focusEffectDisabled(!OnePlusFocusPolicy.shared.showsFocus)            .help(set ? "Remove from Favorites" : "Add to Favorites")
+            .accessibilityLabel("Favorite")
+            .accessibilityValue(set ? "On" : "Off")
+            .accessibilityAddTraits(.isToggle)
         } else {
             Color.clear.frame(width: OnePlusLinearMetrics.starSlot, height: OnePlusLinearMetrics.starSlot)
         }
