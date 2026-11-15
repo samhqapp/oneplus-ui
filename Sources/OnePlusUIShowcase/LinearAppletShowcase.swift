@@ -16,6 +16,7 @@ struct LinearAppletShowcase: View {
             .padding(24)
             .onePlusLinearMotion(.quiet)
             LinearDepthContactSheet().clipShape(RoundedRectangle(cornerRadius: 12)).padding([.horizontal, .bottom], 24)
+            LinearAppletPartsSheet().clipShape(RoundedRectangle(cornerRadius: 12)).padding([.horizontal, .bottom], 24)
         }
         .background(OnePlusLinearColor.sidebar)
     }
@@ -81,6 +82,84 @@ struct LinearDepthContactSheet: View {
         default:
             OnePlusLinearColorWell(row, color: .constant(NSColor(srgbRed: 1, green: 0.84, blue: 0.04, alpha: 1)))
         }
+    }
+}
+
+/// The 1.2.1 applet parts: stepper units in a tight row, list-row metadata gap, text field, fitted segments,
+/// ghost button, nav row count and dimmed name, pane toolbar without navigation, empty state, and banners.
+struct LinearAppletPartsSheet: View {
+    static let size = CGSize(width: 860, height: 450)
+    @State private var mode = "accurate"
+    @State private var tab = 0
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 0) {
+            VStack(alignment: .leading, spacing: OnePlusLinearMetrics.appletSectionGap) {
+                OnePlusLinearAppletSection("Timer") {
+                    OnePlusLinearAppletRow("Duration") {
+                        HStack(spacing: OnePlusLinearMetrics.appletActionGap) {
+                            OnePlusStepperField("Hours", value: .constant(2), in: 0...168, unit: "h")
+                            OnePlusStepperField("Minutes", value: .constant(30), in: 0...59, step: 5, unit: "min")
+                            Button("Start") {}.buttonStyle(OnePlusLinearButtonStyle(.soft))
+                        }
+                    }
+                    OnePlusLinearAppletRow("Mode") {
+                        OnePlusLinearSegmented(choices: [("fast", "Fast"), ("accurate", "Accurate"), ("custom", "Custom")],
+                                               selection: $mode, accessibilityLabel: "Mode", sizing: .fitted)
+                    }
+                    OnePlusLinearAppletRow("Name") { OnePlusLinearTextField("Project name", text: .constant("")).frame(width: 180) }
+                    OnePlusLinearAppletRow("Focused") {
+                        OnePlusLinearTextField("Path", text: .constant("~/Downloads")).frame(width: 180)
+                            .environment(\.onePlusControlState, .focus)
+                    }
+                }
+                OnePlusLinearAppletSection("Projects") {
+                    OnePlusLinearAppletListRow("A very long project name that has to truncate before its count", metadata: "128 colors",
+                                               actions: [OnePlusLinearAction("Export", systemImage: "square.and.arrow.up") {}]) {
+                        OnePlusLinearSwatch(.orange)
+                    }
+                }
+                HStack(spacing: OnePlusLinearMetrics.appletActionGap) {
+                    Button("Cancel") {}.buttonStyle(OnePlusLinearButtonStyle(.ghost))
+                    Button("Hover") {}.buttonStyle(OnePlusLinearButtonStyle(.ghost)).environment(\.onePlusControlState, .hover)
+                    Button {} label: { Label("Pick Color", systemImage: "eyedropper") }.buttonStyle(OnePlusLinearButtonStyle(.soft))
+                }
+                OnePlusLinearBanner(.info, title: "Accessibility access is on", message: "Scrolling follows your profiles.")
+                OnePlusLinearBanner(.warning, title: "Accessibility access needed", message: "Custom scrolling is paused.") {
+                    Button("Open Settings") {}.buttonStyle(OnePlusLinearButtonStyle(.soft))
+                }
+            }
+            .padding(OnePlusLinearMetrics.appletGutter)
+            .frame(width: 460)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .background(OnePlusLinearColor.appletWindow)
+            .environment(\.onePlusLinearControlLook, .depth)
+
+            VStack(alignment: .leading, spacing: 0) {
+                OnePlusLinearPaneToolbar(title: "Settings") {
+                    OnePlusLinearTextTabs(tabs: [OnePlusTab(0, "General"), OnePlusTab(1, "About")], selection: $tab)
+                }
+                HStack(alignment: .top, spacing: 0) {
+                    VStack(spacing: 2) {
+                        OnePlusLinearNavRow("Transfers", systemImage: "arrow.up.arrow.down", selected: true, count: 3) {}
+                        OnePlusLinearNavRow("Remotes", systemImage: "externaldrive", count: 12) {}
+                        OnePlusLinearNavRow("Dev Sync", systemImage: "arrow.triangle.2.circlepath", dimmed: true) {}
+                    }
+                    .padding(OnePlusLinearMetrics.sidebarInset)
+                    .frame(width: 180)
+                    .background(OnePlusLinearColor.sidebar)
+                    OnePlusLinearEmptyState("No transfers", systemImage: "tray",
+                                            message: "Start a transfer to see its progress here.") {
+                        Button("New Transfer") {}.buttonStyle(OnePlusLinearButtonStyle(.soft))
+                    }
+                }
+                .frame(maxHeight: .infinity, alignment: .top)
+            }
+            .frame(width: 400)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .background(OnePlusLinearColor.window)
+        }
+        .frame(width: Self.size.width, height: Self.size.height, alignment: .topLeading)
     }
 }
 

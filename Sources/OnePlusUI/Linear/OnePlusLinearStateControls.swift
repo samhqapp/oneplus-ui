@@ -57,19 +57,25 @@ private struct OnePlusDepthSwitchStyle: ButtonStyle {
     }
 }
 
+/// How segments take their width: `.equal` uses the fixed segment width; `.fitted` sizes each segment to its
+/// label plus 10 pt on each side ("Fast / Accurate / Custom").
+public enum OnePlusLinearSegmentSizing: Sendable { case equal, fitted }
+
 /// A compact segmented control: 22 pt track, 40 x 18 segments, 11 pt labels.
 /// A choice for which `isChoiceEnabled` returns false is dimmed and takes no click, hover, or arrow-key selection.
 public struct OnePlusLinearSegmented<Value: Hashable>: View {
     private let choices: [(Value, String)]
     @Binding private var selection: Value
     private let label: String
+    private let sizing: OnePlusLinearSegmentSizing
     private let isChoiceEnabled: (Value) -> Bool
     @Namespace private var thumb
     @Environment(\.onePlusLinearControlLook) private var look
     @Environment(\.isEnabled) private var enabled
     public init(choices: [(Value, String)], selection: Binding<Value>, accessibilityLabel: String,
-                isChoiceEnabled: @escaping (Value) -> Bool = { _ in true }) {
-        self.choices = choices; _selection = selection; label = accessibilityLabel; self.isChoiceEnabled = isChoiceEnabled
+                sizing: OnePlusLinearSegmentSizing = .equal, isChoiceEnabled: @escaping (Value) -> Bool = { _ in true }) {
+        self.choices = choices; _selection = selection; label = accessibilityLabel; self.sizing = sizing
+        self.isChoiceEnabled = isChoiceEnabled
     }
     public var body: some View {
         // Panel: 22 pt track, 40 x 18 segments, 11 pt labels. Applet look: recessed 24 pt track, 36 x 20 segments,
@@ -82,7 +88,9 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                     Text(title).linearText(look == nil ? OnePlusLinearMetrics.caption : OnePlusLinearMetrics.body,
                                            weight: on ? .medium : .regular,
                                            color: on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
-                        .frame(width: look?.segmentWidth ?? OnePlusLinearMetrics.segment.width,
+                        .fixedSize(horizontal: sizing == .fitted, vertical: false)
+                        .padding(.horizontal, sizing == .fitted ? 10 : 0)
+                        .frame(width: sizing == .fitted ? nil : look?.segmentWidth ?? OnePlusLinearMetrics.segment.width,
                                height: look?.segmentHeight ?? OnePlusLinearMetrics.segment.height)
                         .background {
                             // One thumb moves between segments, so Quiet motion slides it.

@@ -205,6 +205,17 @@ final class OnePlusLinearAppletTests: XCTestCase {
         }
     }
 
+    /// Writes the 1.2.1 applet parts sheet at 2x in both appearances.
+    func testRenderAppletPartsSheet() throws {
+        try FileManager.default.createDirectory(atPath: Self.output, withIntermediateDirectories: true)
+        for appearance in Self.appearances {
+            let size = LinearAppletPartsSheet.size
+            let render = try LinearRender.bitmap(NSHostingView(rootView: LinearAppletPartsSheet()), size: size, scale: 2, appearance: appearance)
+            let data = try XCTUnwrap(render.retagging(with: .sRGB)?.representation(using: .png, properties: [:]))
+            try data.write(to: URL(fileURLWithPath: "\(Self.output)/parts-121-\(appearance == .darkAqua ? "dark" : "light").png"))
+        }
+    }
+
     /// Writes both samples for side-by-side review with the reference renders.
     func testRenderAppletSamples() throws {
         try FileManager.default.createDirectory(atPath: Self.output, withIntermediateDirectories: true)

@@ -11,6 +11,8 @@ public struct OnePlusLinearButtonStyle: ButtonStyle {
         case raised
         /// The applet primary action (`Pick Color`): 24 pt, soft gray fill, no border, 13 pt medium.
         case soft
+        /// A secondary text action: the `.soft` geometry and type with no fill until hover; `appletSecondary` text, `ink` on hover.
+        case ghost
         /// The applet destructive action (`Reset to Factory Defaults`): full width, 30 pt, red tint, red text.
         case destructive
     }
@@ -49,7 +51,7 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
         case .destructive:
             guard enabled else { return OnePlusLinearColor.destructiveFill }
             return isPressed ? OnePlusLinearColor.destructivePressed : isHovered ? OnePlusLinearColor.destructiveHover : OnePlusLinearColor.destructiveFill
-        case .plain, .raised:
+        case .plain, .raised, .ghost:
             guard enabled else { return .clear }
             if isPressed { return OnePlusLinearColor.pressed }
             if selected { return OnePlusLinearColor.selection }
@@ -65,7 +67,13 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.button)
                     .linearRaised(radius: radius)
             case .soft:
-                label.labelStyle(OnePlusLinearLabelStyle()).linearText(weight: .medium)
+                // A text action never truncates; the neighboring row label gives way instead.
+                label.labelStyle(OnePlusLinearLabelStyle()).linearText(weight: .medium).fixedSize()
+                    .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.appletButton)
+            case .ghost:
+                label.labelStyle(OnePlusLinearLabelStyle())
+                    .linearText(weight: .medium, color: enabled && (isHovered || isPressed) ? OnePlusLinearColor.ink : OnePlusLinearColor.appletSecondary)
+                    .fixedSize()
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.appletButton)
             case .destructive:
                 label.linearText(color: OnePlusLinearColor.destructiveText)

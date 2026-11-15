@@ -188,3 +188,102 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
         expanded = OnePlusPopupPresenter.shared.isOpen(for: anchor.view)
     }
 }
+
+/// A text field at the applet look: a recessed 24 pt field with the control radius, 13 pt text, and the title as
+/// its placeholder. The focus line shows only under the shared keyboard focus policy. An error adds the danger
+/// line and a tooltip; the host shows any visible error text.
+public struct OnePlusLinearTextField: View {
+    private let title: String
+    @Binding private var text: String
+    private let error: String?
+    private let onSubmit: () -> Void
+    @FocusState private var focused: Bool
+    @Environment(\.onePlusLinearControlLook) private var environmentLook
+    @Environment(\.isEnabled) private var enabled
+
+    public init(_ title: String, text: Binding<String>, error: String? = nil, onSubmit: @escaping () -> Void = {}) {
+        self.title = title; _text = text; self.error = error; self.onSubmit = onSubmit
+    }
+
+    public var body: some View {
+        let look = environmentLook ?? .depth
+        let shape = RoundedRectangle(cornerRadius: look.radius)
+        TextField(text: $text, prompt: Text(title).foregroundStyle(OnePlusLinearColor.appletMuted)) { Text(title) }
+            .textFieldStyle(.plain).linearText()
+            .focused($focused).onSubmit(onSubmit)
+            .padding(.horizontal, 8).frame(height: look.height)
+            .background { OnePlusDepthRecess(shape, focused: focused) }
+            .overlay { if error != nil { shape.strokeBorder(OnePlusColor.dangerLine, lineWidth: 1) } }
+            .help(error ?? "")
+            .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+            .accessibilityLabel(title).accessibilityHint(error ?? "")
+    }
+}
+
+/// An applet empty state: a 22 pt glyph, a 13 pt medium title, an optional 12 pt line, and an optional action
+/// (usually a `.soft` or `.ghost` button), centered with 28 pt above and below.
+public struct OnePlusLinearEmptyState<Action: View>: View {
+    private let systemImage: String
+    private let title: String
+    private let message: String?
+    private let action: Action
+    public init(_ title: String, systemImage: String, message: String? = nil, @ViewBuilder action: () -> Action) {
+        self.title = title; self.systemImage = systemImage; self.message = message; self.action = action()
+    }
+    public var body: some View {
+        VStack(spacing: 6) {
+            Image(systemName: systemImage).font(.system(size: 22)).foregroundStyle(OnePlusLinearColor.appletMuted)
+                .padding(.bottom, 4).accessibilityHidden(true)
+            Text(title).linearText(weight: .medium)
+            if let message {
+                Text(message).linearText(OnePlusLinearMetrics.control, color: OnePlusLinearColor.appletSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            if Action.self != EmptyView.self { action.padding(.top, 6) }
+        }
+        .padding(.vertical, 28).padding(.horizontal, OnePlusLinearMetrics.appletGutter)
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .contain)
+    }
+}
+
+public extension OnePlusLinearEmptyState where Action == EmptyView {
+    init(_ title: String, systemImage: String, message: String? = nil) {
+        self.init(title, systemImage: systemImage, message: message) { EmptyView() }
+    }
+}
+
+/// An applet banner: a filled 10 pt group with a leading glyph, a 13 pt medium title, an optional 12 pt line,
+/// and an optional trailing action. `.info` uses the group fill; `.warning` an amber tint and a triangle glyph,
+/// so the state never relies on color alone.
+public struct OnePlusLinearBanner<Action: View>: View {
+    public enum Kind: Sendable { case info, warning }
+    private let kind: Kind
+    private let title: String
+    private let message: String?
+    private let action: Action
+    public init(_ kind: Kind, title: String, message: String? = nil, @ViewBuilder action: () -> Action) {
+        self.kind = kind; self.title = title; self.message = message; self.action = action()
+    }
+    public var body: some View {
+        HStack(spacing: OnePlusLinearMetrics.appletRowGap) {
+            Image(systemName: kind == .info ? "info.circle" : "exclamationmark.triangle.fill").font(.system(size: 13))
+                .foregroundStyle(kind == .info ? OnePlusLinearColor.appletSecondary : OnePlusLinearColor.warning)
+                .accessibilityLabel(kind == .info ? "Information" : "Warning")
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).linearText(weight: .medium)
+                if let message { Text(message).linearText(OnePlusLinearMetrics.control, color: OnePlusLinearColor.appletSecondary) }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            action
+        }
+        .padding(.horizontal, OnePlusLinearMetrics.appletRowPadding).padding(.vertical, 9)
+        .background(kind == .info ? OnePlusLinearColor.appletGroup : OnePlusLinearColor.warningFill,
+                    in: RoundedRectangle(cornerRadius: OnePlusLinearMetrics.appletGroupRadius))
+        .accessibilityElement(children: .contain)
+    }
+}
+
+public extension OnePlusLinearBanner where Action == EmptyView {
+    init(_ kind: Kind, title: String, message: String? = nil) { self.init(kind, title: title, message: message) { EmptyView() } }
+}

@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.1
+
+- Fix: the Depth `OnePlusStepperField` keeps its unit in a tight row; the row
+  label truncates instead.
+- Fix: `OnePlusLinearAppletListRow` puts the 10 pt row gap before its metadata
+  and truncates the title first.
+- Add `OnePlusLinearTextField`, `OnePlusLinearEmptyState`, `OnePlusLinearBanner`
+  (`.info`, `.warning`), the `.ghost` button kind, `sizing: .fitted` on
+  `OnePlusLinearSegmented`, `count` and `dimmed` on `OnePlusLinearNavRow`, and
+  `OnePlusLinearPaneToolbar(title:)` without back and forward.
+- `.soft` and `.ghost` labels never truncate.
+- Make `View.linearText(_:weight:color:)` public. Add the `warning` and
+  `warningFill` tokens.
+- Add the showcase parts sheet `LinearAppletPartsSheet`.
+
 ## 1.2.0
 
 - Add the DESIGN.md v15 applet parts ("Filled groups"): `OnePlusLinearApplet`

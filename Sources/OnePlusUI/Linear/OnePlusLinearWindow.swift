@@ -29,24 +29,28 @@ public struct OnePlusLinearSidebar<Search: View, Navigation: View, Bottom: View>
     }
 }
 
-/// A 28 pt sidebar row: 16 pt tool icon or 14 pt glyph, 13 pt label, optional trailing shortcut hint.
+/// A 28 pt sidebar row: 16 pt tool icon or 14 pt glyph, 13 pt label, optional trailing count or shortcut hint.
+/// `dimmed` shows a disabled destination's name in `muted`; the row stays clickable.
 public struct OnePlusLinearNavRow: View {
     private let title: String
     private let image: Image?
     private let systemImage: String?
     private let selected: Bool
     private let shortcut: String?
+    private let count: Int?
     private let dimmed: Bool
     private let action: () -> Void
     /// A tool row with its own icon artwork. `dimmed` marks a disabled tool.
-    public init(_ title: String, image: Image, selected: Bool = false, dimmed: Bool = false, action: @escaping () -> Void) {
+    public init(_ title: String, image: Image, selected: Bool = false, dimmed: Bool = false, count: Int? = nil,
+                action: @escaping () -> Void) {
         self.title = title; self.image = image; systemImage = nil; self.selected = selected
-        shortcut = nil; self.dimmed = dimmed; self.action = action
+        shortcut = nil; self.count = count; self.dimmed = dimmed; self.action = action
     }
-    /// A glyph row such as Settings (`⌘,`) or Exit (`⌘Q`).
-    public init(_ title: String, systemImage: String, selected: Bool = false, shortcut: String? = nil, action: @escaping () -> Void) {
+    /// A glyph row such as Settings (`⌘,`) or Exit (`⌘Q`), or a page with a trailing count.
+    public init(_ title: String, systemImage: String, selected: Bool = false, dimmed: Bool = false, count: Int? = nil,
+                shortcut: String? = nil, action: @escaping () -> Void) {
         self.title = title; image = nil; self.systemImage = systemImage; self.selected = selected
-        self.shortcut = shortcut; dimmed = false; self.action = action
+        self.shortcut = shortcut; self.count = count; self.dimmed = dimmed; self.action = action
     }
     public var body: some View {
         Button(action: action) {
@@ -65,6 +69,9 @@ public struct OnePlusLinearNavRow: View {
                                        color: selected ? OnePlusLinearColor.ink : dimmed ? OnePlusLinearColor.muted : OnePlusLinearColor.secondary)
                     .lineLimit(1).truncationMode(.tail)
                 Spacer(minLength: 0)
+                if let count {
+                    Text("\(count)").linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.muted).fixedSize()
+                }
                 if let shortcut {
                     Text(shortcut).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.muted).accessibilityHidden(true)
                 }
@@ -76,6 +83,7 @@ public struct OnePlusLinearNavRow: View {
         .buttonStyle(OnePlusLinearButtonStyle(selected: selected))
         .help(title)
         .accessibilityLabel(title)
+        .accessibilityValue(count.map(String.init) ?? "")
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
@@ -99,31 +107,38 @@ public struct OnePlusLinearNavCaption: View {
 }
 
 /// The 44 pt pane toolbar: back and forward, the page title, and trailing content (usually text tabs).
+/// Without navigation the title starts on the 24 pt content gutter.
 public struct OnePlusLinearPaneToolbar<Trailing: View>: View {
     private let title: String
     private let canGoBack: Bool
     private let canGoForward: Bool
-    private let back: () -> Void
-    private let forward: () -> Void
+    private let back: (() -> Void)?
+    private let forward: (() -> Void)?
     private let trailing: Trailing
     public init(title: String, canGoBack: Bool, canGoForward: Bool, back: @escaping () -> Void, forward: @escaping () -> Void,
                 @ViewBuilder trailing: () -> Trailing) {
         self.title = title; self.canGoBack = canGoBack; self.canGoForward = canGoForward
         self.back = back; self.forward = forward; self.trailing = trailing()
     }
+    /// A toolbar with no back and forward buttons.
+    public init(title: String, @ViewBuilder trailing: () -> Trailing) {
+        self.title = title; canGoBack = false; canGoForward = false; back = nil; forward = nil; self.trailing = trailing()
+    }
     public var body: some View {
         HStack(spacing: 8) {
-            HStack(spacing: 4) {
-                OnePlusLinearIconButton(systemImage: "chevron.left", help: "Back", size: OnePlusLinearMetrics.toolbarButton, action: back)
-                    .disabled(!canGoBack).keyboardShortcut("[")
-                OnePlusLinearIconButton(systemImage: "chevron.right", help: "Forward", size: OnePlusLinearMetrics.toolbarButton, action: forward)
-                    .disabled(!canGoForward).keyboardShortcut("]")
+            if let back, let forward {
+                HStack(spacing: 4) {
+                    OnePlusLinearIconButton(systemImage: "chevron.left", help: "Back", size: OnePlusLinearMetrics.toolbarButton, action: back)
+                        .disabled(!canGoBack).keyboardShortcut("[")
+                    OnePlusLinearIconButton(systemImage: "chevron.right", help: "Forward", size: OnePlusLinearMetrics.toolbarButton, action: forward)
+                        .disabled(!canGoForward).keyboardShortcut("]")
+                }
             }
             Text(title).linearText(weight: .semibold).lineLimit(1).accessibilityAddTraits(.isHeader)
             Spacer(minLength: 0)
             trailing.frame(maxHeight: .infinity)
         }
-        .padding(.leading, OnePlusLinearMetrics.toolbarLeading)
+        .padding(.leading, back == nil ? OnePlusLinearMetrics.gutter : OnePlusLinearMetrics.toolbarLeading)
         .padding(.trailing, OnePlusLinearMetrics.toolbarTrailing)
         .frame(height: OnePlusLinearMetrics.toolbar - 1)
         .background(OnePlusWindowDragArea())
@@ -136,6 +151,7 @@ public extension OnePlusLinearPaneToolbar where Trailing == EmptyView {
     init(title: String, canGoBack: Bool, canGoForward: Bool, back: @escaping () -> Void, forward: @escaping () -> Void) {
         self.init(title: title, canGoBack: canGoBack, canGoForward: canGoForward, back: back, forward: forward) { EmptyView() }
     }
+    init(title: String) { self.init(title: title) { EmptyView() } }
 }
 
 /// Text tabs with counts for the pane toolbar. The selected tab draws the 2 pt accent underline on the

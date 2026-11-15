@@ -249,10 +249,11 @@ showcase page **Version 15** composes both surfaces with the mockup data.
 |---|---|
 | `OnePlusLinearSidebar { search } navigation: { } bottom: { }` | 215 pt sidebar; Settings and Exit go in `bottom`. |
 | `OnePlusLinearSearchField(_:text:)` | 28 pt sidebar search with the `⌘K` chip; Command-K focuses it. |
-| `OnePlusLinearNavRow(_:image:selected:dimmed:action:)` | 28 pt tool row with its icon artwork. |
-| `OnePlusLinearNavRow(_:systemImage:selected:shortcut:action:)` | Glyph row with a trailing shortcut hint (`⌘,`, `⌘Q`). |
+| `OnePlusLinearNavRow(_:image:selected:dimmed:count:action:)` | 28 pt tool row with its icon artwork; trailing muted count; `dimmed` mutes a disabled name. |
+| `OnePlusLinearNavRow(_:systemImage:selected:dimmed:count:shortcut:action:)` | Glyph row with a trailing count or shortcut hint (`⌘,`, `⌘Q`). |
 | `OnePlusLinearNavCaption(_:count:)` | Sidebar group caption. |
 | `OnePlusLinearPaneToolbar(title:canGoBack:canGoForward:back:forward:) { }` | 44 pt toolbar; back and forward use Command-[ and Command-]. |
+| `OnePlusLinearPaneToolbar(title:) { }` | The same toolbar without back and forward; the title starts on the 24 pt gutter. |
 | `OnePlusLinearTextTabs(tabs:selection:)` | Text tabs with counts and the accent underline on the toolbar line. |
 | `OnePlusLinearPaneBody { }` | Scrolling body with the 24 pt gutter and 16 pt section gap. |
 | `OnePlusLinearSection(_:count:) { rows }` | Section caption plus a grouped list. |
@@ -297,7 +298,15 @@ Picker from these parts. Reference renders: `docs/design/v15/applet-*.png`.
 | `OnePlusLinearSelect(choices:selection:accessibilityLabel:style:width:)` | `.field` (26 pt bezel) or `.text` (tab-row filter); opens `OnePlusPopupMenu`. |
 | `OnePlusLinearButtonStyle(.soft)` | Primary action: soft gray fill, 24 pt, no border. |
 | `OnePlusLinearButtonStyle(.destructive)` | Full-width 30 pt red-tint button with red text. |
-| `OnePlusLinearSegmented`, `OnePlusLinearSwitchStyle`, `OnePlusLinearSlider(_:value:in:step:)`, `OnePlusStepperField`, `OnePlusLinearColorWell(_:color:showsAlpha:)` | Controls; inside an applet they take the control look. |
+| `OnePlusLinearButtonStyle(.ghost)` | Secondary text action: `.soft` geometry, no fill until hover. |
+| `OnePlusLinearTextField(_:text:error:onSubmit:)` | Recessed 24 pt text field; focus line only under Full Keyboard Access or VoiceOver. |
+| `OnePlusLinearEmptyState(_:systemImage:message:action:)` | Centered glyph, title, line, and optional action. |
+| `OnePlusLinearBanner(.info / .warning, title:message:action:)` | Filled banner with a glyph; warning uses an amber tint. |
+| `OnePlusLinearSegmented`, `OnePlusLinearSwitchStyle`, `OnePlusLinearSlider(_:value:in:step:)`, `OnePlusStepperField`, `OnePlusLinearColorWell(_:color:showsAlpha:)` | Controls; inside an applet they take the control look. `OnePlusLinearSegmented(..., sizing: .fitted)` sizes segments to their labels. |
+
+Text roles: `View.linearText(_:weight:color:)` is public; use it with
+`OnePlusLinearMetrics.body` / `.control` / `.caption` and the
+`OnePlusLinearColor` text tokens instead of copying fonts.
 
 Control look: `OnePlusLinearControlLook` in `\.onePlusLinearControlLook` is
 the one style point for the applet controls. The applet sets `.depth`, the

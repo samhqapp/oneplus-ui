@@ -87,12 +87,14 @@ public struct OnePlusStepperField: View {
                 .onKeyPress(.downArrow) { change(by: -step); return .handled }
                 .accessibilityLabel(title).accessibilityHint(error ?? "")
             if let unit {
-                Text(unit).linearText(color: OnePlusLinearColor.muted)
+                Text(unit).linearText(color: OnePlusLinearColor.muted).fixedSize()
                     .padding(.leading, 3).padding(.trailing, 2).accessibilityHidden(true)
             }
             stepButton(plus: true, "Increase \(title)", step, look)
         }
         .padding(.horizontal, (look.height - look.stepperCap) / 2)
+        // The unit was the only flexible child, so a tight row squeezed it to nothing; the row label truncates instead.
+        .fixedSize(horizontal: true, vertical: false)
         .frame(height: look.height)
         .background { OnePlusDepthRecess(shape, focused: focused) }
         .overlay { if error != nil { shape.strokeBorder(OnePlusColor.dangerLine, lineWidth: 1) } }

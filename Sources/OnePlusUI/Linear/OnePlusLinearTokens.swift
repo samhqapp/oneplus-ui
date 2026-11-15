@@ -117,6 +117,9 @@ public enum OnePlusLinearColor {
     /// Applet text on the lighter dark group fill: the mockup values, which keep Lc 60 and Lc 45 there.
     public static let appletSecondary = color("appletSecondary", light: 0x68686F, dark: 0xC1C1C7)
     public static let appletMuted = color("appletMuted", light: 0x82828A, dark: 0xAAABB2)
+    /// The warning banner: an amber tint fill and its glyph. Banner text stays `ink`.
+    public static let warningFill = color("warningFill", light: 0xE89B0C, lightAlpha: 0.14, dark: 0xF0B040, darkAlpha: 0.16)
+    public static let warning = color("warning", light: 0xA86500, dark: 0xF2BC55)
 
     // Data
     public static let cpu = color("cpu", light: 0x2A7DE1, dark: 0x4C8FE6)
@@ -240,7 +243,8 @@ public enum OnePlusLinearMetrics {
 }
 
 extension View {
-    func linearText(_ size: CGFloat = OnePlusLinearMetrics.body, weight: Font.Weight = .regular, color: Color = OnePlusLinearColor.ink) -> some View {
+    /// The Linear text role: system font at `size` (13 pt body by default), body tracking, the color, tabular digits.
+    public func linearText(_ size: CGFloat = OnePlusLinearMetrics.body, weight: Font.Weight = .regular, color: Color = OnePlusLinearColor.ink) -> some View {
         font(.system(size: size, weight: weight)).tracking(size == OnePlusLinearMetrics.body ? OnePlusLinearMetrics.bodyTracking : 0)
             .foregroundStyle(color).monospacedDigit()
     }

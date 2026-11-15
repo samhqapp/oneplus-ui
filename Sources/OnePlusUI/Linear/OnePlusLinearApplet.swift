@@ -216,7 +216,10 @@ public struct OnePlusLinearAppletListRow<Leading: View>: View {
                 }
             }
             .lineLimit(1).truncationMode(.tail).frame(maxWidth: .infinity, alignment: .leading)
-            if let metadata { Text(metadata).linearText(color: OnePlusLinearColor.appletMuted).lineLimit(1) }
+            if let metadata {
+                Text(metadata).linearText(color: OnePlusLinearColor.appletMuted).lineLimit(1).fixedSize()
+                    .padding(.leading, OnePlusLinearMetrics.appletRowGap)
+            }
             if !actions.isEmpty {
                 HStack(spacing: 2) {
                     ForEach(actions) { action in
