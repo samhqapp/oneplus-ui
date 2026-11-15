@@ -60,6 +60,26 @@ public struct OnePlusSidebarSearch: View {
     }
 }
 
+/// The v15 sidebar search: 28 pt, field fill, 12 pt text, and a `⌘K` key chip. Command-K focuses it.
+public struct OnePlusLinearSearchField: View {
+    @Binding private var text: String
+    private let prompt: String
+    private let focusTrigger: Int
+    private let identifier: String?
+    @State private var shortcutFocusTrigger = 0
+    @Environment(\.isEnabled) private var enabled
+    public init(_ prompt: String = "Search", text: Binding<String>, accessibilityIdentifier: String? = nil, focusTrigger: Int = 0) {
+        self.prompt = prompt; _text = text; identifier = accessibilityIdentifier; self.focusTrigger = focusTrigger
+    }
+    public var body: some View {
+        OnePlusNativeSearch(prompt: prompt, text: $text, focusTrigger: focusTrigger &+ shortcutFocusTrigger, identifier: identifier,
+                            hint: "⌘K", fontSize: OnePlusLinearMetrics.control, enabled: enabled, linear: true)
+            .frame(height: OnePlusLinearMetrics.searchHeight)
+            .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+            .background { Button("Focus search") { shortcutFocusTrigger &+= 1 }.keyboardShortcut("k").hidden() }
+    }
+}
+
 private struct OnePlusNativeSearch: NSViewRepresentable {
     let prompt: String
     @Binding var text: String
@@ -68,11 +88,17 @@ private struct OnePlusNativeSearch: NSViewRepresentable {
     let hint: String?
     let fontSize: CGFloat
     let enabled: Bool
+    var linear = false
 
     func makeNSView(context: Context) -> OnePlusSearchView { OnePlusSearchView() }
     func updateNSView(_ view: OnePlusSearchView, context: Context) {
+        if view.linear != linear { view.linear = linear; view.needsDisplay = true }
         view.changed = { text = $0 }
         view.field.placeholderString = prompt
+        if linear {
+            view.field.placeholderAttributedString = NSAttributedString(string: prompt, attributes: [
+                .foregroundColor: NSColor(OnePlusLinearColor.muted), .font: NSFont.systemFont(ofSize: fontSize)])
+        }
         view.field.setAccessibilityLabel(prompt)
         view.field.setAccessibilityIdentifier(identifier)
         view.field.isEnabled = enabled
@@ -97,6 +123,18 @@ class OnePlusSearchView: NSView, NSSearchFieldDelegate {
     let hint = NSTextField(labelWithString: "")
     var changed: (String) -> Void = { _ in }
     var focusTrigger = 0
+    var linear = false {
+        didSet {
+            hint.font = linear ? .systemFont(ofSize: OnePlusLinearMetrics.caption) : .monospacedSystemFont(ofSize: 10, weight: .regular)
+            hint.textColor = NSColor(linear ? OnePlusLinearColor.muted : OnePlusColor.muted)
+            hint.alignment = linear ? .center : .natural
+            field.textColor = NSColor(linear ? OnePlusLinearColor.ink : OnePlusColor.controlInk)
+        }
+    }
+    private var hintChip: NSRect {
+        let width = ceil(hint.attributedStringValue.size().width) + 10
+        return NSRect(x: bounds.width - 6 - width, y: (bounds.height - 18) / 2, width: width, height: 18)
+    }
     private var focused = false
     private var hovered = false
     private var hoverArea: NSTrackingArea?
@@ -126,6 +164,15 @@ class OnePlusSearchView: NSView, NSSearchFieldDelegate {
 
     override func layout() {
         super.layout()
+        if linear {
+            let lineHeight = field.font.map { textLayout.defaultLineHeight(for: $0) } ?? 15
+            let chip = hintChip
+            let trailing = hint.isHidden ? 6 : bounds.width - chip.minX + 4
+            field.frame = NSRect(x: 8, y: (bounds.height - lineHeight) / 2, width: max(0, bounds.width - 8 - trailing), height: lineHeight)
+            let hintHeight = ceil(hint.attributedStringValue.size().height)
+            hint.frame = NSRect(x: chip.minX, y: chip.midY - hintHeight / 2, width: chip.width, height: hintHeight)
+            return
+        }
         let hintWidth: CGFloat = hint.isHidden ? 0 : 28
         // Borderless NSSearchField draws its line at the top of its frame.
         // Fit that frame to the line so native text, placeholder, and editor agree.
@@ -154,6 +201,19 @@ class OnePlusSearchView: NSView, NSSearchFieldDelegate {
     override func mouseEntered(with event: NSEvent) { hovered = true; needsDisplay = true }
     override func mouseExited(with event: NSEvent) { hovered = false; needsDisplay = true }
     override func draw(_ dirtyRect: NSRect) {
+        if linear {
+            let showFocus = focused && OnePlusFocusPolicy.shared.showsFocus
+            let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 6, yRadius: 6)
+            NSColor(OnePlusLinearColor.field).setFill(); path.fill()
+            if hovered && field.isEnabled && !focused { NSColor(OnePlusLinearColor.hover).setFill(); path.fill() }
+            NSColor(showFocus ? OnePlusColor.focus : OnePlusLinearColor.line).setStroke(); path.lineWidth = 1; path.stroke()
+            if !hint.isHidden {
+                let chip = NSBezierPath(roundedRect: hintChip.insetBy(dx: 0.5, dy: 0.5), xRadius: 4, yRadius: 4)
+                NSColor(OnePlusLinearColor.kbd).setFill(); chip.fill()
+                NSColor(OnePlusLinearColor.line).setStroke(); chip.lineWidth = 1; chip.stroke()
+            }
+            return
+        }
         let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 6, yRadius: 6)
         NSColor(focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.fieldFocus : hovered && field.isEnabled ? OnePlusColor.raised : OnePlusColor.field).setFill()
         path.fill()

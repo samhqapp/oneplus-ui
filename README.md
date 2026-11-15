@@ -237,6 +237,44 @@ actions. `OnePlusNavRow(muted:)` dims a label while keeping navigation active.
 Its legacy width argument remains valid; the trigger fits its label. Native
 submenu commands appear under named section headers in the current popup.
 
+## Version 15 (Linear style)
+
+DESIGN.md v15 parts for the MacPowerToys main window and combined menu panel.
+They sit beside the v14 components; nothing in v14 changes. Tokens are
+`OnePlusLinearColor` (dynamic, per-appearance alpha) and `OnePlusLinearMetrics`.
+The reference renders are in `macpowertoys/docs/design/v15/`, and the
+showcase page **Version 15** composes both surfaces with the mockup data.
+
+| Part | Use |
+|---|---|
+| `OnePlusLinearSidebar { search } navigation: { } bottom: { }` | 215 pt sidebar; Settings and Exit go in `bottom`. |
+| `OnePlusLinearSearchField(_:text:)` | 28 pt sidebar search with the `⌘K` chip; Command-K focuses it. |
+| `OnePlusLinearNavRow(_:image:selected:dimmed:action:)` | 28 pt tool row with its icon artwork. |
+| `OnePlusLinearNavRow(_:systemImage:selected:shortcut:action:)` | Glyph row with a trailing shortcut hint (`⌘,`, `⌘Q`). |
+| `OnePlusLinearNavCaption(_:count:)` | Sidebar group caption. |
+| `OnePlusLinearPaneToolbar(title:canGoBack:canGoForward:back:forward:) { }` | 44 pt toolbar; back and forward use Command-[ and Command-]. |
+| `OnePlusLinearTextTabs(tabs:selection:)` | Text tabs with counts and the accent underline on the toolbar line. |
+| `OnePlusLinearPaneBody { }` | Scrolling body with the 24 pt gutter and 16 pt section gap. |
+| `OnePlusLinearSection(_:count:) { rows }` | Section caption plus a grouped list. |
+| `OnePlusLinearToolRow(_:summary:icon:isEnabled:isFavorite:open:)` | 36 pt tool row: star on hover, focus, or when set; switch; chevron. |
+| `OnePlusLinearList(style:) { rows }` | Grouped rows with hairline separators (`.window`, `.panel`). |
+| `OnePlusLinearPanel { blocks } footer: { }` | 356 pt panel shell with no top bar. |
+| `OnePlusLinearPanelHeader(_:note:columns:)`, `.processes()` | 24 pt block header with right-aligned column titles. |
+| `OnePlusLinearBento { } trailing: { }` | Two tile columns; fixed tile heights keep both 274 pt. |
+| `OnePlusLinearTile(height:chart:usage:) { }` | Metric tile; `OnePlusLinearChart` draws history, `OnePlusLinearUsage` a bar. |
+| `OnePlusLinearTileLabel`, `OnePlusLinearTileValue`, `OnePlusLinearTileSplit`, `OnePlusLinearInlineValue` | Tile content rows. |
+| `OnePlusLinearControlRow(_:systemImage:status:) { control }` | 32 pt Fan or Kwake row. |
+| `OnePlusLinearSegmented(choices:selection:accessibilityLabel:)` | 40 x 18 segments in a quiet track. |
+| `OnePlusLinearSwitchStyle()` | 26 x 16 switch for `Toggle`. |
+| `OnePlusLinearProcessRow(_:icon:cpu:memory:color:)` | 30 pt process row; CPU number and `%` in the data color. |
+| `OnePlusLinearActionBar([OnePlusLinearAction])` | One joined action bar with full-segment hover. |
+| `OnePlusLinearPanelFooter { } trailing: { }`, `OnePlusLinearIconTabs(tabs:selection:onMove:)` | Footer with the panel tabs as icons. |
+| `OnePlusLinearIconButton(systemImage:help:size:action:)`, `OnePlusLinearButtonStyle(.raised)` | Footer gear and `Open App`. |
+
+Dark text roles are lighter than the mockup so they meet APCA Lc 60 for labels
+and Lc 45 for captions. CPU numbers use `cpuText`, which is lighter than the
+`cpu` chart line in Dark.
+
 ## Add a variant
 
 1. Read the corresponding `DESIGN.md` recipe and check the existing component.

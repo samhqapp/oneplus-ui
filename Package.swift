@@ -20,7 +20,7 @@ let package = Package(
         ),
         .testTarget(
             name: "OnePlusUITests",
-            dependencies: ["OnePlusUI"]
+            dependencies: ["OnePlusUI", "OnePlusUIShowcase"]
         ),
     ]
 )
