@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// A horizontal slider at the applet look: a recessed track, the rod fill, and a raised knob. The knob follows the
+/// A horizontal slider at the applet look: a sunken track, the accent fill, and a solid knob. The knob follows the
 /// pointer at once while dragged; a change from code (reset) slides it with the Quiet motion. Arrow keys step by `step`.
 public struct OnePlusLinearSlider: View {
     @Binding private var value: Double
@@ -9,7 +9,6 @@ public struct OnePlusLinearSlider: View {
     private let step: Double
     private let label: String
     @State private var dragging = false
-    @State private var hover = false
     @FocusState private var focused: Bool
     @Environment(\.onePlusLinearControlLook) private var environmentLook
     @Environment(\.isEnabled) private var enabled
@@ -19,25 +18,22 @@ public struct OnePlusLinearSlider: View {
     }
 
     public var body: some View {
-        let look = environmentLook ?? .depth
+        let look = environmentLook ?? .quietRaised
         let fraction = Self.fraction(of: value, in: range)
         let travel = look.sliderWidth - look.knob
         ZStack(alignment: .leading) {
-            // The rod covers the track's inner shade and is clipped to the track; the lip below stays outside.
-            OnePlusDepthRecess(Capsule(), focused: focused)
+            OnePlusQuietWell(shape: Capsule(), focused: focused)
                 .overlay(alignment: .leading) {
-                    OnePlusDepthRodFill().frame(width: look.knob / 2 + travel * fraction)
-                        .frame(maxWidth: .infinity, alignment: .leading).clipShape(Capsule())
+                    Capsule().fill(OnePlusLinearColor.accent).frame(width: look.knob / 2 + travel * fraction)
                 }
                 .frame(height: look.sliderTrack)
-            OnePlusDepthCap(shape: Circle(), pressed: dragging, hover: hover && enabled)
+            OnePlusQuietCap(shape: Circle(), pressed: dragging)
                 .frame(width: look.knob, height: look.knob)
                 .padding(.leading, travel * fraction)
         }
         .linearMotion(OnePlusLinearMotion.slider, value: value, enabled: !dragging)
         .frame(width: look.sliderWidth, height: look.height)
         .contentShape(Rectangle())
-        .onHover { hover = $0 }
         .gesture(DragGesture(minimumDistance: 0)
             .onChanged { drag in
                 dragging = true
@@ -66,7 +62,7 @@ public struct OnePlusLinearSlider: View {
     }
 }
 
-/// A color well at the applet look: the color in a 44 x 24 field. A click opens the shared color panel.
+/// A color well at the applet look: the color in a 40 x 22 field. A click opens the shared color panel.
 public struct OnePlusLinearColorWell: View {
     @Binding private var color: NSColor
     private let label: String
@@ -81,18 +77,16 @@ public struct OnePlusLinearColorWell: View {
     }
 
     public var body: some View {
-        let look = environmentLook ?? .depth
+        let look = environmentLook ?? .quietRaised
         let swatch = RoundedRectangle(cornerRadius: look.radius - look.wellInset)
         Button {
             target.open(color: color, showsAlpha: showsAlpha) { color = $0 }
         } label: {
             swatch.fill(Color(nsColor: color))
-                .overlay(alignment: .top) { Color.white.opacity(0.5).frame(height: 1 / max(scale, 1)) }
-                .clipShape(swatch)
-                .overlay { swatch.strokeBorder(OnePlusLinearColor.depthSwatchRing, lineWidth: 1 / max(scale, 1)) }
+                .overlay { swatch.strokeBorder(OnePlusLinearColor.quietSwatchLine, lineWidth: 1 / max(scale, 1)) }
                 .padding(look.wellInset)
                 .frame(width: look.well.width, height: look.well.height)
-                .background { OnePlusDepthRecess(RoundedRectangle(cornerRadius: look.radius)) }
+                .background { OnePlusQuietWell.field(RoundedRectangle(cornerRadius: look.radius)) }
         }
         .buttonStyle(.plain).focusEffectDisabled(!OnePlusFocusPolicy.shared.showsFocus)
         .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
@@ -151,7 +145,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
     }
 
     @ViewBuilder private var trigger: some View {
-        let look = environmentLook ?? .depth
+        let look = environmentLook ?? .quietRaised
         let lit = enabled && (hover || expanded)
         switch style {
         case .field:
@@ -189,7 +183,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
     }
 }
 
-/// A text field at the applet look: a recessed 24 pt field with the control radius, 13 pt text, and the title as
+/// A text field at the applet look: a 22 pt field with the control radius, 13 pt text, and the title as
 /// its placeholder. The focus line shows only under the shared keyboard focus policy. An error adds the danger
 /// line and a tooltip; the host shows any visible error text.
 public struct OnePlusLinearTextField: View {
@@ -206,13 +200,13 @@ public struct OnePlusLinearTextField: View {
     }
 
     public var body: some View {
-        let look = environmentLook ?? .depth
+        let look = environmentLook ?? .quietRaised
         let shape = RoundedRectangle(cornerRadius: look.radius)
         TextField(text: $text, prompt: Text(title).foregroundStyle(OnePlusLinearColor.appletMuted)) { Text(title) }
             .textFieldStyle(.plain).linearText()
             .focused($focused).onSubmit(onSubmit)
             .padding(.horizontal, 8).frame(height: look.height)
-            .background { OnePlusDepthRecess(shape, focused: focused) }
+            .background { OnePlusQuietWell.field(shape, focused: focused) }
             .overlay { if error != nil { shape.strokeBorder(OnePlusColor.dangerLine, lineWidth: 1) } }
             .help(error ?? "")
             .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)

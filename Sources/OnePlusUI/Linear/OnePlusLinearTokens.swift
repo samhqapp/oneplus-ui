@@ -77,43 +77,36 @@ public enum OnePlusLinearColor {
     public static let appletLine = color("appletLine", light: 0x000000, lightAlpha: 0.05, dark: 0xFFFFFF, darkAlpha: 0.08)
     public static let appletField = color("appletField", light: 0xFFFFFF, dark: 0x28282C)
     public static let appletFieldLine = color("appletFieldLine", light: 0x000000, lightAlpha: 0.07, dark: 0xFFFFFF, darkAlpha: 0.10)
-    // Applet controls, "Depth" (docs/design/v15/controls-depth.html): recessed tracks, raised caps, a fine top edge.
-    /// A recessed track, field, or well: the fill, its inner top shade (0 1 2), its 0.5 pt inner ring, and the
-    /// 1 pt lip of light below it.
-    public static let depthRecess = color("depthRecess", light: 0xE7E7EA, dark: 0x0E0E10)
-    public static let depthRecessShade = color("depthRecessShade", light: 0x000000, lightAlpha: 0.20, dark: 0x000000, darkAlpha: 0.70)
-    public static let depthRecessRing = color("depthRecessRing", light: 0x000000, lightAlpha: 0.12, dark: 0xFFFFFF, darkAlpha: 0.05)
-    public static let depthRecessLip = color("depthRecessLip", light: 0xFFFFFF, lightAlpha: 0.90, dark: 0xFFFFFF, darkAlpha: 0.06)
-    /// A raised knob, thumb, or stepper cap: a top-to-bottom gradient, a 0.5 pt outer ring, a near (0 1 2) and a far
-    /// (0 2 6) shadow, and a 1 pt highlight on its top edge. Hover deepens the ring and shadows only.
-    public static let depthCapTop = color("depthCapTop", light: 0xFFFFFF, dark: 0x606067)
-    public static let depthCapBottom = color("depthCapBottom", light: 0xEFEFF2, dark: 0x46464C)
-    public static let depthCapPressedTop = color("depthCapPressedTop", light: 0xF2F2F4, dark: 0x55555C)
-    public static let depthCapPressedBottom = color("depthCapPressedBottom", light: 0xE6E6EA, dark: 0x3E3E44)
-    public static let depthCapRing = color("depthCapRing", light: 0x000000, lightAlpha: 0.20, dark: 0x000000, darkAlpha: 0.70)
-    public static let depthCapShadow = color("depthCapShadow", light: 0x000000, lightAlpha: 0.16, dark: 0x000000, darkAlpha: 0.55)
-    public static let depthCapGlow = color("depthCapGlow", light: 0x000000, lightAlpha: 0.08, dark: 0x000000, darkAlpha: 0.35)
-    public static let depthCapHighlight = color("depthCapHighlight", light: 0xFFFFFF, dark: 0xFFFFFF, darkAlpha: 0.24)
-    public static let depthCapHoverRing = color("depthCapHoverRing", light: 0x000000, lightAlpha: 0.28, dark: 0x000000, darkAlpha: 0.70)
-    public static let depthCapHoverShadow = color("depthCapHoverShadow", light: 0x000000, lightAlpha: 0.20, dark: 0x000000, darkAlpha: 0.60)
-    public static let depthCapHoverGlow = color("depthCapHoverGlow", light: 0x000000, lightAlpha: 0.10, dark: 0x000000, darkAlpha: 0.45)
-    public static let depthCapHoverHighlight = color("depthCapHoverHighlight", light: 0xFFFFFF, dark: 0xFFFFFF, darkAlpha: 0.32)
-    /// The "rod": the switch's on track and a slider's filled part, with its own top highlight.
-    public static let depthRodTop = color("depthRodTop", light: 0x45464D, dark: 0xF4F4F6)
-    public static let depthRodBottom = color("depthRodBottom", light: 0x1C1D22, dark: 0xC9C9CE)
-    public static let depthRodHighlight = color("depthRodHighlight", light: 0xFFFFFF, lightAlpha: 0.14, dark: 0xFFFFFF, darkAlpha: 0.60)
-    /// The inner ring of a color-well swatch.
-    public static let depthSwatchRing = color("depthSwatchRing", light: 0x000000, lightAlpha: 0.20, dark: 0x000000, darkAlpha: 0.20)
+    // Applet controls, "Quiet Raised" (showcase ControlStyleOptions.swift). The "on" fill is `accent`.
+    /// A sunken switch, slider, or segment track: the fill, a soft 1 pt inner top shade, and a 1 px inner line.
+    public static let quietTrack = color("quietTrack", light: 0xE7E7EA, dark: 0x111113)
+    public static let quietTrackLine = color("quietTrackLine", light: 0x000000, lightAlpha: 0.07, dark: 0xFFFFFF, darkAlpha: 0.07)
+    public static let quietTrackShade = color("quietTrackShade", light: 0x000000, lightAlpha: 0.05, dark: 0x000000, darkAlpha: 0.50)
+    /// A field: the stepper, color well, search, select, and text field.
+    public static let quietField = color("quietField", light: 0xFFFFFF, dark: 0x1E1E21)
+    public static let quietFieldLine = color("quietFieldLine", light: 0x000000, lightAlpha: 0.09, dark: 0xFFFFFF, darkAlpha: 0.07)
+    /// A knob: one solid part with a 1 px line and one soft contact shadow. Press darkens it one step.
+    public static let quietKnob = color("quietKnob", light: 0xFFFFFF, dark: 0xE4E4E8)
+    public static let quietKnobOn = color("quietKnobOn", light: 0xFFFFFF, dark: 0xF2F2F4)
+    public static let quietKnobPressed = color("quietKnobPressed", light: 0xF0F0F2, dark: 0xD2D2D7)
+    public static let quietKnobLine = color("quietKnobLine", light: 0x000000, lightAlpha: 0.06, dark: 0x000000, darkAlpha: 0.30)
+    public static let quietKnobShadow = color("quietKnobShadow", light: 0x000000, lightAlpha: 0.16, dark: 0x000000, darkAlpha: 0.45)
+    /// The selected segment thumb, with the knob shadow.
+    public static let quietThumb = color("quietThumb", light: 0xFFFFFF, dark: 0x45454C)
+    public static let quietThumbPressed = color("quietThumbPressed", light: 0xF0F0F2, dark: 0x3C3C42)
+    public static let quietThumbLine = color("quietThumbLine", light: 0x000000, lightAlpha: 0.08, dark: 0x000000, darkAlpha: 0.35)
+    /// The faded divider between unselected segments.
+    public static let quietDivider = color("quietDivider", light: 0x000000, lightAlpha: 0.30, dark: 0xFFFFFF, darkAlpha: 0.26)
+    /// The inner line of a color-well swatch.
+    public static let quietSwatchLine = color("quietSwatchLine", light: 0x000000, lightAlpha: 0.10, dark: 0x000000, darkAlpha: 0.25)
     /// The primary "soft gray fill" button. Never the white or black fill.
     public static let softButton = color("softButton", light: 0xEBEBED, dark: 0x2C2C30)
     public static let softButtonHover = color("softButtonHover", light: 0xE2E2E5, dark: 0x34343A)
     public static let softButtonPressed = color("softButtonPressed", light: 0xD8D8DC, dark: 0x3C3C42)
-    /// The full-width "red tint" destructive button: red at 10 percent (light) and 18 percent (dark), as rendered.
-    public static let destructiveFill = color("destructiveFill", light: 0xE0493E, lightAlpha: 0.10, dark: 0xFF6B5E, darkAlpha: 0.18)
-    public static let destructiveHover = color("destructiveHover", light: 0xE0493E, lightAlpha: 0.14, dark: 0xFF6B5E, darkAlpha: 0.23)
-    public static let destructivePressed = color("destructivePressed", light: 0xE0493E, lightAlpha: 0.18, dark: 0xFF6B5E, darkAlpha: 0.28)
-    /// Dark uses the rendered mockup value; the DESIGN.md `#FFA8A0` stays below APCA Lc 60 on the tint.
-    public static let destructiveText = color("destructiveText", light: 0xB02D24, dark: 0xFFB8AF)
+    /// The destructive action: plain red text with no fill and no border, on the applet window. Dark is raised from
+    /// the reference `#FF8A80` to keep APCA Lc 60 there. Press moves the text one step away from the window.
+    public static let destructiveText = color("destructiveText", light: 0xC4342B, dark: 0xFF9A91)
+    public static let destructivePressedText = color("destructivePressedText", light: 0x9E2A22, dark: 0xFFB8B1)
     /// Applet text on the lighter dark group fill: the mockup values, which keep Lc 60 and Lc 45 there.
     public static let appletSecondary = color("appletSecondary", light: 0x68686F, dark: 0xC1C1C7)
     public static let appletMuted = color("appletMuted", light: 0x82828A, dark: 0xAAABB2)
@@ -234,8 +227,8 @@ public enum OnePlusLinearMetrics {
     public static let appletToolbarGap: CGFloat = 12
     public static let appletField: CGFloat = 26
     public static let appletButton: CGFloat = 24
-    public static let appletDestructive: CGFloat = 30
-    public static let appletDestructiveRadius: CGFloat = 8
+    /// The plain red text action: one 13 pt line.
+    public static let appletDestructive: CGFloat = 16
     public static let appletSwatch: CGFloat = 20
     public static let appletRowAction: CGFloat = 24
     public static let appletRowActionsGap: CGFloat = 14

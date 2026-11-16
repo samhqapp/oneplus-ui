@@ -70,33 +70,38 @@ public struct OnePlusStepperField: View {
         _draft = State(initialValue: String(value.wrappedValue))
     }
     @Environment(\.onePlusLinearControlLook) private var look
+    @Environment(\.displayScale) private var displayScale
 
     public var body: some View {
         if let look { linearBody(look) } else { regularBody }
     }
 
-    /// The applet look (Depth): a recessed 24 pt field with raised minus and plus caps around a right-aligned
-    /// 13 pt value and a 12 pt unit.
+    /// The applet look (Quiet Raised): one 22 pt field with plain minus and plus columns behind short hairlines,
+    /// around a centered 13 pt value and an optional 13 pt unit.
     private func linearBody(_ look: OnePlusLinearControlLook) -> some View {
         let shape = RoundedRectangle(cornerRadius: look.radius)
         return HStack(spacing: 0) {
-            stepButton(plus: false, "Decrease \(title)", -step, look)
-            TextField(title, text: $draft).textFieldStyle(.plain).linearText().multilineTextAlignment(.trailing)
-                .frame(width: look.stepperValueWidth).focused($focused).onSubmit(commit)
-                .onKeyPress(.upArrow) { change(by: step); return .handled }
-                .onKeyPress(.downArrow) { change(by: -step); return .handled }
-                .accessibilityLabel(title).accessibilityHint(error ?? "")
-            if let unit {
-                Text(unit).linearText(color: OnePlusLinearColor.muted).fixedSize()
-                    .padding(.leading, 3).padding(.trailing, 2).accessibilityHidden(true)
+            stepButton("minus", "Decrease \(title)", -step, look)
+            columnLine
+            HStack(spacing: 3) {
+                TextField(title, text: $draft).textFieldStyle(.plain).linearText()
+                    .multilineTextAlignment(unit == nil ? .center : .trailing)
+                    .frame(width: unit == nil ? look.stepperValueWidth : Self.unitValueWidth)
+                    .focused($focused).onSubmit(commit)
+                    .onKeyPress(.upArrow) { change(by: step); return .handled }
+                    .onKeyPress(.downArrow) { change(by: -step); return .handled }
+                    .accessibilityLabel(title).accessibilityHint(error ?? "")
+                if let unit { Text(unit).linearText(color: OnePlusLinearColor.appletMuted).fixedSize().accessibilityHidden(true) }
             }
-            stepButton(plus: true, "Increase \(title)", step, look)
+            .padding(.horizontal, unit == nil ? 0 : 6)
+            columnLine
+            stepButton("plus", "Increase \(title)", step, look)
         }
-        .padding(.horizontal, (look.height - look.stepperCap) / 2)
-        // The unit was the only flexible child, so a tight row squeezed it to nothing; the row label truncates instead.
+        // A tight row truncates the row label, never the value or its unit.
         .fixedSize(horizontal: true, vertical: false)
         .frame(height: look.height)
-        .background { OnePlusDepthRecess(shape, focused: focused) }
+        .clipShape(shape)
+        .background { OnePlusQuietWell.field(shape, focused: focused) }
         .overlay { if error != nil { shape.strokeBorder(OnePlusColor.dangerLine, lineWidth: 1) } }
         .help(error ?? "")
         .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
@@ -104,10 +109,18 @@ public struct OnePlusStepperField: View {
         .onChange(of: focused) { _, newValue in if !newValue { commit() } }
     }
 
-    private func stepButton(plus: Bool, _ label: String, _ delta: Int, _ look: OnePlusLinearControlLook) -> some View {
-        Button { change(by: delta) } label: { OnePlusDepthStepGlyph(plus: plus) }
-            .buttonStyle(OnePlusDepthCapButtonStyle(size: look.stepperCap, radius: look.stepperCapRadius))
+    private func stepButton(_ symbol: String, _ label: String, _ delta: Int, _ look: OnePlusLinearControlLook) -> some View {
+        Button { change(by: delta) } label: { Image(systemName: symbol) }
+            .buttonStyle(OnePlusQuietStepButtonStyle(width: look.stepperButton))
             .focusEffectDisabled().accessibilityLabel(label)
+    }
+
+    /// A short hairline between the value and a minus or plus column.
+    /// Fits five digits at 13 pt, right-aligned before the unit.
+    private static let unitValueWidth: CGFloat = 44
+
+    private var columnLine: some View {
+        OnePlusLinearColor.quietFieldLine.frame(width: 1 / max(displayScale, 1)).padding(.vertical, 5)
     }
 
     private var regularBody: some View {

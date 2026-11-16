@@ -13,7 +13,8 @@ public struct OnePlusLinearButtonStyle: ButtonStyle {
         case soft
         /// A secondary text action: the `.soft` geometry and type with no fill until hover; `appletSecondary` text, `ink` on hover.
         case ghost
-        /// The applet destructive action (`Reset to Factory Defaults`): full width, 30 pt, red tint, red text.
+        /// The applet destructive action (`Reset to Factory Defaults`): plain red text with no fill and no border,
+        /// on the group's row text edge. A native confirmation still guards it.
         case destructive
     }
     let kind: Kind
@@ -21,7 +22,7 @@ public struct OnePlusLinearButtonStyle: ButtonStyle {
     let selected: Bool
     public init(_ kind: Kind = .plain, radius: CGFloat? = nil, selected: Bool = false) {
         self.kind = kind; self.selected = selected
-        self.radius = radius ?? (kind == .destructive ? OnePlusLinearMetrics.appletDestructiveRadius : OnePlusLinearMetrics.radius)
+        self.radius = radius ?? OnePlusLinearMetrics.radius
     }
     public func makeBody(configuration: Configuration) -> some View {
         OnePlusLinearButtonBody(label: configuration.label, pressed: configuration.isPressed,
@@ -49,8 +50,7 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
             guard enabled else { return OnePlusLinearColor.softButton }
             return isPressed ? OnePlusLinearColor.softButtonPressed : isHovered ? OnePlusLinearColor.softButtonHover : OnePlusLinearColor.softButton
         case .destructive:
-            guard enabled else { return OnePlusLinearColor.destructiveFill }
-            return isPressed ? OnePlusLinearColor.destructivePressed : isHovered ? OnePlusLinearColor.destructiveHover : OnePlusLinearColor.destructiveFill
+            return .clear
         case .plain, .raised, .ghost:
             guard enabled else { return .clear }
             if isPressed { return OnePlusLinearColor.pressed }
@@ -76,8 +76,9 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                     .fixedSize()
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.appletButton)
             case .destructive:
-                label.linearText(color: OnePlusLinearColor.destructiveText)
-                    .frame(maxWidth: .infinity).frame(height: OnePlusLinearMetrics.appletDestructive)
+                label.linearText(color: enabled && isPressed ? OnePlusLinearColor.destructivePressedText : OnePlusLinearColor.destructiveText)
+                    .padding(.leading, OnePlusLinearMetrics.appletRowPadding)
+                    .frame(maxWidth: .infinity, minHeight: OnePlusLinearMetrics.appletDestructive, alignment: .leading)
             case .plain:
                 label
             }

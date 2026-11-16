@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.3.0
+
+- Breaking: the applet control look `.depth` becomes `.quietRaised` (owner
+  pick): quiet sunken tracks, one solid knob with one soft shadow, and the
+  accent only for an "on" state. It covers the switch, slider, segmented
+  control (equal and fitted), stepper field, color well, select, search, and
+  text field. Controls are 22 pt high. The `depth*` tokens are replaced by
+  `quiet*` tokens; the look drops `segmentHeight` storage, `segmentTrackRadius`,
+  `stepperCap`, and `stepperCapRadius`, and adds `stepperButton`.
+- Segment labels without capitals or digits center their x-height. Short
+  dividers that fade at both ends separate unselected segments.
+  `OnePlusLinearSegmented.opticalOffset(_:)` is public for AppKit ports.
+- The stepper field is one field with plain minus and plus columns.
+- Breaking: `OnePlusLinearButtonStyle(.destructive)` is plain red text with no
+  fill and no border, on the group's row text edge. `destructiveFill`,
+  `destructiveHover`, `destructivePressed`, and `appletDestructiveRadius` are
+  removed; `destructivePressedText` is added; `appletDestructive` is 16 pt.
+- Add the showcase `ControlStyleOptions.swift`, the round 3 reference renders.
+
 ## 1.2.1
 
 - Fix: the Depth `OnePlusStepperField` keeps its unit in a tight row; the row

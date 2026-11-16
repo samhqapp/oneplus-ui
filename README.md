@@ -297,9 +297,9 @@ Picker from these parts. Reference renders: `docs/design/v15/applet-*.png`.
 | `OnePlusLinearSearchField(_:text:style: .applet)` | 26 pt search with a magnifier; Command-F. |
 | `OnePlusLinearSelect(choices:selection:accessibilityLabel:style:width:)` | `.field` (26 pt bezel) or `.text` (tab-row filter); opens `OnePlusPopupMenu`. |
 | `OnePlusLinearButtonStyle(.soft)` | Primary action: soft gray fill, 24 pt, no border. |
-| `OnePlusLinearButtonStyle(.destructive)` | Full-width 30 pt red-tint button with red text. |
+| `OnePlusLinearButtonStyle(.destructive)` | Plain red text with no fill and no border, on the group's row text edge. Guard it with a native confirmation. |
 | `OnePlusLinearButtonStyle(.ghost)` | Secondary text action: `.soft` geometry, no fill until hover. |
-| `OnePlusLinearTextField(_:text:error:onSubmit:)` | Recessed 24 pt text field; focus line only under Full Keyboard Access or VoiceOver. |
+| `OnePlusLinearTextField(_:text:error:onSubmit:)` | 22 pt text field; focus line only under Full Keyboard Access or VoiceOver. |
 | `OnePlusLinearEmptyState(_:systemImage:message:action:)` | Centered glyph, title, line, and optional action. |
 | `OnePlusLinearBanner(.info / .warning, title:message:action:)` | Filled banner with a glyph; warning uses an amber tint. |
 | `OnePlusLinearSegmented`, `OnePlusLinearSwitchStyle`, `OnePlusLinearSlider(_:value:in:step:)`, `OnePlusStepperField`, `OnePlusLinearColorWell(_:color:showsAlpha:)` | Controls; inside an applet they take the control look. `OnePlusLinearSegmented(..., sizing: .fitted)` sizes segments to their labels. |
@@ -309,14 +309,16 @@ Text roles: `View.linearText(_:weight:color:)` is public; use it with
 `OnePlusLinearColor` text tokens instead of copying fonts.
 
 Control look: `OnePlusLinearControlLook` in `\.onePlusLinearControlLook` is
-the one style point for the applet controls. The applet sets `.depth`, the
-owner's pick: recessed tracks, gently raised knobs and caps with a fine top
-highlight (`OnePlusLinearColor.depth*` tokens). Sizes: segmented 112 x 24
-(36 x 20 segments), switch 30 x 18 in a 40 x 24 hit area, slider 140 pt with
-a 6 pt track and 16 pt knob, stepper 24 pt with 20 pt minus and plus caps,
-color well 44 x 24. Reference: MacPowerToys
-`docs/design/v15/controls-depth.html`. Without a look, the segmented control
-and switch keep their panel look.
+the one style point for the applet controls. The applet sets `.quietRaised`,
+the owner's pick: quiet sunken tracks, one solid knob with one soft shadow,
+and the coral accent only for an "on" state (`OnePlusLinearColor.quiet*`
+tokens). Segment labels center their x-height, and short dividers that fade
+at both ends separate unselected segments. Sizes: controls 22 pt high;
+segmented 112 x 22 (36 x 18 segments), switch 32 x 18 with a 14 pt knob in a
+40 x 24 hit area, slider 140 pt with a 4 pt track and 14 pt knob, stepper one
+field with 22 pt minus and plus columns (104 pt without a unit), color well
+40 x 22. Reference: the showcase `ControlStyleOptions.swift`. Without a look,
+the segmented control and switch keep their panel look.
 
 AppKit hosts (the Ruler windows) use the same dynamic tokens:
 `NSColor(OnePlusLinearColor.appletWindow)` for the window background and the

@@ -4,7 +4,7 @@ import SwiftUI
 /// The v15 applet shell ("Filled groups"): one body-colored surface, a 48 pt title area with no line under it,
 /// the traffic lights and title on y 22, trailing actions (the gear, then the primary action), then the body.
 /// With a `canvas` it owns the fixed-window chrome (traffic-light placement, size, drag areas). It sets the
-/// `.depth` control look unless the host set another one.
+/// `.quietRaised` control look unless the host set another one.
 public struct OnePlusLinearApplet<Actions: View, Content: View>: View {
     private let title: String
     private let canvas: OnePlusWindowCanvas?
@@ -20,7 +20,7 @@ public struct OnePlusLinearApplet<Actions: View, Content: View>: View {
             content.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .background(OnePlusLinearColor.appletWindow)
-        .transformEnvironment(\.onePlusLinearControlLook) { if $0 == nil { $0 = .depth } }
+        .transformEnvironment(\.onePlusLinearControlLook) { if $0 == nil { $0 = .quietRaised } }
         .ignoresSafeArea()
         if let canvas { shell.onePlusFixedCanvas(canvas) } else { shell }
     }
@@ -183,7 +183,7 @@ public struct OnePlusLinearAppletSliderRow: View {
             HStack(spacing: 8) {
                 OnePlusLinearSlider(label, value: $value, in: range, step: step)
                 Text(format(value)).linearText(color: OnePlusLinearColor.appletSecondary).lineLimit(1)
-                    .frame(width: (look ?? .depth).sliderValueWidth, alignment: .trailing)
+                    .frame(width: (look ?? .quietRaised).sliderValueWidth, alignment: .trailing)
                     .accessibilityHidden(true)
             }
         }

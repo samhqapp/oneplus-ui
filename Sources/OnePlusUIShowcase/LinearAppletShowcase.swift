@@ -15,18 +15,18 @@ struct LinearAppletShowcase: View {
             }
             .padding(24)
             .onePlusLinearMotion(.quiet)
-            LinearDepthContactSheet().clipShape(RoundedRectangle(cornerRadius: 12)).padding([.horizontal, .bottom], 24)
+            LinearQuietContactSheet().clipShape(RoundedRectangle(cornerRadius: 12)).padding([.horizontal, .bottom], 24)
             LinearAppletPartsSheet().clipShape(RoundedRectangle(cornerRadius: 12)).padding([.horizontal, .bottom], 24)
         }
         .background(OnePlusLinearColor.sidebar)
     }
 }
 
-/// Every Depth control in every state, on the applet group fill: off, on, hover, pressed, disabled, and focus
-/// (as drawn under Full Keyboard Access).
-struct LinearDepthContactSheet: View {
+/// Every Quiet Raised control in every state, on the applet group fill: off, on, hover, pressed, disabled, and
+/// focus (as drawn under Full Keyboard Access).
+struct LinearQuietContactSheet: View {
     enum Column: String, CaseIterable { case off = "Off", on = "On", hover = "Hover", pressed = "Pressed", disabled = "Disabled", focus = "Focus" }
-    static let rows = ["Switch", "Segmented", "Slider", "Stepper", "Color well"]
+    static let rows = ["Switch", "Segmented", "Slider", "Stepper", "Color well", "Reset"]
     static let cell = CGSize(width: 176, height: 48)
 
     var body: some View {
@@ -55,7 +55,7 @@ struct LinearDepthContactSheet: View {
         }
         .padding(.vertical, 12)
         .background(OnePlusLinearColor.appletWindow)
-        .environment(\.onePlusLinearControlLook, .depth)
+        .environment(\.onePlusLinearControlLook, .quietRaised)
     }
 
     private func state(_ column: Column) -> OnePlusControlState {
@@ -78,9 +78,11 @@ struct LinearDepthContactSheet: View {
         case "Slider":
             OnePlusLinearSlider(row, value: .constant(on ? 0.6 : 0))
         case "Stepper":
-            OnePlusStepperField("Width", value: .constant(1920), in: 1...10000, unit: "px")
-        default:
+            OnePlusStepperField("Width", value: .constant(1920), in: 1...10000)
+        case "Color well":
             OnePlusLinearColorWell(row, color: .constant(NSColor(srgbRed: 1, green: 0.84, blue: 0.04, alpha: 1)))
+        default:
+            Button("Reset", role: .destructive) {}.buttonStyle(OnePlusLinearButtonStyle(.destructive)).fixedSize()
         }
     }
 }
@@ -133,7 +135,7 @@ struct LinearAppletPartsSheet: View {
             .frame(width: 460)
             .frame(maxHeight: .infinity, alignment: .top)
             .background(OnePlusLinearColor.appletWindow)
-            .environment(\.onePlusLinearControlLook, .depth)
+            .environment(\.onePlusLinearControlLook, .quietRaised)
 
             VStack(alignment: .leading, spacing: 0) {
                 OnePlusLinearPaneToolbar(title: "Settings") {
@@ -199,10 +201,10 @@ struct LinearRulerDefaultsSample: View {
                     }
                     OnePlusLinearAppletRow("Dimensions") {
                         HStack(spacing: 6) {
-                            OnePlusStepperField("Width", value: $width, in: 1...10000, unit: unit)
+                            OnePlusStepperField("Width", value: $width, in: 1...10000)
                             Text("×").font(.system(size: OnePlusLinearMetrics.body)).foregroundStyle(OnePlusLinearColor.muted)
                                 .fixedSize().accessibilityHidden(true)
-                            OnePlusStepperField("Height", value: $height, in: 1...10000, unit: unit)
+                            OnePlusStepperField("Height", value: $height, in: 1...10000)
                         }
                     }
                 }

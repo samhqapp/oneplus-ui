@@ -20,7 +20,7 @@ private struct OnePlusLinearSwitch: View {
     var body: some View {
         if let look {
             Button { isOn.toggle() } label: { EmptyView() }
-                .buttonStyle(OnePlusDepthSwitchStyle(isOn: isOn, look: look))
+                .buttonStyle(OnePlusQuietSwitchStyle(isOn: isOn, look: look))
                 .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
         } else {
             Button { isOn.toggle() } label: {
@@ -39,16 +39,21 @@ private struct OnePlusLinearSwitch: View {
     }
 }
 
-/// Depth switch: a recessed track (the rod when on) and a raised knob that darkens while pressed.
-private struct OnePlusDepthSwitchStyle: ButtonStyle {
+/// Quiet Raised switch: a sunken track (the accent when on) and a solid knob that darkens while pressed.
+private struct OnePlusQuietSwitchStyle: ButtonStyle {
     let isOn: Bool
     let look: OnePlusLinearControlLook
     func makeBody(configuration: Configuration) -> some View {
-        OnePlusDepthRecess(shape: Capsule(), fill: isOn ? AnyShapeStyle(onePlusDepthRodGradient) : AnyShapeStyle(OnePlusLinearColor.depthRecess))
-        .overlay(alignment: isOn ? .trailing : .leading) {
-            OnePlusDepthCap(shape: Circle(), pressed: configuration.isPressed)
+        ZStack(alignment: isOn ? .trailing : .leading) {
+            if isOn {
+                Capsule().fill(OnePlusLinearColor.accent).overlay { OnePlusQuietFocusRing(shape: Capsule()) }
+            } else {
+                OnePlusQuietWell(shape: Capsule())
+            }
+            OnePlusQuietCap(shape: Circle(), fill: isOn ? OnePlusLinearColor.quietKnobOn : OnePlusLinearColor.quietKnob,
+                            pressed: configuration.isPressed)
                 .frame(width: look.switchKnob, height: look.switchKnob)
-                .padding(.horizontal, (look.switchSize.height - look.switchKnob) / 2)
+                .padding((look.switchSize.height - look.switchKnob) / 2)
         }
         .linearMotion(OnePlusLinearMotion.knob, value: isOn)
         .frame(width: look.switchSize.width, height: look.switchSize.height)
@@ -78,16 +83,19 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
         self.isChoiceEnabled = isChoiceEnabled
     }
     public var body: some View {
-        // Panel: 22 pt track, 40 x 18 segments, 11 pt labels. Applet look: recessed 24 pt track, 36 x 20 segments,
-        // 12 pt labels, a raised cap thumb.
+        // Panel: 22 pt track, 40 x 18 segments, 11 pt labels. Applet look: a sunken 22 pt track, 36 x 18 segments,
+        // 13 pt labels, a solid thumb, and faded dividers between unselected segments.
         let radius = look?.segmentRadius ?? 4
         HStack(spacing: look == nil ? 2 : 0) {
             ForEach(choices, id: \.0) { value, title in
                 let on = value == selection
+                let previous = choices.firstIndex { $0.0 == value }.flatMap { $0 > 0 ? choices[$0 - 1].0 : nil }
+                let divided = look != nil && !on && previous != nil && previous != selection
                 Button { if isChoiceEnabled(value) { selection = value } } label: {
                     Text(title).linearText(look == nil ? OnePlusLinearMetrics.caption : OnePlusLinearMetrics.body,
                                            weight: on ? .medium : .regular,
-                                           color: on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
+                                           color: on ? OnePlusLinearColor.ink : look == nil ? OnePlusLinearColor.secondary : OnePlusLinearColor.appletSecondary)
+                        .offset(y: look == nil ? 0 : Self.opticalOffset(title))
                         .fixedSize(horizontal: sizing == .fitted, vertical: false)
                         .padding(.horizontal, sizing == .fitted ? 10 : 0)
                         .frame(width: sizing == .fitted ? nil : look?.segmentWidth ?? OnePlusLinearMetrics.segment.width,
@@ -96,8 +104,9 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                             // One thumb moves between segments, so Quiet motion slides it.
                             if on { thumbShape(radius: radius).matchedGeometryEffect(id: "thumb", in: thumb) }
                         }
+                        .overlay(alignment: .leading) { if divided { OnePlusQuietDivider() } }
                 }
-                .modifier(OnePlusLinearSegmentButton(depth: look != nil, radius: radius))
+                .modifier(OnePlusLinearSegmentButton(quiet: look != nil, radius: radius))
                 .disabled(!isChoiceEnabled(value))
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
@@ -115,9 +124,15 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
         }
     }
 
+    /// A label with no capitals or digits has no cap height, so its x-height sits 1.25 pt below the line box
+    /// center at 13 pt; this lifts it onto the true center. Labels with capitals or digits are already centered.
+    public static func opticalOffset(_ title: String) -> CGFloat {
+        title.contains { $0.isUppercase || $0.isNumber } ? 0 : -1.25
+    }
+
     @ViewBuilder private func thumbShape(radius: CGFloat) -> some View {
         if look != nil {
-            OnePlusDepthCap(shape: RoundedRectangle(cornerRadius: radius))
+            OnePlusQuietCap.thumb(RoundedRectangle(cornerRadius: radius))
         } else {
             RoundedRectangle(cornerRadius: radius).fill(OnePlusLinearColor.segmentSelected)
                 .shadow(color: OnePlusLinearColor.segmentShadow, radius: 1, y: 1)
@@ -126,16 +141,16 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
     }
 }
 
-/// Panel segments use the shared button feedback; Depth segments only darken while pressed.
+/// Panel segments use the shared button feedback; Quiet Raised segments only darken while pressed.
 private struct OnePlusLinearSegmentButton: ViewModifier {
-    let depth: Bool
+    let quiet: Bool
     let radius: CGFloat
     func body(content: Content) -> some View {
-        if depth { content.buttonStyle(OnePlusDepthPressStyle(radius: radius)) } else { content.buttonStyle(OnePlusLinearButtonStyle(radius: radius)) }
+        if quiet { content.buttonStyle(OnePlusQuietPressStyle(radius: radius)) } else { content.buttonStyle(OnePlusLinearButtonStyle(radius: radius)) }
     }
 }
 
-private struct OnePlusDepthPressStyle: ButtonStyle {
+private struct OnePlusQuietPressStyle: ButtonStyle {
     let radius: CGFloat
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -149,7 +164,7 @@ private struct OnePlusLinearSegmentTrack: ViewModifier {
     func body(content: Content) -> some View {
         if let look {
             content.padding(look.segmentInset)
-                .background { OnePlusDepthRecess(RoundedRectangle(cornerRadius: look.segmentTrackRadius)) }
+                .background { OnePlusQuietWell(shape: RoundedRectangle(cornerRadius: look.radius)) }
         } else {
             content.linearTrack(radius: OnePlusLinearMetrics.radius)
         }

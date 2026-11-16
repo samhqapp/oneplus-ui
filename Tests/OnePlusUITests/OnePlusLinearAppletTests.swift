@@ -13,7 +13,7 @@ final class OnePlusLinearAppletTests: XCTestCase {
         ?? "/Volumes/External1TB/data/_custom/orca/workspaces/powertoys/v15-applets"
 
     private func size<V: View>(_ view: V, width: CGFloat? = nil) -> CGSize {
-        NSHostingView(rootView: view.environment(\.onePlusLinearControlLook, .depth).frame(width: width)).fittingSize
+        NSHostingView(rootView: view.environment(\.onePlusLinearControlLook, .quietRaised).frame(width: width)).fittingSize
     }
 
     func testPartSizesMatchTheMockup() {
@@ -30,33 +30,40 @@ final class OnePlusLinearAppletTests: XCTestCase {
             ("toolbar", AnyView(OnePlusLinearAppletToolbar { OnePlusLinearSearchField("Search colors", text: .constant(""), style: .applet) }), 12 + 26 + 12),
             ("select", AnyView(OnePlusLinearSelect(choices: [(0, "HEX")], selection: .constant(0), accessibilityLabel: "Format", width: 92)), 26),
             ("soft button", AnyView(Button("Pick Color") {}.buttonStyle(OnePlusLinearButtonStyle(.soft))), 24),
-            ("destructive", AnyView(Button("Reset to Factory Defaults") {}.buttonStyle(OnePlusLinearButtonStyle(.destructive))), 30),
+            ("destructive", AnyView(Button("Reset to Factory Defaults") {}.buttonStyle(OnePlusLinearButtonStyle(.destructive))), 16),
         ]
         for (name, view, height) in rows { XCTAssertEqual(size(view, width: 388).height, height, accuracy: 0.01, name) }
 
         let controls: [(String, AnyView, CGSize)] = [
             ("segmented", AnyView(OnePlusLinearSegmented(choices: [(0, "px"), (1, "mm"), (2, "in")], selection: .constant(0),
-                                                         accessibilityLabel: "Unit")), CGSize(width: 112, height: 24)),
+                                                         accessibilityLabel: "Unit")), CGSize(width: 112, height: 22)),
             ("switch", AnyView(Toggle("Shadow", isOn: .constant(true)).toggleStyle(OnePlusLinearSwitchStyle())), CGSize(width: 40, height: 24)),
-            ("color well", AnyView(OnePlusLinearColorWell("Ruler color", color: .constant(.yellow))), CGSize(width: 44, height: 24)),
-            ("slider", AnyView(OnePlusLinearSlider("Opacity", value: .constant(0.5))), CGSize(width: 140, height: 24)),
+            ("color well", AnyView(OnePlusLinearColorWell("Ruler color", color: .constant(.yellow))), CGSize(width: 40, height: 22)),
+            ("slider", AnyView(OnePlusLinearSlider("Opacity", value: .constant(0.5))), CGSize(width: 140, height: 22)),
         ]
         for (name, view, expected) in controls {
             let measured = size(view)
             XCTAssertEqual(measured.width, expected.width, accuracy: 0.01, name)
             XCTAssertEqual(measured.height, expected.height, accuracy: 0.01, name)
         }
-        XCTAssertEqual(size(OnePlusStepperField("Width", value: .constant(1920), in: 1...10000, unit: "px")).height, 24, accuracy: 0.01)
+        XCTAssertEqual(size(OnePlusStepperField("Width", value: .constant(1920), in: 1...10000, unit: "px")).height, 22, accuracy: 0.01)
     }
 
-    /// The Depth controls draw their labels on the recessed fill.
-    func testDepthLabelsMeetAPCAOnTheRecess() {
+    /// Quiet Raised labels: segment labels on the track, stepper values and units on the field.
+    func testQuietLabelsMeetAPCA() {
         for name in Self.appearances {
-            let recess = LinearRender.resolve(OnePlusLinearColor.depthRecess, in: name)
-            XCTAssertGreaterThanOrEqual(abs(LinearRender.apcaLc(LinearRender.resolve(OnePlusLinearColor.secondary, in: name), recess)), 60, "segment \(name)")
-            XCTAssertGreaterThanOrEqual(abs(LinearRender.apcaLc(LinearRender.resolve(OnePlusLinearColor.ink, in: name), recess)), 60, "value \(name)")
-            XCTAssertGreaterThanOrEqual(abs(LinearRender.apcaLc(LinearRender.resolve(OnePlusLinearColor.muted, in: name), recess)), 45, "unit \(name)")
+            let track = LinearRender.resolve(OnePlusLinearColor.quietTrack, in: name)
+            let field = LinearRender.resolve(OnePlusLinearColor.quietField, in: name)
+            XCTAssertGreaterThanOrEqual(abs(LinearRender.apcaLc(LinearRender.resolve(OnePlusLinearColor.appletSecondary, in: name), track)), 60, "segment \(name)")
+            XCTAssertGreaterThanOrEqual(abs(LinearRender.apcaLc(LinearRender.resolve(OnePlusLinearColor.ink, in: name), field)), 60, "value \(name)")
+            XCTAssertGreaterThanOrEqual(abs(LinearRender.apcaLc(LinearRender.resolve(OnePlusLinearColor.appletMuted, in: name), field)), 45, "unit \(name)")
         }
+    }
+
+    func testSegmentLabelsCenterTheirXHeight() {
+        XCTAssertEqual(OnePlusLinearSegmented<Int>.opticalOffset("mm"), -1.25)
+        XCTAssertEqual(OnePlusLinearSegmented<Int>.opticalOffset("Fast"), 0)
+        XCTAssertEqual(OnePlusLinearSegmented<Int>.opticalOffset("1x"), 0)
     }
 
     func testPanelSegmentedKeepsItsSizeWithoutTheAppletLook() {
@@ -69,7 +76,7 @@ final class OnePlusLinearAppletTests: XCTestCase {
     /// The first run is the sample close light (a chord near its right edge); 59 to 69 is the "i" of History.
     func testRulerDefaultsAndColorPickerSurfacesLandOnTheMockupLines() throws {
         let cases: [(String, AnyView, CGSize, [ClosedRange<CGFloat>])] = [
-            ("ruler", AnyView(LinearRulerDefaultsSample()), CGSize(width: 420, height: 500), [17...27, 70...142, 180...324, 362...434, 454...484]),
+            ("ruler", AnyView(LinearRulerDefaultsSample()), CGSize(width: 420, height: 500), [17...27, 70...142, 180...324, 362...434]),
             ("color picker", AnyView(LinearColorPickerSample()), CGSize(width: 420, height: 362),
              [17...27, 59...69, 78...80, 92...118, 130...346]),
         ]
@@ -109,11 +116,9 @@ final class OnePlusLinearAppletTests: XCTestCase {
                 let ground = LinearRender.resolve(fill, in: name)
                 XCTAssertGreaterThanOrEqual(abs(LinearRender.apcaLc(LinearRender.resolve(OnePlusLinearColor.ink, in: name), ground)), 60, "soft \(name)")
             }
-            for fill in [OnePlusLinearColor.destructiveFill, OnePlusLinearColor.destructiveHover, OnePlusLinearColor.destructivePressed] {
-                let ground = LinearRender.resolve(fill, over: OnePlusLinearColor.appletWindow, in: name)
-                XCTAssertGreaterThanOrEqual(abs(LinearRender.apcaLc(LinearRender.resolve(OnePlusLinearColor.destructiveText, in: name), ground)), 60,
-                                            "destructive \(name)")
-            }
+            let window = LinearRender.resolve(OnePlusLinearColor.appletWindow, in: name)
+            XCTAssertGreaterThanOrEqual(abs(LinearRender.apcaLc(LinearRender.resolve(OnePlusLinearColor.destructiveText, in: name), window)), 60,
+                                        "destructive \(name)")
         }
     }
 
@@ -122,8 +127,7 @@ final class OnePlusLinearAppletTests: XCTestCase {
         let dark = LinearRender.resolve(OnePlusLinearColor.appletWindow, in: .darkAqua)
         XCTAssertEqual(light.redComponent * 255, 0xFD, accuracy: 0.5)
         XCTAssertEqual(dark.redComponent * 255, 0x1A, accuracy: 0.5)
-        XCTAssertEqual(LinearRender.resolve(OnePlusLinearColor.destructiveFill, over: OnePlusLinearColor.appletWindow, in: .aqua).greenComponent * 255,
-                       0xEB, accuracy: 1)
+        XCTAssertEqual(LinearRender.resolve(OnePlusLinearColor.destructiveText, in: .aqua).redComponent * 255, 0xC4, accuracy: 0.5)
     }
 
     func testQuietMotionTokens() {
@@ -193,15 +197,16 @@ final class OnePlusLinearAppletTests: XCTestCase {
         RunLoop.main.run(until: Date().addingTimeInterval(seconds))
     }
 
-    /// Writes the Depth contact sheet (every control in every state) at 2x in both appearances.
-    func testRenderDepthContactSheet() throws {
+    /// Writes the Quiet Raised contact sheet (every control in every state) at 2x in both appearances.
+    func testRenderQuietContactSheet() throws {
         try FileManager.default.createDirectory(atPath: Self.output, withIntermediateDirectories: true)
-        let size = CGSize(width: 96 + 12 + 6 * LinearDepthContactSheet.cell.width, height: 24 + 28 + 5 * LinearDepthContactSheet.cell.height)
+        let sheet = LinearQuietContactSheet.self
+        let size = CGSize(width: 96 + 12 + 6 * sheet.cell.width, height: 24 + 28 + CGFloat(sheet.rows.count) * sheet.cell.height)
         for appearance in Self.appearances {
-            let render = try LinearRender.bitmap(NSHostingView(rootView: LinearDepthContactSheet().frame(width: size.width, height: size.height)),
+            let render = try LinearRender.bitmap(NSHostingView(rootView: LinearQuietContactSheet().frame(width: size.width, height: size.height)),
                                                  size: size, scale: 2, appearance: appearance)
             let data = try XCTUnwrap(render.retagging(with: .sRGB)?.representation(using: .png, properties: [:]))
-            try data.write(to: URL(fileURLWithPath: "\(Self.output)/depth-sheet-\(appearance == .darkAqua ? "dark" : "light").png"))
+            try data.write(to: URL(fileURLWithPath: "\(Self.output)/quiet-sheet-\(appearance == .darkAqua ? "dark" : "light").png"))
         }
     }
 
