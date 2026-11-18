@@ -102,7 +102,7 @@ public struct OnePlusLinearAppletSection<Content: View>: View {
         if editorial {
             VStack(alignment: .leading, spacing: 0) {
                 OnePlusLinearEditorialCaption(title: title)
-                OnePlusLinearEditorialGroup(content: content)
+                OnePlusLinearEditorialGroup(content: content, flush: true)
             }
         } else {
             filled
@@ -125,7 +125,7 @@ public struct OnePlusLinearAppletGroup<Content: View>: View {
     @Environment(\.onePlusLinearEditorial) private var editorial
     public init(@ViewBuilder content: () -> Content) { self.content = content() }
     public var body: some View {
-        if editorial { OnePlusLinearEditorialGroup(content: content) } else { filled }
+        if editorial { OnePlusLinearEditorialGroup(content: content, flush: true) } else { filled }
     }
     private var filled: some View {
         VStack(spacing: 0) {

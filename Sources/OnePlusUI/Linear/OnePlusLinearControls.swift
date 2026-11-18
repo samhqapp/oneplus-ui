@@ -34,6 +34,7 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
     @Environment(\.isEnabled) private var enabled
     @Environment(\.isFocused) private var focused
     @Environment(\.onePlusControlState) private var sample
+    @Environment(\.onePlusLinearEditorial) private var editorial
     @State private var hover = false
     let label: Label
     let pressed: Bool
@@ -77,7 +78,7 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.appletButton)
             case .destructive:
                 label.linearText(color: enabled && isPressed ? OnePlusLinearColor.destructivePressedText : OnePlusLinearColor.destructiveText)
-                    .padding(.leading, OnePlusLinearMetrics.appletRowPadding)
+                    .padding(.leading, editorial ? 0 : OnePlusLinearMetrics.appletRowPadding)
                     .frame(maxWidth: .infinity, minHeight: OnePlusLinearMetrics.appletDestructive, alignment: .leading)
             case .plain:
                 label
