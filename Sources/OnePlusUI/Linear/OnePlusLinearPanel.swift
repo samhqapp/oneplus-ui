@@ -1,20 +1,27 @@
 import AppKit
 import SwiftUI
 
-/// The v15 menu panel shell: 356 pt, 8 pt radius, body blocks 12 pt apart, and a fixed footer. No top bar.
+/// The v15 menu panel shell: 356 pt, 8 pt radius, body blocks 12 pt apart, and one fixed bar, either a toolbar
+/// at the top (`init(toolbar:content:)`) or a footer at the bottom (`init(content:footer:)`).
 public struct OnePlusLinearPanel<Content: View, Footer: View>: View {
     private let content: Content
     private let footer: Footer
+    private let barOnTop: Bool
     public init(@ViewBuilder content: () -> Content, @ViewBuilder footer: () -> Footer) {
-        self.content = content(); self.footer = footer()
+        self.content = content(); self.footer = footer(); barOnTop = false
+    }
+    /// Pass `OnePlusLinearPanelFooter(edge: .top)` as the toolbar.
+    public init(@ViewBuilder toolbar: () -> Footer, @ViewBuilder content: () -> Content) {
+        self.content = content(); self.footer = toolbar(); barOnTop = true
     }
     public var body: some View {
         VStack(spacing: 0) {
+            if barOnTop { footer }
             VStack(alignment: .leading, spacing: OnePlusLinearMetrics.panelBlockGap) { content }
-                .padding(.top, OnePlusLinearMetrics.panelBodyTop)
+                .padding(.top, barOnTop ? OnePlusLinearMetrics.panelBodyTopUnderToolbar : OnePlusLinearMetrics.panelBodyTop)
                 .padding(.horizontal, OnePlusLinearMetrics.panelBodyInset)
                 .padding(.bottom, OnePlusLinearMetrics.panelBodyBottom)
-            footer
+            if !barOnTop { footer }
         }
         .frame(width: OnePlusLinearMetrics.panelWidth)
         .background(OnePlusLinearColor.panelShell)
@@ -32,12 +39,14 @@ public struct OnePlusLinearPanel<Content: View, Footer: View>: View {
     }
 }
 
-/// The 44 pt panel footer: leading content (icon tabs), then trailing actions (gear, `Open App`).
+/// The 44 pt panel bar: leading content (icon tabs), then trailing actions (gear, `Open App`). `edge` is where it sits;
+/// its hairline faces the body.
 public struct OnePlusLinearPanelFooter<Leading: View, Trailing: View>: View {
+    private let edge: VerticalEdge
     private let leading: Leading
     private let trailing: Trailing
-    public init(@ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing) {
-        self.leading = leading(); self.trailing = trailing()
+    public init(edge: VerticalEdge = .bottom, @ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing) {
+        self.edge = edge; self.leading = leading(); self.trailing = trailing()
     }
     public var body: some View {
         HStack(spacing: 8) {
@@ -49,7 +58,7 @@ public struct OnePlusLinearPanelFooter<Leading: View, Trailing: View>: View {
         .frame(height: OnePlusLinearMetrics.footer)
         .frame(maxWidth: .infinity)
         .background(OnePlusLinearColor.panelFooter)
-        .overlay(alignment: .top) { OnePlusLinearColor.line.frame(height: 1) }
+        .overlay(alignment: edge == .bottom ? .top : .bottom) { OnePlusLinearColor.line.frame(height: 1) }
     }
 }
 
@@ -567,7 +576,7 @@ public struct OnePlusLinearProcessRow: View {
         }
         .padding(.horizontal, OnePlusLinearMetrics.panelRowInset)
         .frame(height: OnePlusLinearMetrics.processRow)
-        .linearRowHover($hover, sample: sample, enabled: enabled)
+        .linearRowHover($hover, sample: sample, enabled: enabled, fill: OnePlusLinearColor.selection)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(name), CPU \(cpu) percent, memory \(memory)")
     }
@@ -583,8 +592,8 @@ public struct OnePlusLinearAction: Identifiable {
     }
 }
 
-/// One joined 28 pt action bar: equal segments, hairline dividers, glyph and label on one line,
-/// full-segment hover.
+/// A 28 pt toolbar of equal actions on the panel: no fill or ring, short 14 pt hairline dividers, glyph and label
+/// on one line, and a rounded selection fill inset 3 pt on hover.
 public struct OnePlusLinearActionBar: View {
     private let actions: [OnePlusLinearAction]
     public init(_ actions: [OnePlusLinearAction]) { self.actions = actions }
@@ -600,15 +609,36 @@ public struct OnePlusLinearActionBar: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .buttonStyle(OnePlusLinearButtonStyle(radius: 0))
+                .buttonStyle(OnePlusLinearToolbarItemStyle())
                 .overlay(alignment: .leading) {
-                    if item.id != actions.first?.id { OnePlusLinearColor.lineSoft.frame(width: 1).allowsHitTesting(false) }
+                    if item.id != actions.first?.id {
+                        OnePlusLinearColor.lineSoft.frame(width: 1, height: OnePlusLinearMetrics.actionDivider).allowsHitTesting(false)
+                    }
                 }
                 .accessibilityIdentifier(item.id)
             }
         }
         .frame(height: OnePlusLinearMetrics.actionBar)
-        .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearMetrics.radius))
-        .linearRaised(radius: OnePlusLinearMetrics.radius)
+    }
+}
+
+private struct OnePlusLinearToolbarItemStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { ItemBody(configuration: configuration) }
+
+    private struct ItemBody: View {
+        let configuration: Configuration
+        @State private var hover = false
+        @Environment(\.onePlusControlState) private var sample
+        @Environment(\.isEnabled) private var enabled
+        var body: some View {
+            let pressed = configuration.isPressed || sample == .pressed
+            let fill = !enabled ? Color.clear : pressed ? OnePlusLinearColor.pressed
+                : hover || sample == .hover ? OnePlusLinearColor.selection : .clear
+            configuration.label
+                .background { RoundedRectangle(cornerRadius: 5).fill(fill).padding(.horizontal, 3) }
+                .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+                .contentShape(Rectangle())
+                .onePlusHover($hover)
+        }
     }
 }

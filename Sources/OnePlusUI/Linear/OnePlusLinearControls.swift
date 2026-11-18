@@ -9,6 +9,8 @@ public struct OnePlusLinearButtonStyle: ButtonStyle {
         case plain
         /// The raised text button (`Open App`): 28 pt, button fill, ring, 13 pt medium.
         case raised
+        /// The filled text button (panel `Open App`): the `.raised` geometry on the primary fill with primary ink.
+        case filled
         /// The applet primary action (`Pick Color`): 24 pt, soft gray fill, no border, 13 pt medium.
         case soft
         /// A secondary text action: the `.soft` geometry and type with no fill until hover; `appletSecondary` text, `ink` on hover.
@@ -50,6 +52,9 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
         case .soft:
             guard enabled else { return OnePlusLinearColor.softButton }
             return isPressed ? OnePlusLinearColor.softButtonPressed : isHovered ? OnePlusLinearColor.softButtonHover : OnePlusLinearColor.softButton
+        case .filled:
+            guard enabled else { return OnePlusColor.primaryFill }
+            return isPressed ? OnePlusColor.primaryPressed : isHovered ? OnePlusColor.primaryHover : OnePlusColor.primaryFill
         case .destructive:
             return .clear
         case .plain, .raised, .ghost:
@@ -67,6 +72,9 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                 label.linearText(weight: .medium)
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.button)
                     .linearRaised(radius: radius)
+            case .filled:
+                label.linearText(weight: .medium, color: OnePlusColor.primaryInk)
+                    .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.button)
             case .soft:
                 // A text action never truncates; the neighboring row label gives way instead.
                 label.labelStyle(OnePlusLinearLabelStyle()).linearText(weight: .medium).fixedSize()
@@ -151,9 +159,10 @@ public struct OnePlusLinearList<Content: View>: View {
 }
 
 extension View {
-    func linearRowHover(_ hover: Binding<Bool>, sample: OnePlusControlState, enabled: Bool) -> some View {
+    func linearRowHover(_ hover: Binding<Bool>, sample: OnePlusControlState, enabled: Bool,
+                        fill: Color = OnePlusLinearColor.hover) -> some View {
         frame(maxWidth: .infinity, alignment: .leading)
-            .background(enabled && (hover.wrappedValue || sample == .hover) ? OnePlusLinearColor.hover : .clear)
+            .background(enabled && (hover.wrappedValue || sample == .hover) ? fill : .clear)
             .contentShape(Rectangle())
             .onePlusHover(hover)
     }

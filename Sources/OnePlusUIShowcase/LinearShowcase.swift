@@ -135,10 +135,14 @@ struct LinearPanelSample: View {
 
     var body: some View {
         OnePlusLinearPanel {
-            VStack(spacing: 0) {
-                OnePlusLinearPanelHeader("System", note: "Last 60 s")
-                OnePlusLinearBento { leadingTiles } trailing: { trailingTiles }
+            OnePlusLinearPanelFooter(edge: .top) {
+                OnePlusLinearIconTabs(tabs: Self.tabs, selection: $tab)
+            } trailing: {
+                OnePlusLinearIconButton(systemImage: "gearshape", help: "Settings") {}
+                Button("Open App") {}.buttonStyle(OnePlusLinearButtonStyle(.filled))
             }
+        } content: {
+            OnePlusLinearBento { leadingTiles } trailing: { trailingTiles }
             OnePlusLinearList(style: .panel) {
                 OnePlusLinearControlRow("Fan", systemImage: "fan", status: "3,472 RPM") {
                     OnePlusLinearSegmented(choices: [("Auto", "Auto"), ("Cool", "Cool"), ("Max", "Max")], selection: $fan,
@@ -161,13 +165,6 @@ struct LinearPanelSample: View {
                 OnePlusLinearAction("Extract Text", systemImage: "text.viewfinder") {},
                 OnePlusLinearAction("Ruler", systemImage: "ruler") {},
             ])
-        } footer: {
-            OnePlusLinearPanelFooter {
-                OnePlusLinearIconTabs(tabs: Self.tabs, selection: $tab)
-            } trailing: {
-                OnePlusLinearIconButton(systemImage: "gearshape", help: "Settings") {}
-                Button("Open App") {}.buttonStyle(OnePlusLinearButtonStyle(.raised))
-            }
         }
     }
 

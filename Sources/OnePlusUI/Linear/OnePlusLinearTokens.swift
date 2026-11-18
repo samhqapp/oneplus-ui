@@ -182,6 +182,7 @@ public enum OnePlusLinearMetrics {
     public static let panelWidth: CGFloat = 356
     public static let panelRadius: CGFloat = 8
     public static let panelBodyTop: CGFloat = 6
+    public static let panelBodyTopUnderToolbar: CGFloat = 12
     public static let panelBodyInset: CGFloat = 9
     public static let panelBodyBottom: CGFloat = 12
     public static let panelBlockGap: CGFloat = 12
@@ -210,6 +211,7 @@ public enum OnePlusLinearMetrics {
     public static let rowGap: CGFloat = 8
     public static let segment = CGSize(width: 40, height: 18)
     public static let actionBar: CGFloat = 28
+    public static let actionDivider: CGFloat = 14
     public static let footer: CGFloat = 44
     public static let footerInset: CGFloat = 9
     public static let iconTab: CGFloat = 26
