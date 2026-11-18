@@ -18,13 +18,16 @@ public struct OnePlusLinearButtonStyle: ButtonStyle {
         /// The applet destructive action (`Reset to Factory Defaults`): plain red text with no fill and no border,
         /// on the group's row text edge. A native confirmation still guards it.
         case destructive
+        /// The tool page reset or clear (`Reset to Factory Defaults`, `Clear History`): one full-width 32 pt block,
+        /// 1 pt `line` border, no fill until hover, red medium text. Its own block outside every group.
+        case resetBlock
     }
     let kind: Kind
     let radius: CGFloat
     let selected: Bool
     public init(_ kind: Kind = .plain, radius: CGFloat? = nil, selected: Bool = false) {
         self.kind = kind; self.selected = selected
-        self.radius = radius ?? OnePlusLinearMetrics.radius
+        self.radius = radius ?? (kind == .resetBlock ? OnePlusLinearEditorialMetrics.resetBlockRadius : OnePlusLinearMetrics.radius)
     }
     public func makeBody(configuration: Configuration) -> some View {
         OnePlusLinearButtonBody(label: configuration.label, pressed: configuration.isPressed,
@@ -57,6 +60,9 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
             return isPressed ? OnePlusColor.primaryPressed : isHovered ? OnePlusColor.primaryHover : OnePlusColor.primaryFill
         case .destructive:
             return .clear
+        case .resetBlock:
+            guard enabled else { return .clear }
+            return isPressed ? OnePlusLinearColor.softButtonPressed : isHovered ? OnePlusLinearColor.softButtonHover : .clear
         case .plain, .raised, .ghost:
             guard enabled else { return .clear }
             if isPressed { return OnePlusLinearColor.pressed }
@@ -88,6 +94,12 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                 label.linearText(color: enabled && isPressed ? OnePlusLinearColor.destructivePressedText : OnePlusLinearColor.destructiveText)
                     .padding(.leading, editorial ? 0 : OnePlusLinearMetrics.appletRowPadding)
                     .frame(maxWidth: .infinity, minHeight: OnePlusLinearMetrics.appletDestructive, alignment: .leading)
+            case .resetBlock:
+                label.linearText(weight: .medium, color: OnePlusLinearColor.destructiveText)
+                    .frame(maxWidth: .infinity, minHeight: OnePlusLinearEditorialMetrics.resetBlock)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: radius).strokeBorder(OnePlusLinearColor.line, lineWidth: 1)
+                    }
             case .plain:
                 label
             }

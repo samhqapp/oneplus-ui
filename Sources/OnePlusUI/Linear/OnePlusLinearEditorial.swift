@@ -23,6 +23,17 @@ public enum OnePlusLinearEditorialMetrics {
     public static let titleTracking: CGFloat = -0.6
     public static let titleGap: CGFloat = 4
     public static let disabledIconOpacity: Double = 0.45
+    /// The "Launch tile" header: a 48 pt icon above the title, and the large soft Open tile on the right.
+    public static let headerTileIcon: CGFloat = 48
+    public static let headerIconGap: CGFloat = 10
+    public static let headerTileGap: CGFloat = 20
+    public static let launchTile = CGSize(width: 176, height: 108)
+    public static let launchTileRadius: CGFloat = 12
+    public static let launchTilePadding: CGFloat = 14
+    public static let launchTileShortcut: CGFloat = 22
+    /// The bordered reset block (`OnePlusLinearButtonStyle(.resetBlock)`): full width, 32 pt, radius 8.
+    public static let resetBlock: CGFloat = 32
+    public static let resetBlockRadius: CGFloat = 8
 }
 
 /// The scrolling editorial body: 20 pt top, 32 pt gutters, blocks 20 pt apart, 24 pt bottom inside the scroll.
@@ -77,7 +88,8 @@ public struct OnePlusLinearPageTitle: View {
     }
 }
 
-/// The editorial tool page header: the 56 pt icon, the large title and description, then trailing actions.
+/// The editorial tool page header, "Launch tile": the 48 pt icon above the large title and description on the
+/// left, and the trailing actions (an `OnePlusLinearLaunchTile`, or nothing) on the right.
 public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
     private let title: String
     private let detail: String
@@ -87,12 +99,80 @@ public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
         self.title = title; self.detail = detail; self.icon = icon(); self.actions = actions()
     }
     public var body: some View {
-        HStack(alignment: .center, spacing: OnePlusLinearEditorialMetrics.headerGap) {
-            icon.frame(width: OnePlusLinearEditorialMetrics.headerIcon, height: OnePlusLinearEditorialMetrics.headerIcon)
-                .accessibilityHidden(true)
-            OnePlusLinearPageTitle(title, subtitle: detail).frame(maxWidth: .infinity, alignment: .leading)
+        HStack(alignment: .center, spacing: OnePlusLinearEditorialMetrics.headerTileGap) {
+            VStack(alignment: .leading, spacing: OnePlusLinearEditorialMetrics.headerIconGap) {
+                icon.frame(width: OnePlusLinearEditorialMetrics.headerTileIcon, height: OnePlusLinearEditorialMetrics.headerTileIcon)
+                    .accessibilityHidden(true)
+                OnePlusLinearPageTitle(title, subtitle: detail)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             actions
         }
+    }
+}
+
+/// The large soft Open tile of the tool page header: "Open" and an arrow on top, then the tool's global
+/// shortcut over its action name. With no shortcut, only the action name sits at the bottom.
+public struct OnePlusLinearLaunchTile: View {
+    private let shortcut: String?
+    private let caption: String
+    private let action: () -> Void
+    public init(shortcut: String?, caption: String, action: @escaping () -> Void) {
+        self.shortcut = shortcut; self.caption = caption; self.action = action
+    }
+    public var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Text("Open").linearText(weight: .semibold)
+                    Spacer(minLength: 0)
+                    Image(systemName: "arrow.up.right").font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(OnePlusLinearColor.secondary).accessibilityHidden(true)
+                }
+                Spacer(minLength: 0)
+                if let shortcut {
+                    Text(shortcut).font(.system(size: OnePlusLinearEditorialMetrics.launchTileShortcut, weight: .semibold))
+                        .foregroundStyle(OnePlusLinearColor.ink)
+                }
+                Text(caption).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.muted).lineLimit(1)
+            }
+        }
+        .buttonStyle(OnePlusLinearLaunchTileStyle())
+        .accessibilityLabel(caption)
+        .accessibilityHint(shortcut.map { "Shortcut \($0)" } ?? "")
+    }
+}
+
+private struct OnePlusLinearLaunchTileStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        OnePlusLinearLaunchTileBody(label: configuration.label, pressed: configuration.isPressed)
+    }
+}
+
+private struct OnePlusLinearLaunchTileBody<Label: View>: View {
+    @Environment(\.isEnabled) private var enabled
+    @Environment(\.isFocused) private var focused
+    @Environment(\.onePlusControlState) private var sample
+    @State private var hover = false
+    let label: Label
+    let pressed: Bool
+    private var fill: Color {
+        guard enabled else { return OnePlusLinearColor.softButton }
+        if pressed || sample == .pressed { return OnePlusLinearColor.softButtonPressed }
+        return hover || sample == .hover ? OnePlusLinearColor.softButtonHover : OnePlusLinearColor.softButton
+    }
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: OnePlusLinearEditorialMetrics.launchTileRadius)
+        label.padding(OnePlusLinearEditorialMetrics.launchTilePadding)
+            .frame(width: OnePlusLinearEditorialMetrics.launchTile.width, height: OnePlusLinearEditorialMetrics.launchTile.height)
+            .background(shape.fill(fill))
+            .overlay {
+                shape.strokeBorder(enabled && (focused || sample == .focus) && OnePlusFocusPolicy.shared.showsFocus
+                                   ? OnePlusColor.focus : .clear, lineWidth: 1)
+            }
+            .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+            .contentShape(shape)
+            .onePlusHover($hover)
     }
 }
 
