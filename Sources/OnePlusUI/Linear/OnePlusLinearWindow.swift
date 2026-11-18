@@ -155,13 +155,14 @@ public extension OnePlusLinearPaneToolbar where Trailing == EmptyView {
 }
 
 /// Text tabs with counts for the pane toolbar. The selected tab draws the 2 pt accent underline on the
-/// toolbar's bottom line. Selection changes only color and the underline.
+/// toolbar's bottom line, across the whole padded tab. Selection changes only color and the underline.
+/// The last tab's padded box ends on the trailing content inset.
 public struct OnePlusLinearTextTabs<Value: Hashable>: View {
     private let tabs: [OnePlusTab<Value>]
     @Binding private var selection: Value
     public init(tabs: [OnePlusTab<Value>], selection: Binding<Value>) { self.tabs = tabs; _selection = selection }
     public var body: some View {
-        HStack(spacing: OnePlusLinearMetrics.tabGap) {
+        HStack(spacing: OnePlusLinearMetrics.tabGap - 2 * OnePlusLinearMetrics.tabPadding) {
             ForEach(tabs) { tab in OnePlusLinearTextTab(tab: tab, selected: tab.id == selection) { selection = tab.id } }
         }
         .accessibilityElement(children: .contain)
@@ -188,6 +189,7 @@ private struct OnePlusLinearTextTab<Value: Hashable>: View {
                     Text("\(count)").linearText(OnePlusLinearMetrics.control, color: OnePlusLinearColor.muted)
                 }
             }
+            .padding(.horizontal, OnePlusLinearMetrics.tabPadding)
             .frame(maxHeight: .infinity)
             .overlay(alignment: .bottom) {
                 RoundedRectangle(cornerRadius: 1).fill(selected ? OnePlusLinearColor.accent : .clear)

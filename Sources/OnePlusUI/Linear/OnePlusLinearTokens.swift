@@ -157,6 +157,8 @@ public enum OnePlusLinearMetrics {
     public static let toolbarTrailing: CGFloat = 24
     public static let toolbarButton: CGFloat = 24
     public static let tabGap: CGFloat = 16
+    /// Each tab pads its label and count by this much, so the underline runs past both ends of the text.
+    public static let tabPadding: CGFloat = 8
     public static let tabCountGap: CGFloat = 5
     public static let tabUnderline: CGFloat = 2
     public static let bodyTop: CGFloat = 14
