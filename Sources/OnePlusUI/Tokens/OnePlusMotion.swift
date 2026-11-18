@@ -29,6 +29,8 @@ public enum OnePlusMotion {
     public static let knob: TimeInterval = 0.14
     /// Slider knob on a programmatic change (reset). A dragged knob follows the pointer with no animation.
     public static let slider: TimeInterval = 0.16
+    /// Instrument chart ticker: a new sample slides the line left one step over the 1 s sample interval, linear.
+    public static let chartTick: TimeInterval = 1
 
     public static func animation(_ duration: TimeInterval) -> Animation { .timingCurve(easeOut, duration: duration) }
 

@@ -114,7 +114,7 @@ public struct OnePlusLinearPanelHeader: View {
     public init(_ title: String, note: String? = nil, columns: [(String, CGFloat)] = []) {
         self.title = title; self.note = note; self.columns = columns
     }
-    /// The process list header: `CPU` 40 pt and `Memory` 52 pt.
+    /// The process list header: `CPU` and `Memory` columns that match `OnePlusLinearProcessRow`.
     public static func processes(_ title: String = "Top processes") -> Self {
         Self(title, columns: [("CPU", OnePlusLinearMetrics.cpuColumn), ("Memory", OnePlusLinearMetrics.memoryColumn)])
     }
@@ -135,18 +135,56 @@ public struct OnePlusLinearPanelHeader: View {
     }
 }
 
+/// How the bento draws its tiles. `tiles`: separate filled tiles 8 pt apart. `instrument`: one filled card split by
+/// hairlines in the 8 pt gaps, neutral glyphs, large light values in the data color, and charts as a thin
+/// data-colored line with a soft fade, a dot at the newest point, and a continuous ticker scroll.
+public enum OnePlusLinearBentoStyle: Sendable { case tiles, instrument }
+
+extension EnvironmentValues {
+    @Entry var onePlusLinearBentoStyle: OnePlusLinearBentoStyle = .tiles
+}
+
 /// Two columns of metric tiles, 8 pt apart. Use the fixed tile heights so both columns end on one line
 /// (left: tall + short + short, right: three regular tiles = 274 pt each).
 public struct OnePlusLinearBento<Leading: View, Trailing: View>: View {
+    private let style: OnePlusLinearBentoStyle
     private let leading: Leading
     private let trailing: Trailing
-    public init(@ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing) {
-        self.leading = leading(); self.trailing = trailing()
+    public init(style: OnePlusLinearBentoStyle = .tiles, @ViewBuilder leading: () -> Leading,
+                @ViewBuilder trailing: () -> Trailing) {
+        self.style = style; self.leading = leading(); self.trailing = trailing()
     }
     public var body: some View {
-        HStack(alignment: .top, spacing: OnePlusLinearMetrics.bentoGap) {
-            VStack(spacing: OnePlusLinearMetrics.bentoGap) { leading }.frame(maxWidth: .infinity)
-            VStack(spacing: OnePlusLinearMetrics.bentoGap) { trailing }.frame(maxWidth: .infinity)
+        let columns = HStack(alignment: .top, spacing: OnePlusLinearMetrics.bentoGap) {
+            column(leading).frame(maxWidth: .infinity)
+            column(trailing).frame(maxWidth: .infinity)
+        }
+        .environment(\.onePlusLinearBentoStyle, style)
+        if style == .instrument {
+            columns
+                .overlay { OnePlusLinearColor.lineSoft.frame(width: 1) }
+                .background(OnePlusLinearColor.panelTile)
+                .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearMetrics.tileRadius))
+                .linearOuterRing(OnePlusLinearColor.line, radius: OnePlusLinearMetrics.tileRadius)
+        } else {
+            columns
+        }
+    }
+
+    private func column(_ content: some View) -> some View {
+        VStack(spacing: OnePlusLinearMetrics.bentoGap) {
+            Group(subviews: content) { tiles in
+                ForEach(tiles) { tile in
+                    tile.overlay(alignment: .top) {
+                        if style == .instrument, tile.id != tiles.first?.id {
+                            // Centered in the gap; runs to the card edge and the column rule.
+                            OnePlusLinearColor.lineSoft.frame(height: 1)
+                                .padding(.horizontal, -OnePlusLinearMetrics.bentoGap / 2)
+                                .offset(y: -(OnePlusLinearMetrics.bentoGap + 1) / 2)
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -187,25 +225,32 @@ public struct OnePlusLinearTile<Content: View>: View {
     private let chart: OnePlusLinearChart?
     private let usage: OnePlusLinearUsage?
     private let content: Content
+    @Environment(\.onePlusLinearBentoStyle) private var style
     public init(height: CGFloat = OnePlusLinearMetrics.tile, chart: OnePlusLinearChart? = nil, usage: OnePlusLinearUsage? = nil,
                 @ViewBuilder content: () -> Content) {
         self.height = height; self.chart = chart; self.usage = usage; self.content = content()
     }
     public var body: some View {
-        VStack(alignment: .leading, spacing: 0) { content }
+        let tile = VStack(alignment: .leading, spacing: 0) { content }
             .padding([.top, .horizontal], OnePlusLinearMetrics.tilePadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .overlay(alignment: .bottom) {
-                if let chart { OnePlusLinearChartView(chart: chart).frame(height: chart.height) }
+                if let chart { OnePlusLinearChartView(chart: chart, instrument: style == .instrument).frame(height: chart.height) }
             }
             .overlay(alignment: .bottom) {
                 if let usage { OnePlusLinearUsageRow(usage: usage) }
             }
             .frame(height: height)
-            .background(OnePlusLinearColor.panelTile)
-            .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearMetrics.tileRadius))
-            .linearOuterRing(OnePlusLinearColor.line, radius: OnePlusLinearMetrics.tileRadius)
-            .accessibilityElement(children: .combine)
+        Group {
+            if style == .instrument {
+                tile
+            } else {
+                tile.background(OnePlusLinearColor.panelTile)
+                    .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearMetrics.tileRadius))
+                    .linearOuterRing(OnePlusLinearColor.line, radius: OnePlusLinearMetrics.tileRadius)
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -215,12 +260,14 @@ public struct OnePlusLinearTileLabel<Trailing: View>: View {
     private let systemImage: String
     private let color: Color
     private let trailing: Trailing
+    @Environment(\.onePlusLinearBentoStyle) private var style
     public init(_ title: String, systemImage: String, color: Color, @ViewBuilder trailing: () -> Trailing) {
         self.title = title; self.systemImage = systemImage; self.color = color; self.trailing = trailing()
     }
     public var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: systemImage).font(.system(size: 12)).foregroundStyle(color)
+            Image(systemName: systemImage).font(.system(size: 12))
+                .foregroundStyle(style == .instrument ? OnePlusLinearColor.secondary : color)
                 .frame(width: 14, height: 14).accessibilityHidden(true)
             Text(title).linearText(color: OnePlusLinearColor.secondary).fixedSize()
             trailing.frame(maxWidth: .infinity, alignment: .trailing)
@@ -243,10 +290,13 @@ public extension OnePlusLinearTileLabel where Trailing == Text {
 public struct OnePlusLinearInlineValue: View {
     private let value: String
     private let unit: String
-    public init(_ value: String, unit: String) { self.value = value; self.unit = unit }
+    private let color: Color?
+    @Environment(\.onePlusLinearBentoStyle) private var style
+    /// `color` is the data color; the `instrument` bento draws the value in it.
+    public init(_ value: String, unit: String, color: Color? = nil) { self.value = value; self.unit = unit; self.color = color }
     public var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 3) {
-            Text(value).linearText(weight: .semibold)
+            Text(value).linearText(weight: .semibold, color: style == .instrument ? color ?? OnePlusLinearColor.ink : OnePlusLinearColor.ink)
             Text(unit).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted)
         }
     }
@@ -258,18 +308,27 @@ public struct OnePlusLinearTileValue: View {
     private let unit: String
     private let glyph: (systemImage: String, color: Color)?
     private let note: String?
-    public init(_ value: String, unit: String, glyph: (systemImage: String, color: Color)? = nil, note: String? = nil) {
-        self.value = value; self.unit = unit; self.glyph = glyph; self.note = note
+    private let color: Color?
+    @Environment(\.onePlusLinearBentoStyle) private var style
+    /// `color` is the data color; the `instrument` bento draws the value large, light, and in it, with a neutral glyph.
+    public init(_ value: String, unit: String, glyph: (systemImage: String, color: Color)? = nil, note: String? = nil,
+                color: Color? = nil) {
+        self.value = value; self.unit = unit; self.glyph = glyph; self.note = note; self.color = color
     }
     public var body: some View {
+        let instrument = style == .instrument
         HStack(alignment: .firstTextBaseline, spacing: 3) {
             if let glyph {
-                Image(systemName: glyph.systemImage).font(.system(size: 11, weight: .medium)).foregroundStyle(glyph.color)
+                Image(systemName: glyph.systemImage).font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(instrument ? OnePlusLinearColor.secondary : glyph.color)
                     .frame(width: 12, height: 12).alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 4 }
                     .accessibilityHidden(true)
             }
-            Text(value).font(.system(size: OnePlusLinearMetrics.tileValue, weight: .semibold)).tracking(-0.5)
-                .foregroundStyle(OnePlusLinearColor.ink).monospacedDigit()
+            Text(value)
+                .font(.system(size: instrument ? OnePlusLinearMetrics.instrumentValue : OnePlusLinearMetrics.tileValue,
+                              weight: instrument ? .light : .semibold))
+                .tracking(-0.5)
+                .foregroundStyle(instrument ? color ?? OnePlusLinearColor.ink : OnePlusLinearColor.ink).monospacedDigit()
             Text(unit).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted)
             if let note {
                 Text(note).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.secondary)
@@ -326,30 +385,118 @@ private struct OnePlusLinearUsageRow: View {
 
 private struct OnePlusLinearChartView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let chart: OnePlusLinearChart
+    let instrument: Bool
     var body: some View {
-        let paths = chart.series.map {
-            OnePlusChartPaths.cached(values: $0.values, range: chart.range, smoothed: true, slots: chart.slots)
-        }
-        let fill = colorScheme == .dark ? OnePlusLinearColor.chartFillOpacity.dark : OnePlusLinearColor.chartFillOpacity.light
-        Canvas { context, size in
-            let width = size.width.isFinite ? max(0, size.width) : 0
-            let height = size.height.isFinite ? max(0, size.height) : 0
-            if chart.midline {
-                var line = Path()
-                line.move(to: CGPoint(x: 0, y: height / 2)); line.addLine(to: CGPoint(x: width, y: height / 2))
-                context.stroke(line, with: .color(OnePlusLinearColor.lineSoft), lineWidth: 1)
-            }
-            let transform = CGAffineTransform(scaleX: width, y: height)
-            for (series, path) in zip(chart.series, paths) {
-                if series.filled { context.fill(path.area.applying(transform), with: .color(series.color.opacity(fill))) }
-                context.stroke(path.line.applying(transform), with: .color(series.color),
-                               style: StrokeStyle(lineWidth: 1.25, lineCap: .round, lineJoin: .round))
+        let canvas = Canvas { context, size in draw(in: &context, size: size) }
+        Group {
+            if instrument {
+                OnePlusChartTicker(content: canvas, trigger: chart.series.first?.values ?? [], slots: chart.slots,
+                                   animates: !reduceMotion && chart.slots > 1)
+            } else {
+                canvas.clipped()
             }
         }
         .allowsHitTesting(false)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(chart.series.first?.values.last.flatMap { $0.isFinite ? "Latest value \($0.formatted())" : nil } ?? "No history")
+    }
+
+    private func draw(in context: inout GraphicsContext, size: CGSize) {
+        let dot = OnePlusLinearMetrics.chartDot
+        let width = size.width.isFinite ? max(0, size.width - (instrument ? dot * 2 : 0)) : 0
+        let height = size.height.isFinite ? max(0, size.height) : 0
+        if chart.midline {
+            var line = Path()
+            line.move(to: CGPoint(x: 0, y: height / 2)); line.addLine(to: CGPoint(x: width, y: height / 2))
+            context.stroke(line, with: .color(OnePlusLinearColor.lineSoft), lineWidth: 1)
+        }
+        let fill = colorScheme == .dark ? OnePlusLinearColor.chartFillOpacity.dark : OnePlusLinearColor.chartFillOpacity.light
+        let fade = colorScheme == .dark ? OnePlusLinearColor.chartFadeOpacity.dark : OnePlusLinearColor.chartFadeOpacity.light
+        let transform = CGAffineTransform(scaleX: width, y: height)
+        for series in chart.series {
+            let paths = OnePlusChartPaths.cached(values: series.values, range: chart.range, smoothed: true, slots: chart.slots)
+            let line = paths.line.applying(transform)
+            if series.filled, !paths.area.isEmpty {
+                let area = paths.area.applying(transform)
+                if instrument {
+                    context.fill(area, with: .linearGradient(Gradient(colors: [series.color.opacity(fade), series.color.opacity(0)]),
+                                                             startPoint: CGPoint(x: 0, y: area.boundingRect.minY),
+                                                             endPoint: CGPoint(x: 0, y: height)))
+                } else {
+                    context.fill(area, with: .color(series.color.opacity(fill)))
+                }
+            }
+            context.stroke(line, with: .color(series.color),
+                           style: StrokeStyle(lineWidth: instrument ? 1 : 1.25, lineCap: .round, lineJoin: .round))
+            if instrument, series.filled, let last = line.currentPoint {
+                context.fill(Path(ellipseIn: CGRect(x: last.x - dot, y: last.y - dot, width: dot * 2, height: dot * 2)),
+                             with: .color(series.color))
+            }
+        }
+    }
+}
+
+/// Instrument chart host: clips the chart, fades its left edge, and runs the ticker. Each new sample starts
+/// the drawing one step to the right and a Core Animation translation slides it left over the sample
+/// interval, linear. The render server runs the frames, so the app draws the chart once per sample.
+private struct OnePlusChartTicker<Content: View>: NSViewRepresentable {
+    let content: Content
+    let trigger: [Double]
+    let slots: Int
+    let animates: Bool
+
+    func makeNSView(context: Context) -> OnePlusChartTickerView<Content> { OnePlusChartTickerView(content) }
+
+    func updateNSView(_ view: OnePlusChartTickerView<Content>, context: Context) {
+        view.host.rootView = content
+        guard trigger != view.lastTrigger else { return }
+        let first = view.lastTrigger == nil
+        view.lastTrigger = trigger
+        if animates && !first { view.tick(slots: slots) }
+    }
+}
+
+private final class OnePlusChartTickerView<Content: View>: NSView {
+    let host: NSHostingView<Content>
+    var lastTrigger: [Double]?
+    private let fade = CAGradientLayer()
+
+    init(_ content: Content) {
+        host = NSHostingView(rootView: content)
+        super.init(frame: .zero)
+        wantsLayer = true
+        layer?.masksToBounds = true
+        fade.colors = [NSColor.clear.cgColor, NSColor.black.cgColor, NSColor.black.cgColor]
+        fade.startPoint = CGPoint(x: 0, y: 0.5)
+        fade.endPoint = CGPoint(x: 1, y: 0.5)
+        layer?.mask = fade
+        host.wantsLayer = true
+        addSubview(host)
+    }
+
+    @available(*, unavailable) required init?(coder: NSCoder) { nil }
+
+    override func layout() {
+        super.layout()
+        host.frame = bounds
+        CATransaction.begin(); CATransaction.setDisableActions(true)
+        fade.frame = bounds
+        let edge = bounds.width > 0 ? OnePlusLinearMetrics.chartEdgeFade / bounds.width : 0
+        fade.locations = [0, NSNumber(value: Double(min(edge, 1))), 1]
+        CATransaction.commit()
+    }
+
+    func tick(slots: Int) {
+        guard let layer = host.layer, bounds.width > 0 else { return }
+        let step = (bounds.width - OnePlusLinearMetrics.chartDot * 2) / CGFloat(max(slots - 1, 1))
+        let slide = CABasicAnimation(keyPath: "transform.translation.x")
+        slide.fromValue = step
+        slide.toValue = 0
+        slide.duration = OnePlusMotion.chartTick
+        slide.timingFunction = CAMediaTimingFunction(name: .linear)
+        layer.add(slide, forKey: "ticker")
     }
 }
 
@@ -382,7 +529,7 @@ public struct OnePlusLinearControlRow<Control: View>: View {
     }
 }
 
-/// A 30 pt process row: 16 pt app icon (terminal glyph when nil), name, CPU percent in the data color
+/// A 30 pt process row in 12 pt text: 16 pt app icon (terminal glyph when nil), name, CPU percent in the data color
 /// (number and percent sign), memory. Pass preformatted strings.
 public struct OnePlusLinearProcessRow: View {
     private let name: String
@@ -407,13 +554,15 @@ public struct OnePlusLinearProcessRow: View {
                 }
             }
             .frame(width: OnePlusLinearMetrics.processIcon, height: OnePlusLinearMetrics.processIcon)
-            Text(name).linearText().lineLimit(1).truncationMode(.tail).frame(maxWidth: .infinity, alignment: .leading)
+            Text(name).linearText(OnePlusLinearMetrics.control).lineLimit(1).truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .leading)
             HStack(alignment: .firstTextBaseline, spacing: 1) {
-                Text(cpu).linearText(weight: .medium, color: color)
+                Text(cpu).linearText(OnePlusLinearMetrics.control, weight: .medium, color: color)
                 Text("%").linearText(OnePlusLinearMetrics.caption, color: color)
             }
             .frame(width: OnePlusLinearMetrics.cpuColumn, alignment: .trailing)
-            Text(memory).linearText(color: OnePlusLinearColor.secondary).lineLimit(1)
+            Text(memory).linearText(OnePlusLinearMetrics.control, color: OnePlusLinearColor.secondary)
+                .lineLimit(1).fixedSize()
                 .frame(width: OnePlusLinearMetrics.memoryColumn, alignment: .trailing)
         }
         .padding(.horizontal, OnePlusLinearMetrics.panelRowInset)

@@ -126,6 +126,8 @@ public enum OnePlusLinearColor {
     public static let networkUp = color("networkUp", light: 0xE07F2A, dark: 0xD9925A)
     /// Area fill under a history line: series color at this opacity.
     public static let chartFillOpacity = (light: 0.09, dark: 0.10)
+    /// Instrument chart: series color at this opacity under the line's peak, fading to clear at the bottom.
+    public static let chartFadeOpacity = (light: 0.16, dark: 0.20)
 }
 
 public enum OnePlusLinearMetrics {
@@ -193,13 +195,18 @@ public enum OnePlusLinearMetrics {
     public static let shortTile: CGFloat = 56
     public static let chart: CGFloat = 30
     public static let tallChart: CGFloat = 68
+    /// Instrument bento: value size, the newest-point dot radius, and the left-edge fade width of a chart.
+    public static let instrumentValue: CGFloat = 26
+    public static let chartDot: CGFloat = 2.5
+    public static let chartEdgeFade: CGFloat = 16
     public static let usageBar: CGFloat = 5
     public static let usageRowBottom: CGFloat = 12
     public static let controlRow: CGFloat = 32
     public static let processRow: CGFloat = 30
     public static let processIcon: CGFloat = 16
     public static let cpuColumn: CGFloat = 40
-    public static let memoryColumn: CGFloat = 52
+    /// Fits `1,023.7 MB`, the widest memory string, at the 12 pt process text.
+    public static let memoryColumn: CGFloat = 68
     public static let rowGap: CGFloat = 8
     public static let segment = CGSize(width: 40, height: 18)
     public static let actionBar: CGFloat = 28
