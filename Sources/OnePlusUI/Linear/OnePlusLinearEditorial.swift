@@ -105,7 +105,8 @@ struct OnePlusLinearEditorialCaption: View {
     }
 }
 
-/// The editorial group: no fill or ring, a `line` hairline on top, a `lineSoft` hairline under each row. `flush` cancels the applet row padding, so setting rows start on the page's one leading edge
+/// The editorial group: no fill or ring, a `line` hairline on top, a `lineSoft` hairline between rows and none
+/// under the last. `flush` cancels the applet row padding, so setting rows start on the page's one leading edge
 /// (the header and caption edge); hover rows (tool rows) keep their own inset.
 struct OnePlusLinearEditorialGroup<Content: View>: View {
     let content: Content
@@ -116,7 +117,9 @@ struct OnePlusLinearEditorialGroup<Content: View>: View {
                 ForEach(rows) { row in
                     row.padding(.horizontal, flush ? -OnePlusLinearMetrics.appletRowPadding : 0)
                         .overlay(alignment: .bottom) {
-                            OnePlusLinearColor.lineSoft.frame(height: 1).allowsHitTesting(false)
+                            if row.id != rows.last?.id {
+                                OnePlusLinearColor.lineSoft.frame(height: 1).allowsHitTesting(false)
+                            }
                         }
                 }
             }
