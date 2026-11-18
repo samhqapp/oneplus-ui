@@ -156,15 +156,17 @@ public struct OnePlusLinearSeries: Sendable {
     public init(_ values: [Double], color: Color, filled: Bool = true) { self.values = values; self.color = color; self.filled = filled }
 }
 
-/// A history chart at a tile's bottom edge, full width. Cached paths; static while values do not change.
+/// A history chart at a tile's bottom edge, full width: a monotone cubic line, cached, static while values do not
+/// change. `slots` is the full window (such as 60 one-second samples), so a short history fills from the right.
 public struct OnePlusLinearChart: Sendable {
     public let series: [OnePlusLinearSeries]
     public let range: ClosedRange<Double>
     public let height: CGFloat
     public let midline: Bool
+    public let slots: Int
     public init(_ series: [OnePlusLinearSeries], range: ClosedRange<Double> = 0...100,
-                height: CGFloat = OnePlusLinearMetrics.chart, midline: Bool = false) {
-        self.series = series; self.range = range; self.height = height; self.midline = midline
+                height: CGFloat = OnePlusLinearMetrics.chart, midline: Bool = false, slots: Int = 0) {
+        self.series = series; self.range = range; self.height = height; self.midline = midline; self.slots = slots
     }
 }
 
@@ -324,7 +326,9 @@ private struct OnePlusLinearChartView: View {
     @Environment(\.colorScheme) private var colorScheme
     let chart: OnePlusLinearChart
     var body: some View {
-        let paths = chart.series.map { OnePlusChartPaths.cached(values: $0.values, range: chart.range) }
+        let paths = chart.series.map {
+            OnePlusChartPaths.cached(values: $0.values, range: chart.range, smoothed: true, slots: chart.slots)
+        }
         let fill = colorScheme == .dark ? OnePlusLinearColor.chartFillOpacity.dark : OnePlusLinearColor.chartFillOpacity.light
         Canvas { context, size in
             let width = size.width.isFinite ? max(0, size.width) : 0

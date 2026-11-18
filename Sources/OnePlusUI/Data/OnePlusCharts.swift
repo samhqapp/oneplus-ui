@@ -79,63 +79,127 @@ final class OnePlusChartPaths {
     private let values: [Double]
     private let range: ClosedRange<Double>
     private let smoothed: Bool
+    private let slots: Int
     private static let cache: NSCache<NSNumber, OnePlusChartPaths> = {
         let cache = NSCache<NSNumber, OnePlusChartPaths>(); cache.countLimit = 128; return cache
     }()
     // A hash key avoids formatting the whole series into a string on every body pass; equality guards collisions.
-    static func cached(values: [Double], range: ClosedRange<Double>, smoothed: Bool = false) -> OnePlusChartPaths {
+    static func cached(values: [Double], range: ClosedRange<Double>, smoothed: Bool = false, slots: Int = 0) -> OnePlusChartPaths {
         var hasher = Hasher()
-        hasher.combine(values); hasher.combine(range.lowerBound); hasher.combine(range.upperBound); hasher.combine(smoothed)
+        hasher.combine(values); hasher.combine(range.lowerBound); hasher.combine(range.upperBound)
+        hasher.combine(smoothed); hasher.combine(slots)
         let key = NSNumber(value: hasher.finalize())
-        if let result = cache.object(forKey: key), result.smoothed == smoothed, result.range == range,
+        if let result = cache.object(forKey: key), result.smoothed == smoothed, result.slots == slots, result.range == range,
            result.values == values { return result }
-        let result = OnePlusChartPaths(values: values, range: range, smoothed: smoothed)
+        let result = OnePlusChartPaths(values: values, range: range, smoothed: smoothed, slots: slots)
         cache.setObject(result, forKey: key)
         return result
     }
-    init(values: [Double], range: ClosedRange<Double>, smoothed: Bool = false) {
-        self.values = values; self.range = range; self.smoothed = smoothed
-        var line = Path()
-        var area = Path()
+    /// `slots` fixes the x step to a full window, right-aligned, so a short history never stretches.
+    /// `smoothed` draws a monotone cubic through the points: no overshoot past a sample, flat runs stay flat.
+    init(values: [Double], range: ClosedRange<Double>, smoothed: Bool = false, slots: Int = 0) {
+        self.values = values; self.range = range; self.smoothed = smoothed; self.slots = slots
         let lower = range.lowerBound.isFinite ? range.lowerBound : 0
         let upper = range.upperBound.isFinite ? range.upperBound : 100
         let scale = max(lower.magnitude, upper.magnitude, 1)
         let scaledLower = lower / scale
         let scaledSpan = max(upper / scale - scaledLower, 0.001)
-        var last: CGPoint?
+        let count = max(values.count, slots)
+        let offset = count - values.count
+        var runs: [[CGPoint]] = [[]]
         for (index, value) in values.enumerated() {
-            guard value.isFinite else {
-                if let last { area.addLine(to: CGPoint(x: last.x, y: 1)); area.closeSubpath() }
-                last = nil
-                continue
-            }
-            let x = values.count == 1 ? 0 : Double(index) / Double(values.count - 1)
-            let scaledValue = value / scale
-            let fraction = min(max((scaledValue - scaledLower) / scaledSpan, 0), 1)
-            let point = CGPoint(x: x, y: 1 - (fraction.isFinite ? fraction : 0))
-            if last == nil {
-                line.move(to: point)
-                area.move(to: CGPoint(x: point.x, y: 1))
-                area.addLine(to: point)
-            } else if smoothed, let last {
-                let middle = (last.x + point.x) / 2
-                let control1 = CGPoint(x: middle, y: last.y)
-                let control2 = CGPoint(x: middle, y: point.y)
-                line.addCurve(to: point, control1: control1, control2: control2)
-                area.addCurve(to: point, control1: control1, control2: control2)
-            } else {
-                line.addLine(to: point)
-                area.addLine(to: point)
-            }
-            last = point
+            guard value.isFinite else { if !runs[runs.count - 1].isEmpty { runs.append([]) }; continue }
+            let x = count == 1 ? 0 : Double(index + offset) / Double(count - 1)
+            let fraction = min(max((value / scale - scaledLower) / scaledSpan, 0), 1)
+            runs[runs.count - 1].append(CGPoint(x: x, y: 1 - (fraction.isFinite ? fraction : 0)))
         }
-        if let last {
-            if values.count == 1 {
-                line.addLine(to: CGPoint(x: 1, y: last.y)); area.addLine(to: CGPoint(x: 1, y: last.y))
+        var line = Path()
+        var area = Path()
+        for run in runs where !run.isEmpty {
+            var points = run
+            if count == 1 { points.append(CGPoint(x: 1, y: run[0].y)) }
+            line.move(to: points[0])
+            area.move(to: CGPoint(x: points[0].x, y: 1))
+            area.addLine(to: points[0])
+            let tangents = smoothed ? Self.monotoneTangents(points) : []
+            for index in 1..<max(points.count, 1) {
+                let from = points[index - 1], to = points[index]
+                if smoothed {
+                    let third = (to.x - from.x) / 3
+                    let control1 = CGPoint(x: from.x + third, y: from.y + third * tangents[index - 1])
+                    let control2 = CGPoint(x: to.x - third, y: to.y - third * tangents[index])
+                    line.addCurve(to: to, control1: control1, control2: control2)
+                    area.addCurve(to: to, control1: control1, control2: control2)
+                } else {
+                    line.addLine(to: to)
+                    area.addLine(to: to)
+                }
             }
-            area.addLine(to: CGPoint(x: values.count == 1 ? 1 : last.x, y: 1)); area.closeSubpath()
+            area.addLine(to: CGPoint(x: points[points.count - 1].x, y: 1)); area.closeSubpath()
         }
         self.line = line; self.area = area
+    }
+
+    /// Steffen's monotone tangents (as in d3 `curveMonotoneX`): zero at a peak or valley and at most three
+    /// times the smaller neighbor slope, so the curve never leaves the band between two samples.
+    static func monotoneTangents(_ points: [CGPoint]) -> [CGFloat] {
+        guard points.count > 1 else { return [0] }
+        let slopes = (1..<points.count).map { index in
+            let width = points[index].x - points[index - 1].x
+            return width > 0 ? (points[index].y - points[index - 1].y) / width : 0
+        }
+        var tangents = [CGFloat](repeating: 0, count: points.count)
+        for index in 1..<(points.count - 1) {
+            let left = slopes[index - 1], right = slopes[index]
+            guard left * right > 0 else { continue }
+            let h0 = points[index].x - points[index - 1].x, h1 = points[index + 1].x - points[index].x
+            let blend = (left * h1 + right * h0) / (h0 + h1)
+            tangents[index] = (left > 0 ? 2 : -2) * min(abs(left), abs(right), abs(blend) / 2)
+        }
+        let last = points.count - 1
+        tangents[0] = endTangent(slopes[0], neighbor: last > 1 ? tangents[1] : slopes[0])
+        tangents[last] = endTangent(slopes[last - 1], neighbor: last > 1 ? tangents[last - 1] : slopes[last - 1])
+        return tangents
+    }
+
+    private static func endTangent(_ slope: CGFloat, neighbor: CGFloat) -> CGFloat {
+        let tangent = (3 * slope - neighbor) / 2
+        guard tangent * slope > 0 else { return 0 }
+        return abs(tangent) > 3 * abs(slope) ? 3 * slope : tangent
+    }
+}
+
+/// Calm live charts: light sample smoothing and a y scale that steps up at once but settles down slowly.
+/// Text values stay the raw current reading; only the drawn series uses these.
+public enum OnePlusChartSmoothing {
+    /// An exponential moving average. Run it over the full history, then take the visible window, so the
+    /// visible points never change once drawn. A missing sample passes through and restarts the average.
+    public static func eased(_ values: [Double], weight: Double = 0.5) -> [Double] {
+        var last: Double?
+        return values.map { value in
+            guard value.isFinite else { last = nil; return value }
+            let next = last.map { $0 + (value - $0) * weight } ?? value
+            last = next
+            return next
+        }
+    }
+
+    /// The chart top: the next 1, 2, 2.5, or 5 step above `peak` times `headroom`, at least `minimum` and at most
+    /// `maximum`. A higher peak raises it at once (nothing clips); a lower one lets it fall 20% of the gap per
+    /// sample, so the line never jumps when a spike leaves the window.
+    public static func ceiling(peak: Double, previous: Double?, minimum: Double, maximum: Double = .infinity,
+                               headroom: Double = 1.25) -> Double {
+        let peak = peak.isFinite ? max(peak, 0) : 0
+        let target = min(maximum, niceStep(max(minimum, peak * headroom)))
+        guard let previous, previous.isFinite, previous > 0, target < previous else { return target }
+        let eased = max(previous - (previous - target) * 0.2, peak)
+        return eased - target < target * 0.02 ? target : eased
+    }
+
+    static func niceStep(_ value: Double) -> Double {
+        guard value.isFinite, value > 0 else { return 1 }
+        let base = pow(10, floor(log10(value)))
+        return [1, 2, 2.5, 5, 10].map { $0 * base }.first { $0 >= value * 0.999_999 } ?? 10 * base
     }
 }
 

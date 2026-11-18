@@ -264,6 +264,14 @@ final class OnePlusUITests: XCTestCase {
         var curves = 0
         smoothed.line.forEach { if case .curve = $0 { curves += 1 } }
         XCTAssertEqual(curves, 2)
+        let spike = OnePlusChartPaths(values: [10, 10, 90, 10, 10], range: 0...100, smoothed: true, slots: 10)
+        XCTAssertEqual(spike.line.boundingRect.minY, 0.1, accuracy: 0.0001, "the curve overshoots the peak")
+        XCTAssertEqual(spike.line.boundingRect.maxY, 0.9, accuracy: 0.0001, "the curve dips below the floor")
+        XCTAssertEqual(spike.line.boundingRect.minX, 5.0 / 9, accuracy: 0.0001, "a short history fills from the right")
+        XCTAssertEqual(OnePlusChartSmoothing.eased([0, 10, .nan, 4]).map { $0.isNaN ? -1 : $0 }, [0, 5, -1, 4])
+        XCTAssertEqual(OnePlusChartSmoothing.ceiling(peak: 27.7, previous: nil, minimum: 5, maximum: 100), 50)
+        XCTAssertEqual(OnePlusChartSmoothing.ceiling(peak: 9, previous: 50, minimum: 5, maximum: 100), 44)
+        XCTAssertEqual(OnePlusChartSmoothing.ceiling(peak: 60, previous: 20, minimum: 5, maximum: 100), 100)
         XCTAssertTrue(OnePlusChartPaths.cached(values: [.nan, .infinity], range: 0...100).line.isEmpty)
         XCTAssertFalse(OnePlusChartPaths.cached(values: [50], range: 0...100).line.isEmpty)
     }
