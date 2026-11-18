@@ -1,35 +1,61 @@
 import AppKit
 import SwiftUI
 
-/// The v15 menu panel shell: 356 pt, 8 pt radius, body blocks 12 pt apart, and one fixed bar, either a toolbar
+/// How the panel draws its surfaces. `lines`: hairline rings, dividers, and a bar line. `fillSteps` (owner pick
+/// 2026-11-19): no lines anywhere; tiles, groups, rows, buttons, the bar, and segments separate only by a step
+/// in fill (`OnePlusLinearColor.fill*`) and by spacing. The panel sets it for everything inside.
+public enum OnePlusLinearPanelStyle: Sendable {
+    case lines, fillSteps
+
+    public var radius: CGFloat { self == .fillSteps ? 12 : OnePlusLinearMetrics.panelRadius }
+    public var bar: CGFloat { self == .fillSteps ? 46 : OnePlusLinearMetrics.footer }
+    public var barInset: CGFloat { self == .fillSteps ? 10 : OnePlusLinearMetrics.footerInset }
+    public var bodyTopUnderBar: CGFloat { self == .fillSteps ? 2 : OnePlusLinearMetrics.panelBodyTopUnderToolbar }
+    public var bodyInset: CGFloat { self == .fillSteps ? 10 : OnePlusLinearMetrics.panelBodyInset }
+    public var blockGap: CGFloat { self == .fillSteps ? 10 : OnePlusLinearMetrics.panelBlockGap }
+    public var bentoGap: CGFloat { self == .fillSteps ? 4 : OnePlusLinearMetrics.bentoGap }
+    /// Fill steps: list and control-card radius, tile and action radius, and the list's top and bottom padding.
+    static let groupRadius: CGFloat = 10
+    static let tileRadius: CGFloat = 8
+    static let listPadding: CGFloat = 4
+}
+
+extension EnvironmentValues {
+    @Entry public var onePlusLinearPanelStyle: OnePlusLinearPanelStyle = .lines
+}
+
+/// The v15 menu panel shell: 356 pt, body blocks apart by the style's gap, and one fixed bar, either a toolbar
 /// at the top (`init(toolbar:content:)`) or a footer at the bottom (`init(content:footer:)`).
 public struct OnePlusLinearPanel<Content: View, Footer: View>: View {
+    private let style: OnePlusLinearPanelStyle
     private let content: Content
     private let footer: Footer
     private let barOnTop: Bool
-    public init(@ViewBuilder content: () -> Content, @ViewBuilder footer: () -> Footer) {
-        self.content = content(); self.footer = footer(); barOnTop = false
+    public init(style: OnePlusLinearPanelStyle = .lines, @ViewBuilder content: () -> Content, @ViewBuilder footer: () -> Footer) {
+        self.style = style; self.content = content(); self.footer = footer(); barOnTop = false
     }
     /// Pass `OnePlusLinearPanelFooter(edge: .top)` as the toolbar.
-    public init(@ViewBuilder toolbar: () -> Footer, @ViewBuilder content: () -> Content) {
-        self.content = content(); self.footer = toolbar(); barOnTop = true
+    public init(style: OnePlusLinearPanelStyle = .lines, @ViewBuilder toolbar: () -> Footer, @ViewBuilder content: () -> Content) {
+        self.style = style; self.content = content(); self.footer = toolbar(); barOnTop = true
     }
     public var body: some View {
         VStack(spacing: 0) {
             if barOnTop { footer }
-            VStack(alignment: .leading, spacing: OnePlusLinearMetrics.panelBlockGap) { content }
-                .padding(.top, barOnTop ? OnePlusLinearMetrics.panelBodyTopUnderToolbar : OnePlusLinearMetrics.panelBodyTop)
-                .padding(.horizontal, OnePlusLinearMetrics.panelBodyInset)
+            VStack(alignment: .leading, spacing: style.blockGap) { content }
+                .padding(.top, barOnTop ? style.bodyTopUnderBar : OnePlusLinearMetrics.panelBodyTop)
+                .padding(.horizontal, style.bodyInset)
                 .padding(.bottom, OnePlusLinearMetrics.panelBodyBottom)
             if !barOnTop { footer }
         }
         .frame(width: OnePlusLinearMetrics.panelWidth)
-        .background(OnePlusLinearColor.panelShell)
-        .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearMetrics.panelRadius))
+        .background(style == .fillSteps ? OnePlusLinearColor.fillShell : OnePlusLinearColor.panelShell)
+        .clipShape(RoundedRectangle(cornerRadius: style.radius))
         .overlay {
-            RoundedRectangle(cornerRadius: OnePlusLinearMetrics.panelRadius)
-                .strokeBorder(Self.edge, lineWidth: 1).allowsHitTesting(false)
+            if style == .lines {
+                RoundedRectangle(cornerRadius: style.radius).strokeBorder(Self.edge, lineWidth: 1).allowsHitTesting(false)
+            }
         }
+        .environment(\.onePlusLinearPanelStyle, style)
     }
 
     /// Light: a crisp hairline. Dark: a quiet ring below the tile rings, so the system shadow draws the edge
@@ -45,6 +71,7 @@ public struct OnePlusLinearPanelFooter<Leading: View, Trailing: View>: View {
     private let edge: VerticalEdge
     private let leading: Leading
     private let trailing: Trailing
+    @Environment(\.onePlusLinearPanelStyle) private var style
     public init(edge: VerticalEdge = .bottom, @ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing) {
         self.edge = edge; self.leading = leading(); self.trailing = trailing()
     }
@@ -54,11 +81,13 @@ public struct OnePlusLinearPanelFooter<Leading: View, Trailing: View>: View {
             Spacer(minLength: 0)
             trailing
         }
-        .padding(.horizontal, OnePlusLinearMetrics.footerInset)
-        .frame(height: OnePlusLinearMetrics.footer)
+        .padding(.horizontal, style.barInset)
+        .frame(height: style.bar)
         .frame(maxWidth: .infinity)
-        .background(OnePlusLinearColor.panelFooter)
-        .overlay(alignment: edge == .bottom ? .top : .bottom) { OnePlusLinearColor.line.frame(height: 1) }
+        .background(style == .lines ? OnePlusLinearColor.panelFooter : .clear)
+        .overlay(alignment: edge == .bottom ? .top : .bottom) {
+            if style == .lines { OnePlusLinearColor.line.frame(height: 1) }
+        }
     }
 }
 
@@ -68,10 +97,15 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
     @Binding private var selection: Value
     private let onMove: ((Int, Int) -> Void)?
     @Namespace private var chip
+    @Environment(\.onePlusLinearPanelStyle) private var style
     public init(tabs: [OnePlusMenuTab<Value>], selection: Binding<Value>, onMove: ((Int, Int) -> Void)? = nil) {
         self.tabs = tabs; _selection = selection; self.onMove = onMove
     }
     public var body: some View {
+        // Fill steps: 28 pt tabs with no track; the selected tab is one fill step up, radius 7.
+        let fill = style == .fillSteps
+        let size = fill ? 28 : OnePlusLinearMetrics.iconTab
+        let radius: CGFloat = fill ? 7 : 5
         HStack(spacing: 2) {
             ForEach(tabs) { tab in
                 let on = tab.id == selection
@@ -81,10 +115,16 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
                         else { Image(systemName: tab.systemImage).font(.system(size: 13)) }
                     }
                     .foregroundStyle(on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
-                    .frame(width: OnePlusLinearMetrics.iconTab, height: OnePlusLinearMetrics.iconTab)
-                    .linearSegmentSelected(on, radius: 5, in: chip)
+                    .frame(width: size, height: size)
+                    .background {
+                        if fill, on {
+                            RoundedRectangle(cornerRadius: radius).fill(OnePlusLinearColor.fillTabSelected)
+                                .matchedGeometryEffect(id: "chip", in: chip)
+                        }
+                    }
+                    .linearSegmentSelected(!fill && on, radius: radius, in: chip)
                 }
-                .buttonStyle(OnePlusLinearButtonStyle(radius: 5))
+                .buttonStyle(OnePlusLinearButtonStyle(radius: radius))
                 .help(tab.title).accessibilityLabel(tab.title)
                 .accessibilityAddTraits(on ? .isSelected : [])
                 .modifier(OnePlusLinearOptionalIdentifier(value: tab.accessibilityIdentifier))
@@ -97,13 +137,20 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
             }
         }
         .linearMotion(OnePlusMotion.tabSlide, value: selection)
-        .linearTrack(radius: 7)
+        .modifier(OnePlusLinearTabTrack(on: !fill))
         .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
             guard press.modifiers.isEmpty else { return .ignored }
             if let next = OnePlusSegmented<Value>.nextSelection(in: tabs.map(\.id), current: selection,
                                                               direction: press.key == .leftArrow ? -1 : 1) { selection = next }
             return .handled
         }
+    }
+}
+
+private struct OnePlusLinearTabTrack: ViewModifier {
+    let on: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if on { content.linearTrack(radius: 7) } else { content }
     }
 }
 
@@ -163,13 +210,14 @@ public struct OnePlusLinearBento<Leading: View, Trailing: View>: View {
                 @ViewBuilder trailing: () -> Trailing) {
         self.style = style; self.leading = leading(); self.trailing = trailing()
     }
+    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     public var body: some View {
-        let columns = HStack(alignment: .top, spacing: OnePlusLinearMetrics.bentoGap) {
+        let columns = HStack(alignment: .top, spacing: panelStyle.bentoGap) {
             column(leading).frame(maxWidth: .infinity)
             column(trailing).frame(maxWidth: .infinity)
         }
         .environment(\.onePlusLinearBentoStyle, style)
-        if style == .instrument {
+        if style == .instrument, panelStyle == .lines {
             columns
                 .overlay { OnePlusLinearColor.lineSoft.frame(width: 1) }
                 .background(OnePlusLinearColor.panelTile)
@@ -181,11 +229,11 @@ public struct OnePlusLinearBento<Leading: View, Trailing: View>: View {
     }
 
     private func column(_ content: some View) -> some View {
-        VStack(spacing: OnePlusLinearMetrics.bentoGap) {
+        VStack(spacing: panelStyle.bentoGap) {
             Group(subviews: content) { tiles in
                 ForEach(tiles) { tile in
                     tile.overlay(alignment: .top) {
-                        if style == .instrument, tile.id != tiles.first?.id {
+                        if style == .instrument, panelStyle == .lines, tile.id != tiles.first?.id {
                             // Centered in the gap; runs to the card edge and the column rule.
                             OnePlusLinearColor.lineSoft.frame(height: 1)
                                 .padding(.horizontal, -OnePlusLinearMetrics.bentoGap / 2)
@@ -235,6 +283,7 @@ public struct OnePlusLinearTile<Content: View>: View {
     private let usage: OnePlusLinearUsage?
     private let content: Content
     @Environment(\.onePlusLinearBentoStyle) private var style
+    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     public init(height: CGFloat = OnePlusLinearMetrics.tile, chart: OnePlusLinearChart? = nil, usage: OnePlusLinearUsage? = nil,
                 @ViewBuilder content: () -> Content) {
         self.height = height; self.chart = chart; self.usage = usage; self.content = content()
@@ -251,7 +300,10 @@ public struct OnePlusLinearTile<Content: View>: View {
             }
             .frame(height: height)
         Group {
-            if style == .instrument {
+            if panelStyle == .fillSteps {
+                tile.background(OnePlusLinearColor.fillGroup)
+                    .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius))
+            } else if style == .instrument {
                 tile
             } else {
                 tile.background(OnePlusLinearColor.panelTile)
@@ -519,6 +571,7 @@ public struct OnePlusLinearControlRow<Control: View>: View {
     @State private var hover = false
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.isEnabled) private var enabled
+    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     public init(_ title: String, systemImage: String, status: String? = nil, @ViewBuilder control: () -> Control) {
         self.title = title; self.systemImage = systemImage; self.status = status; self.control = control()
     }
@@ -533,7 +586,7 @@ public struct OnePlusLinearControlRow<Control: View>: View {
         }
         .padding(.horizontal, OnePlusLinearMetrics.panelRowInset)
         .frame(height: OnePlusLinearMetrics.controlRow)
-        .linearRowHover($hover, sample: sample, enabled: enabled)
+        .linearRowHover($hover, sample: sample, enabled: enabled, panelStyle: panelStyle)
         .accessibilityElement(children: .contain)
     }
 }
@@ -549,6 +602,7 @@ public struct OnePlusLinearProcessRow: View {
     @State private var hover = false
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.isEnabled) private var enabled
+    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     public init(_ name: String, icon: Image?, cpu: String, memory: String, color: Color = OnePlusLinearColor.cpuText) {
         self.name = name; self.icon = icon; self.cpu = cpu; self.memory = memory; self.color = color
     }
@@ -576,7 +630,7 @@ public struct OnePlusLinearProcessRow: View {
         }
         .padding(.horizontal, OnePlusLinearMetrics.panelRowInset)
         .frame(height: OnePlusLinearMetrics.processRow)
-        .linearRowHover($hover, sample: sample, enabled: enabled, fill: OnePlusLinearColor.selection)
+        .linearRowHover($hover, sample: sample, enabled: enabled, fill: OnePlusLinearColor.selection, panelStyle: panelStyle)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(name), CPU \(cpu) percent, memory \(memory)")
     }
@@ -596,19 +650,38 @@ public struct OnePlusLinearAction: Identifiable {
 /// on one line, and a rounded selection fill inset 3 pt on hover.
 public struct OnePlusLinearActionBar: View {
     private let actions: [OnePlusLinearAction]
+    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     public init(_ actions: [OnePlusLinearAction]) { self.actions = actions }
     public var body: some View {
+        if panelStyle == .fillSteps { filled } else { toolbar }
+    }
+
+    /// Fill steps: separate 32 pt buttons 4 pt apart, each a group-fill step with radius 8.
+    private var filled: some View {
+        HStack(spacing: 4) {
+            ForEach(actions) { item in
+                Button(action: item.action) { label(item) }
+                    .buttonStyle(OnePlusLinearFillStepButtonStyle())
+                    .accessibilityIdentifier(item.id)
+            }
+        }
+        .frame(height: 32)
+    }
+
+    private func label(_ item: OnePlusLinearAction) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: item.systemImage).font(.system(size: 12)).foregroundStyle(OnePlusLinearColor.secondary)
+                .frame(height: 14).accessibilityHidden(true)
+            Text(item.title).font(.system(size: OnePlusLinearMetrics.control, weight: .medium)).tracking(-0.04)
+                .foregroundStyle(OnePlusLinearColor.ink).lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var toolbar: some View {
         HStack(spacing: 0) {
             ForEach(actions) { item in
-                Button(action: item.action) {
-                    HStack(spacing: 6) {
-                        Image(systemName: item.systemImage).font(.system(size: 12)).foregroundStyle(OnePlusLinearColor.secondary)
-                            .frame(height: 14).accessibilityHidden(true)
-                        Text(item.title).font(.system(size: OnePlusLinearMetrics.control, weight: .medium)).tracking(-0.04)
-                            .foregroundStyle(OnePlusLinearColor.ink).lineLimit(1)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
+                Button(action: item.action) { label(item) }
                 .buttonStyle(OnePlusLinearToolbarItemStyle())
                 .overlay(alignment: .leading) {
                     if item.id != actions.first?.id {
@@ -619,6 +692,28 @@ public struct OnePlusLinearActionBar: View {
             }
         }
         .frame(height: OnePlusLinearMetrics.actionBar)
+    }
+}
+
+private struct OnePlusLinearFillStepButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { ItemBody(configuration: configuration) }
+
+    private struct ItemBody: View {
+        let configuration: Configuration
+        @State private var hover = false
+        @Environment(\.onePlusControlState) private var sample
+        @Environment(\.isEnabled) private var enabled
+        var body: some View {
+            let pressed = enabled && (configuration.isPressed || sample == .pressed)
+            let fill = pressed ? OnePlusLinearColor.fillButtonPressed
+                : enabled && (hover || sample == .hover) ? OnePlusLinearColor.fillButtonHover : OnePlusLinearColor.fillGroup
+            configuration.label
+                .background(RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius).fill(fill))
+                .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+                .contentShape(Rectangle())
+                .onePlusHover($hover)
+                .linearMotion(hover ? OnePlusMotion.hoverIn : OnePlusMotion.hoverOut, value: hover)
+        }
     }
 }
 

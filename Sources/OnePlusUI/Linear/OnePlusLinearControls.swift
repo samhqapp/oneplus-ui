@@ -31,7 +31,7 @@ public struct OnePlusLinearButtonStyle: ButtonStyle {
     }
     public func makeBody(configuration: Configuration) -> some View {
         OnePlusLinearButtonBody(label: configuration.label, pressed: configuration.isPressed,
-                                kind: kind, radius: radius, selected: selected)
+                                kind: kind, baseRadius: radius, selected: selected)
     }
 }
 
@@ -40,11 +40,13 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
     @Environment(\.isFocused) private var focused
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.onePlusLinearEditorial) private var editorial
+    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     @State private var hover = false
     let label: Label
     let pressed: Bool
     let kind: OnePlusLinearButtonStyle.Kind
-    let radius: CGFloat
+    let baseRadius: CGFloat
+    private var radius: CGFloat { kind == .filled && panelStyle == .fillSteps ? OnePlusLinearPanelStyle.tileRadius : baseRadius }
     let selected: Bool
 
     private var isPressed: Bool { pressed || sample == .pressed }
@@ -55,6 +57,9 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
         case .soft:
             guard enabled else { return OnePlusLinearColor.softButton }
             return isPressed ? OnePlusLinearColor.softButtonPressed : isHovered ? OnePlusLinearColor.softButtonHover : OnePlusLinearColor.softButton
+        case .filled where panelStyle == .fillSteps:
+            guard enabled else { return OnePlusLinearColor.accent }
+            return isPressed ? OnePlusColor.accentPrimaryPressed : isHovered ? OnePlusColor.accentPrimaryHover : OnePlusLinearColor.accent
         case .filled:
             guard enabled else { return OnePlusColor.primaryFill }
             return isPressed ? OnePlusColor.primaryPressed : isHovered ? OnePlusColor.primaryHover : OnePlusColor.primaryFill
@@ -78,6 +83,10 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                 label.linearText(weight: .medium)
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.button)
                     .linearRaised(radius: radius)
+            case .filled where panelStyle == .fillSteps:
+                // Fill steps panel `Open App`: the accent with white text, 12 pt padding.
+                label.linearText(OnePlusLinearMetrics.control, weight: .medium, color: OnePlusColor.accentPrimaryInk)
+                    .padding(.horizontal, 12).frame(height: OnePlusLinearMetrics.button)
             case .filled:
                 label.linearText(weight: .medium, color: OnePlusColor.primaryInk)
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.button)
@@ -131,13 +140,16 @@ public struct OnePlusLinearIconButton: View {
     private let help: String
     private let size: CGFloat
     private let action: () -> Void
+    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     public init(systemImage: String, help: String, size: CGFloat = OnePlusLinearMetrics.iconButton, action: @escaping () -> Void) {
         self.systemImage = systemImage; self.help = help; self.size = size; self.action = action
     }
     public var body: some View {
+        // Fill steps: the bar's glyphs share the 13 pt tab glyph size.
+        let glyph: CGFloat = panelStyle == .fillSteps ? 13 : size >= OnePlusLinearMetrics.iconButton ? 15 : 12
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: size >= OnePlusLinearMetrics.iconButton ? 15 : 12, weight: .regular))
+                .font(.system(size: glyph, weight: .regular))
                 .foregroundStyle(OnePlusLinearColor.secondary)
                 .frame(width: size, height: size)
         }
@@ -153,9 +165,21 @@ public struct OnePlusLinearList<Content: View>: View {
     private let style: Style
     private let content: Content
     public init(style: Style = .window, @ViewBuilder content: () -> Content) { self.style = style; self.content = content() }
+    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     public var body: some View {
+        if style == .panel, panelStyle == .fillSteps {
+            VStack(spacing: 0) { content }
+                .padding(.vertical, OnePlusLinearPanelStyle.listPadding)
+                .background(OnePlusLinearColor.fillGroup)
+                .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.groupRadius))
+        } else {
+            lined
+        }
+    }
+
+    private var lined: some View {
         let radius = style == .window ? OnePlusLinearMetrics.listRadius : OnePlusLinearMetrics.tileRadius
-        VStack(spacing: 0) {
+        return VStack(spacing: 0) {
             Group(subviews: content) { rows in
                 ForEach(rows) { row in
                     row.overlay(alignment: .top) {
@@ -172,9 +196,18 @@ public struct OnePlusLinearList<Content: View>: View {
 
 extension View {
     func linearRowHover(_ hover: Binding<Bool>, sample: OnePlusControlState, enabled: Bool,
-                        fill: Color = OnePlusLinearColor.hover) -> some View {
-        frame(maxWidth: .infinity, alignment: .leading)
-            .background(enabled && (hover.wrappedValue || sample == .hover) ? fill : .clear)
+                        fill: Color = OnePlusLinearColor.hover, panelStyle: OnePlusLinearPanelStyle = .lines) -> some View {
+        let on = enabled && (hover.wrappedValue || sample == .hover)
+        // Fill steps: a rounded fill step inset 4 pt from the group edge and 1 pt from the row edge.
+        return frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                if panelStyle == .fillSteps {
+                    RoundedRectangle(cornerRadius: 6).fill(on ? OnePlusLinearColor.fillRowHover : .clear)
+                        .padding(.horizontal, 4).padding(.vertical, 1)
+                } else {
+                    on ? fill : .clear
+                }
+            }
             .contentShape(Rectangle())
             .onePlusHover(hover)
     }

@@ -49,6 +49,17 @@ public enum OnePlusLinearColor {
     public static let buttonDrop = color("buttonDrop", light: 0x000000, lightAlpha: 0.06, dark: 0x000000, darkAlpha: 0)
     public static let buttonHalo = color("buttonHalo", light: 0x000000, lightAlpha: 0, dark: 0x000000, darkAlpha: 0.5)
 
+    // Menu panel "Fill steps" (owner pick 2026-11-19): no lines; parts separate by a step in fill and by spacing.
+    public static let fillShell = color("fillShell", light: 0xF0F0F2, dark: 0x151517)
+    /// Tiles, lists, and action buttons.
+    public static let fillGroup = color("fillGroup", light: 0xFFFFFF, dark: 0x1F1F22)
+    public static let fillRowHover = color("fillRowHover", light: 0xF0F0F2, dark: 0x2A2A2E)
+    public static let fillTrack = color("fillTrack", light: 0xEBEBEE, dark: 0x2A2A2E)
+    public static let fillThumb = color("fillThumb", light: 0xFFFFFF, dark: 0x48484E)
+    public static let fillTabSelected = color("fillTabSelected", light: 0xE2E2E6, dark: 0x26262A)
+    public static let fillButtonHover = color("fillButtonHover", light: 0xE4E4E8, dark: 0x2C2C30)
+    public static let fillButtonPressed = color("fillButtonPressed", light: 0xDADADF, dark: 0x34343A)
+
     // Lines
     public static let line = color("line", light: 0x000000, lightAlpha: 0.085, dark: 0xFFFFFF, darkAlpha: 0.075)
     public static let lineSoft = color("lineSoft", light: 0x000000, lightAlpha: 0.06, dark: 0xFFFFFF, darkAlpha: 0.055)

@@ -15,12 +15,25 @@ public struct OnePlusLinearSwitchStyle: ToggleStyle {
 private struct OnePlusLinearSwitch: View {
     @Binding var isOn: Bool
     @Environment(\.onePlusLinearControlLook) private var look
+    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     @Environment(\.isEnabled) private var enabled
     var body: some View {
         if let look {
             Button { isOn.toggle() } label: { EmptyView() }
                 .buttonStyle(OnePlusQuietSwitchStyle(isOn: isOn, look: look))
                 .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+        } else if panelStyle == .fillSteps {
+            // Fill steps: 32 x 18, 14 pt white knob on the accent when on, a fill-step track when off.
+            Button { isOn.toggle() } label: {
+                Capsule().fill(isOn ? OnePlusLinearColor.accent : OnePlusLinearColor.fillTrack)
+                    .overlay(alignment: isOn ? .trailing : .leading) {
+                        Circle().fill(isOn ? Color.white : OnePlusLinearColor.fillThumb)
+                            .frame(width: 14, height: 14).padding(.horizontal, 2)
+                    }
+                    .linearMotion(OnePlusMotion.knob, value: isOn)
+                    .frame(width: 32, height: 18)
+            }
+            .buttonStyle(OnePlusLinearButtonStyle(radius: 9))
         } else {
             Button { isOn.toggle() } label: {
                 Capsule().fill(isOn ? OnePlusLinearColor.switchOn : OnePlusLinearColor.switchOff)
@@ -75,7 +88,9 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
     private let isChoiceEnabled: (Value) -> Bool
     @Namespace private var thumb
     @Environment(\.onePlusLinearControlLook) private var look
+    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     @Environment(\.isEnabled) private var enabled
+    private var fill: Bool { look == nil && panelStyle == .fillSteps }
     public init(choices: [(Value, String)], selection: Binding<Value>, accessibilityLabel: String,
                 sizing: OnePlusLinearSegmentSizing = .equal, isChoiceEnabled: @escaping (Value) -> Bool = { _ in true }) {
         self.choices = choices; _selection = selection; label = accessibilityLabel; self.sizing = sizing
@@ -84,21 +99,23 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
     public var body: some View {
         // Panel: 22 pt track, 40 x 18 segments, 11 pt labels. Applet look: a sunken 22 pt track, 36 x 18 segments,
         // 13 pt labels, a solid thumb, and faded dividers between unselected segments.
-        let radius = look?.segmentRadius ?? 4
-        HStack(spacing: look == nil ? 2 : 0) {
+        // Fill steps: a 24 pt fill-step track, 40 x 20 segments touching, 11.5 pt labels, a fill-only thumb.
+        let radius = look?.segmentRadius ?? (fill ? 5 : 4)
+        HStack(spacing: look == nil && !fill ? 2 : 0) {
             ForEach(choices, id: \.0) { value, title in
                 let on = value == selection
                 let previous = choices.firstIndex { $0.0 == value }.flatMap { $0 > 0 ? choices[$0 - 1].0 : nil }
                 let divided = look != nil && !on && previous != nil && previous != selection
                 Button { if isChoiceEnabled(value) { selection = value } } label: {
-                    Text(title).linearText(look == nil ? OnePlusLinearMetrics.caption : OnePlusLinearMetrics.body,
+                    Text(title).linearText(fill ? OnePlusLinearMetrics.caption + 0.5
+                                           : look == nil ? OnePlusLinearMetrics.caption : OnePlusLinearMetrics.body,
                                            weight: on ? .medium : .regular,
                                            color: on ? OnePlusLinearColor.ink : look == nil ? OnePlusLinearColor.secondary : OnePlusLinearColor.appletSecondary)
                         .offset(y: look == nil ? 0 : Self.opticalOffset(title))
                         .fixedSize(horizontal: sizing == .fitted, vertical: false)
                         .padding(.horizontal, sizing == .fitted ? 10 : 0)
                         .frame(width: sizing == .fitted ? nil : look?.segmentWidth ?? OnePlusLinearMetrics.segment.width,
-                               height: look?.segmentHeight ?? OnePlusLinearMetrics.segment.height)
+                               height: look?.segmentHeight ?? (fill ? 20 : OnePlusLinearMetrics.segment.height))
                         .background {
                             // One thumb moves between segments, so Quiet motion slides it.
                             if on { thumbShape(radius: radius).matchedGeometryEffect(id: "thumb", in: thumb) }
@@ -111,7 +128,7 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
             }
         }
         .linearMotion(OnePlusMotion.segment, value: selection)
-        .modifier(OnePlusLinearSegmentTrack(look: look))
+        .modifier(OnePlusLinearSegmentTrack(look: look, fill: fill))
         .opacity(look != nil && !enabled ? OnePlusMetrics.disabledOpacity : 1)
         .accessibilityElement(children: .contain).accessibilityLabel(label)
         .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
@@ -132,6 +149,8 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
     @ViewBuilder private func thumbShape(radius: CGFloat) -> some View {
         if look != nil {
             OnePlusQuietCap.thumb(RoundedRectangle(cornerRadius: radius))
+        } else if fill {
+            RoundedRectangle(cornerRadius: radius).fill(OnePlusLinearColor.fillThumb)
         } else {
             RoundedRectangle(cornerRadius: radius).fill(OnePlusLinearColor.segmentSelected)
                 .shadow(color: OnePlusLinearColor.segmentShadow, radius: 1, y: 1)
@@ -160,10 +179,13 @@ private struct OnePlusQuietPressStyle: ButtonStyle {
 
 private struct OnePlusLinearSegmentTrack: ViewModifier {
     let look: OnePlusLinearControlLook?
+    let fill: Bool
     func body(content: Content) -> some View {
         if let look {
             content.padding(look.segmentInset)
                 .background { OnePlusQuietWell(shape: RoundedRectangle(cornerRadius: look.radius)) }
+        } else if fill {
+            content.padding(2).background(OnePlusLinearColor.fillTrack, in: RoundedRectangle(cornerRadius: 7))
         } else {
             content.linearTrack(radius: OnePlusLinearMetrics.radius)
         }
