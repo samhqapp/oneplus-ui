@@ -153,7 +153,9 @@ public struct OnePlusLinearPaneToolbar<Trailing: View>: View {
             }
             Text(title).linearText(weight: .semibold).lineLimit(1).accessibilityAddTraits(.isHeader)
             Spacer(minLength: 0)
+            // The tool page Enabled switch is the same Quiet Raised switch as the page's settings.
             trailing.frame(maxHeight: .infinity)
+                .transformEnvironment(\.onePlusLinearControlLook) { if $0 == nil { $0 = .quietRaised } }
         }
         .padding(.leading, back == nil ? OnePlusLinearMetrics.gutter : OnePlusLinearMetrics.toolbarLeading)
         .padding(.trailing, OnePlusLinearMetrics.toolbarTrailing)

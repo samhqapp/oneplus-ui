@@ -52,6 +52,7 @@ public struct OnePlusLinearEditorialBody<Content: View, Footer: View>: View {
             .onePlusScrollIndicators()
         }
         .environment(\.onePlusLinearEditorial, true)
+        .transformEnvironment(\.onePlusLinearControlLook) { if $0 == nil { $0 = .quietRaised } }
     }
 }
 
