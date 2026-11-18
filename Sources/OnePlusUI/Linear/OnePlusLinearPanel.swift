@@ -21,8 +21,14 @@ public struct OnePlusLinearPanel<Content: View, Footer: View>: View {
         .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearMetrics.panelRadius))
         .overlay {
             RoundedRectangle(cornerRadius: OnePlusLinearMetrics.panelRadius)
-                .strokeBorder(OnePlusLinearColor.lineStrong, lineWidth: 1).allowsHitTesting(false)
+                .strokeBorder(Self.edge, lineWidth: 1).allowsHitTesting(false)
         }
+    }
+
+    /// Light: a crisp hairline. Dark: a quiet ring below the tile rings, so the system shadow draws the edge
+    /// (a 12% white ring was the brightest line in the panel and read as a white border).
+    private static var edge: Color {
+        Color(nsColor: OnePlusLinearColor.dynamic("panelEdge", light: 0x000000, lightAlpha: 0.14, dark: 0xFFFFFF, darkAlpha: 0.06))
     }
 }
 
