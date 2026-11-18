@@ -358,6 +358,7 @@ public struct OnePlusMenuTabStrip<Value: Hashable>: View {
                 }
             }
         }
+        .linearMotion(OnePlusMotion.selection, value: selection)
         .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
             guard press.modifiers.isEmpty else { return .ignored }
             if let next = OnePlusSegmented<Value>.nextSelection(in: tabs.map(\.id), current: selection,
@@ -380,7 +381,7 @@ private struct OnePlusMenuTabIcon: View {
             else { Image(systemName: symbol).font(.system(size: 13)) }
         }
             .foregroundStyle(selected || (enabled && (hover || sample == .hover)) ? OnePlusColor.ink : OnePlusColor.secondary)
-            .frame(width: 26, height: 26).contentShape(Rectangle()).onHover { hover = $0 }
+            .frame(width: 26, height: 26).contentShape(Rectangle()).onePlusHover($hover)
     }
 }
 
@@ -438,7 +439,7 @@ public struct OnePlusMenuTile<Content: View>: View {
         Group {
             if let action { Button(action: action) { tile }.buttonStyle(OnePlusInteractionStyle(radius: 6)) }
             else { tile }
-        }.onHover { hover = $0 }
+        }.onePlusHover($hover)
     }
     private var tile: some View {
         Group {
@@ -603,6 +604,6 @@ public struct OnePlusMenuItemCard<Detail: View, Actions: View>: View {
         }.frame(maxWidth: .infinity).contentShape(Rectangle())
             .background(hovering ? OnePlusColor.raised : OnePlusColor.panel).clipShape(RoundedRectangle(cornerRadius: 7))
             .overlay { RoundedRectangle(cornerRadius: 7).strokeBorder(OnePlusColor.line, lineWidth: 1) }
-            .onHover { hover = $0 }.onePlusDensity(.compact)
+            .onePlusHover($hover).onePlusDensity(.compact)
     }
 }

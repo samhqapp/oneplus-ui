@@ -137,7 +137,7 @@ private struct OnePlusSegmentLabel: View {
             .frame(maxWidth: expands ? .infinity : nil).frame(height: (controlHeight ?? density.controlHeight) - 4)
             .background(selected ? OnePlusColor.selectedControl : hovering ? OnePlusColor.raised : .clear,
                         in: RoundedRectangle(cornerRadius: OnePlusMetrics.segmentRadius))
-            .contentShape(Rectangle()).onHover { hover = $0 }
+            .contentShape(Rectangle()).onePlusHover($hover)
     }
 }
 
@@ -175,7 +175,7 @@ public struct OnePlusMenuLabel: View {
         .background(enabled && ((focused && OnePlusFocusPolicy.shared.showsFocus) || hover || expanded) ? OnePlusColor.raisedHover : OnePlusColor.raised,
                     in: RoundedRectangle(cornerRadius: 6))
         .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : OnePlusColor.line, lineWidth: 1) }
-        .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity).onHover { hover = $0 }
+        .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity).onePlusHover($hover)
         .contentShape(Rectangle())
     }
 }

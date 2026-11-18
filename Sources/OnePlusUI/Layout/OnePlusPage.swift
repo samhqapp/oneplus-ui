@@ -213,7 +213,7 @@ private struct OnePlusTabButtonBody<Label: View>: View {
                 }
             }
             .contentShape(Rectangle()).opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
-            .onHover { hover = $0 }
+            .onePlusHover($hover)
     }
 }
 

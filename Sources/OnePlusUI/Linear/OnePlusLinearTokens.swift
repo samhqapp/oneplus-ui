@@ -259,13 +259,14 @@ extension View {
         }
     }
 
-    /// Selected segment or tab chrome.
-    func linearSegmentSelected(_ selected: Bool, radius: CGFloat) -> some View {
+    /// Selected segment or tab chrome. With a namespace, one chip moves between the tabs of that namespace.
+    func linearSegmentSelected(_ selected: Bool, radius: CGFloat, in namespace: Namespace.ID? = nil) -> some View {
         background {
             if selected {
-                RoundedRectangle(cornerRadius: radius).fill(OnePlusLinearColor.segmentSelected)
+                let chip = RoundedRectangle(cornerRadius: radius).fill(OnePlusLinearColor.segmentSelected)
                     .shadow(color: OnePlusLinearColor.segmentShadow, radius: 1, y: 1)
                     .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(OnePlusLinearColor.segmentRing, lineWidth: 0.5) }
+                if let namespace { chip.matchedGeometryEffect(id: "chip", in: namespace) } else { chip }
             }
         }
     }

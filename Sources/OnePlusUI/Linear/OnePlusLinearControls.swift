@@ -83,14 +83,17 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                 label
             }
         }
-        .background(fill, in: RoundedRectangle(cornerRadius: radius))
+        .background {
+            // A selection change crossfades the old and new fills; hover fades with its own timing.
+            RoundedRectangle(cornerRadius: radius).fill(fill).linearMotion(OnePlusMotion.selection, value: selected)
+        }
         .overlay {
             RoundedRectangle(cornerRadius: radius)
                 .strokeBorder(enabled && (focused || sample == .focus) && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : .clear, lineWidth: 1)
         }
         .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
         .contentShape(RoundedRectangle(cornerRadius: radius))
-        .onHover { hover = $0 }
+        .onePlusHover($hover)
     }
 }
 
@@ -151,6 +154,6 @@ extension View {
         frame(maxWidth: .infinity, alignment: .leading)
             .background(enabled && (hover.wrappedValue || sample == .hover) ? OnePlusLinearColor.hover : .clear)
             .contentShape(Rectangle())
-            .onHover { hover.wrappedValue = $0 }
+            .onePlusHover(hover)
     }
 }

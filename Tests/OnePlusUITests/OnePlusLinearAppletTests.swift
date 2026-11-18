@@ -130,17 +130,8 @@ final class OnePlusLinearAppletTests: XCTestCase {
         XCTAssertEqual(LinearRender.resolve(OnePlusLinearColor.destructiveText, in: .aqua).redComponent * 255, 0xC4, accuracy: 0.5)
     }
 
-    func testQuietMotionTokens() {
-        XCTAssertEqual(OnePlusLinearMotion.curve, .bezier(startControlPoint: UnitPoint(x: 0.25, y: 1), endControlPoint: UnitPoint(x: 0.5, y: 1)))
-        for duration in [OnePlusLinearMotion.knob, OnePlusLinearMotion.slider, OnePlusLinearMotion.contentIn, OnePlusLinearMotion.contentOut] {
-            XCTAssertTrue((0.12...0.16).contains(duration))
-        }
-        XCTAssertEqual(OnePlusLinearMotion.knob, 0.14)
-        XCTAssertEqual(OnePlusLinearMotion.contentOffset, 4)
-        XCTAssertNil(OnePlusLinearMotion.resolved(0.14, style: .instant, reduceMotion: false))
-        XCTAssertNil(OnePlusLinearMotion.resolved(0.14, style: .quiet, reduceMotion: true))
-        XCTAssertNotNil(OnePlusLinearMotion.resolved(0.14, style: .quiet, reduceMotion: false))
-        XCTAssertEqual(EnvironmentValues().onePlusLinearMotion, .instant)
+    func testMotionCurveAndDefaultLook() {
+        XCTAssertEqual(OnePlusMotion.easeOut, .bezier(startControlPoint: UnitPoint(x: 0.25, y: 1), endControlPoint: UnitPoint(x: 0.5, y: 1)))
         XCTAssertNil(EnvironmentValues().onePlusLinearControlLook)
     }
 

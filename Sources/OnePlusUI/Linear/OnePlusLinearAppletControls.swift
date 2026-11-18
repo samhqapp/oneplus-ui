@@ -31,7 +31,7 @@ public struct OnePlusLinearSlider: View {
                 .frame(width: look.knob, height: look.knob)
                 .padding(.leading, travel * fraction)
         }
-        .linearMotion(OnePlusLinearMotion.slider, value: value, enabled: !dragging)
+        .linearMotion(OnePlusMotion.slider, value: value, enabled: !dragging)
         .frame(width: look.sliderWidth, height: look.height)
         .contentShape(Rectangle())
         .gesture(DragGesture(minimumDistance: 0)
@@ -158,7 +158,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
             .frame(width: width, height: OnePlusLinearMetrics.appletField)
             .linearFieldBezel(look, focused: focused)
             .overlay { if lit { RoundedRectangle(cornerRadius: look.radius).fill(OnePlusLinearColor.hover) } }
-            .contentShape(Rectangle()).onHover { hover = $0 }
+            .contentShape(Rectangle()).onePlusHover($hover)
         case .text:
             HStack(spacing: 5) {
                 Text(title).linearText(color: lit ? OnePlusLinearColor.ink : OnePlusLinearColor.appletSecondary).lineLimit(1)
@@ -166,7 +166,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
                     .foregroundStyle(lit ? OnePlusLinearColor.ink : OnePlusLinearColor.appletSecondary)
             }
             .frame(width: width, alignment: .trailing)
-            .contentShape(Rectangle()).onHover { hover = $0 }
+            .contentShape(Rectangle()).onePlusHover($hover)
         }
     }
 

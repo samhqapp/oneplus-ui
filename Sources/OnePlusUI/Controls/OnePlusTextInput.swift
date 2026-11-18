@@ -43,7 +43,7 @@ public struct OnePlusTextField: View {
                 .background((focused && OnePlusFocusPolicy.shared.showsFocus) || (enabled && hover) ? OnePlusColor.fieldFocus : OnePlusColor.field,
                             in: RoundedRectangle(cornerRadius: 6))
                 .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(error != nil ? OnePlusColor.dangerLine : focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : OnePlusColor.line, lineWidth: 1) }
-                .onHover { hover = $0 }
+                .onePlusHover($hover)
                 .accessibilityLabel(title).accessibilityHint(error ?? "")
             if let error, !groupedErrors { Text(error).onePlusText(.caption).foregroundStyle(OnePlusColor.danger) }
         }.preference(key: OnePlusFieldErrorPreference.self, value: groupedErrors ? error.map { ["\(title): \($0)"] } ?? [] : [])

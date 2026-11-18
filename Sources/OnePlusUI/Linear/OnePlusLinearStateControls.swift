@@ -1,7 +1,6 @@
 import SwiftUI
 
-// Controls whose thumb or knob moves on a state change (Quiet motion). Hover stays paint-only in
-// `OnePlusLinearButtonStyle`; keep hover handlers out of this file so the hover-motion guard stays strict.
+// Controls whose thumb or knob slides on a state change (Native snap, `OnePlusMotion`).
 
 /// The v15 switch: 26 x 16 track, 12 pt knob. The label is used for accessibility only.
 /// Inside an applet it takes the colors of `OnePlusLinearControlLook`; under Quiet motion the knob slides.
@@ -31,7 +30,7 @@ private struct OnePlusLinearSwitch: View {
                             .frame(width: OnePlusLinearMetrics.knob, height: OnePlusLinearMetrics.knob)
                             .padding(.horizontal, 2)
                     }
-                    .linearMotion(OnePlusLinearMotion.knob, value: isOn)
+                    .linearMotion(OnePlusMotion.knob, value: isOn)
                     .frame(width: OnePlusLinearMetrics.switchSize.width, height: OnePlusLinearMetrics.switchSize.height)
             }
             .buttonStyle(OnePlusLinearButtonStyle(radius: OnePlusLinearMetrics.switchSize.height / 2))
@@ -55,7 +54,7 @@ private struct OnePlusQuietSwitchStyle: ButtonStyle {
                 .frame(width: look.switchKnob, height: look.switchKnob)
                 .padding((look.switchSize.height - look.switchKnob) / 2)
         }
-        .linearMotion(OnePlusLinearMotion.knob, value: isOn)
+        .linearMotion(OnePlusMotion.knob, value: isOn)
         .frame(width: look.switchSize.width, height: look.switchSize.height)
         .frame(width: look.switchFrame.width, height: look.switchFrame.height, alignment: .trailing)
         .contentShape(Rectangle())
@@ -111,7 +110,7 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
         }
-        .linearMotion(OnePlusLinearMotion.knob, value: selection)
+        .linearMotion(OnePlusMotion.segment, value: selection)
         .modifier(OnePlusLinearSegmentTrack(look: look))
         .opacity(look != nil && !enabled ? OnePlusMetrics.disabledOpacity : 1)
         .accessibilityElement(children: .contain).accessibilityLabel(label)

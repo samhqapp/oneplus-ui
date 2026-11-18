@@ -93,7 +93,7 @@ private struct OnePlusButtonBody<Label: View>: View {
         .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(border, lineWidth: 1) }
         .contentShape(RoundedRectangle(cornerRadius: radius))
         .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
-        .onHover { hovering = $0 }
+        .onePlusHover($hovering)
     }
 
     private var foreground: Color {
@@ -220,7 +220,7 @@ private struct OnePlusInteractionBody<Label: View>: View {
             .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(enabled && focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : .clear, lineWidth: 1) }
             .opacity(enabled ? 1 : disabledOpacity)
             .contentShape(RoundedRectangle(cornerRadius: radius))
-            .onHover { hover = $0 }
+            .onePlusHover($hover)
     }
 }
 

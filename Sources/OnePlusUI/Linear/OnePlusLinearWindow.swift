@@ -180,7 +180,23 @@ public struct OnePlusLinearTextTabs<Value: Hashable>: View {
     public init(tabs: [OnePlusTab<Value>], selection: Binding<Value>) { self.tabs = tabs; _selection = selection }
     public var body: some View {
         HStack(spacing: OnePlusLinearMetrics.tabGap - 2 * OnePlusLinearMetrics.tabPadding) {
-            ForEach(tabs) { tab in OnePlusLinearTextTab(tab: tab, selected: tab.id == selection) { selection = tab.id } }
+            ForEach(tabs) { tab in
+                OnePlusLinearTextTab(tab: tab, selected: tab.id == selection) { selection = tab.id }
+                    .anchorPreference(key: OnePlusLinearTabBounds.self, value: .bounds) { [AnyHashable(tab.id): $0] }
+            }
+        }
+        .overlayPreferenceValue(OnePlusLinearTabBounds.self) { tabs in
+            // One underline slides to the selected tab.
+            GeometryReader { proxy in
+                if let anchor = tabs[AnyHashable(selection)] {
+                    let tab = proxy[anchor]
+                    RoundedRectangle(cornerRadius: 1).fill(OnePlusLinearColor.accent)
+                        .frame(width: tab.width, height: OnePlusLinearMetrics.tabUnderline)
+                        .offset(x: tab.minX, y: tab.maxY + 1 - OnePlusLinearMetrics.tabUnderline)
+                }
+            }
+            .linearMotion(OnePlusMotion.tabSlide, value: selection)
+            .allowsHitTesting(false).accessibilityHidden(true)
         }
         .accessibilityElement(children: .contain)
         .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
@@ -189,6 +205,13 @@ public struct OnePlusLinearTextTabs<Value: Hashable>: View {
                                                               direction: press.key == .leftArrow ? -1 : 1) { selection = next }
             return .handled
         }
+    }
+}
+
+private struct OnePlusLinearTabBounds: PreferenceKey {
+    static var defaultValue: [AnyHashable: Anchor<CGRect>] { [:] }
+    static func reduce(value: inout [AnyHashable: Anchor<CGRect>], nextValue: () -> [AnyHashable: Anchor<CGRect>]) {
+        value.merge(nextValue()) { $1 }
     }
 }
 
@@ -208,12 +231,8 @@ private struct OnePlusLinearTextTab<Value: Hashable>: View {
             }
             .padding(.horizontal, OnePlusLinearMetrics.tabPadding)
             .frame(maxHeight: .infinity)
-            .overlay(alignment: .bottom) {
-                RoundedRectangle(cornerRadius: 1).fill(selected ? OnePlusLinearColor.accent : .clear)
-                    .frame(height: OnePlusLinearMetrics.tabUnderline).padding(.bottom, -1)
-            }
             .contentShape(Rectangle())
-            .onHover { hover = $0 }
+            .onePlusHover($hover)
         }
         .buttonStyle(.plain)
         .focusEffectDisabled(!OnePlusFocusPolicy.shared.showsFocus)
@@ -325,7 +344,7 @@ public struct OnePlusLinearToolRow: View {
         .frame(height: OnePlusLinearMetrics.toolRow)
         .background(hovering ? OnePlusLinearColor.hover : .clear)
         .contentShape(Rectangle())
-        .onHover { hover = $0 }
+        .onePlusHover($hover)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(name), \(summary)")
     }

@@ -115,7 +115,7 @@ private struct OnePlusRowHoverModifier: ViewModifier {
             .contentShape(Rectangle())
             .background(selected ? OnePlusColor.selection : hovering ? OnePlusColor.raised : .clear,
                         in: RoundedRectangle(cornerRadius: radius))
-            .onHover { hover = $0 }
+            .onePlusHover($hover)
     }
 }
 
@@ -154,7 +154,7 @@ public struct OnePlusSettingRow<Control: View>: View {
         }
         .padding(.horizontal, cardPadding)
         .frame(height: caption == nil ? OnePlusMetrics.settingRow : OnePlusMetrics.captionedSettingRow)
-        .contentShape(Rectangle()).onHover { hovering = $0 }
+        .contentShape(Rectangle()).onePlusHover($hovering)
         // Keep the separator inside the row's declared pitch.
         .overlay(alignment: .bottom) { if separator { OnePlusColor.lineSoft.frame(height: 1) } }
     }

@@ -58,6 +58,7 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
     private let tabs: [OnePlusMenuTab<Value>]
     @Binding private var selection: Value
     private let onMove: ((Int, Int) -> Void)?
+    @Namespace private var chip
     public init(tabs: [OnePlusMenuTab<Value>], selection: Binding<Value>, onMove: ((Int, Int) -> Void)? = nil) {
         self.tabs = tabs; _selection = selection; self.onMove = onMove
     }
@@ -72,7 +73,7 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
                     }
                     .foregroundStyle(on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
                     .frame(width: OnePlusLinearMetrics.iconTab, height: OnePlusLinearMetrics.iconTab)
-                    .linearSegmentSelected(on, radius: 5)
+                    .linearSegmentSelected(on, radius: 5, in: chip)
                 }
                 .buttonStyle(OnePlusLinearButtonStyle(radius: 5))
                 .help(tab.title).accessibilityLabel(tab.title)
@@ -86,6 +87,7 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
                 }
             }
         }
+        .linearMotion(OnePlusMotion.tabSlide, value: selection)
         .linearTrack(radius: 7)
         .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
             guard press.modifiers.isEmpty else { return .ignored }

@@ -26,7 +26,13 @@ public final class OnePlusMenuPresenter: NSObject {
 
     isolated deinit { removeMonitors(); window.orderOut(nil) }
 
-    public var isShown: Bool { window.isVisible }
+    /// Bumped by every show and close, so a finished close fade orders out only the panel it faded.
+    private var motionGeneration = 0
+    private var closing = false
+    /// The final frame while the open move runs, so a size change lands on it instead of a mid-move frame.
+    private var openTarget: NSRect?
+
+    public var isShown: Bool { window.isVisible && !closing }
     public var appearance: NSAppearance? {
         get { window.appearance }
         set { window.appearance = newValue }
@@ -40,9 +46,16 @@ public final class OnePlusMenuPresenter: NSObject {
         set {
             guard newValue.width.isFinite, newValue.height.isFinite,
                   newValue.width > 0, newValue.height > 0, newValue != contentSize else { return }
-            let top = window.frame.maxY
-            window.setContentSize(newValue)
-            window.setFrameTopLeftPoint(NSPoint(x: window.frame.minX, y: top))
+            if let target = openTarget {
+                let frame = NSRect(x: target.minX, y: target.maxY - newValue.height, width: newValue.width, height: newValue.height)
+                openTarget = frame
+                // A zero-length animator change replaces the running move, so the panel lands on its final frame now.
+                NSAnimationContext.runAnimationGroup { $0.duration = 0; window.animator().setFrame(frame, display: true) }
+            } else {
+                let top = window.frame.maxY
+                window.setContentSize(newValue)
+                window.setFrameTopLeftPoint(NSPoint(x: window.frame.minX, y: top))
+            }
             window.invalidateShadow()
         }
     }
@@ -52,20 +65,58 @@ public final class OnePlusMenuPresenter: NSObject {
         anchor = view
         appearance = NSApp.appearance
         let trigger = owner.convertToScreen(view.convert(rect, to: nil))
-        window.setFrame(Self.frame(anchor: trigger, size: contentSize, screen: screen.visibleFrame), display: false)
+        let wasVisible = window.isVisible && !closing
+        cancelClose()
+        let frame = Self.frame(anchor: trigger, size: contentSize, screen: screen.visibleFrame)
+        window.setFrame(frame, display: false)
         window.contentView?.layoutSubtreeIfNeeded()
         window.contentView?.displayIfNeeded()
         window.invalidateShadow()
         removeMonitors()
         installMonitors()
+        if !wasVisible { animateOpen(to: frame) }
         window.orderFrontRegardless()
         if takesFocus { window.makeKey() }
         NotificationCenter.default.post(name: Self.didShowNotification, object: self)
     }
 
+    /// Native snap open: the first frame already has the final layout; only alpha and a 4 pt move run.
+    /// Reduce Motion fades only.
+    private func animateOpen(to frame: NSRect) {
+        let reduced = OnePlusMotion.reducesMotion
+        window.alphaValue = 0
+        if !reduced {
+            window.setFrameOrigin(NSPoint(x: frame.minX, y: frame.minY + OnePlusMotion.panelOffset))
+            openTarget = frame
+        }
+        let generation = motionGeneration
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = reduced ? OnePlusMotion.panelOpenReduced : OnePlusMotion.panelOpen
+            context.timingFunction = OnePlusMotion.easeOutTiming
+            window.animator().alphaValue = 1
+            if !reduced { window.animator().setFrame(frame, display: true) }
+        } completionHandler: { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, self.motionGeneration == generation else { return }
+                self.openTarget = nil
+                self.window.invalidateShadow()
+            }
+        }
+    }
+
+    /// Stops a running close fade and shows the panel fully.
+    private func cancelClose() {
+        motionGeneration += 1
+        openTarget = nil
+        guard closing else { return }
+        closing = false
+        NSAnimationContext.runAnimationGroup { $0.duration = 0; window.animator().alphaValue = 1 }
+    }
+
     /// Arms the dismissal monitors for a panel the host orders itself while the app is inactive.
     /// It never orders the panel front, so it never activates the app.
     public func armDismissal(anchoredTo view: NSView) {
+        cancelClose()
         anchor = view
         removeMonitors()
         installMonitors()
@@ -75,9 +126,30 @@ public final class OnePlusMenuPresenter: NSObject {
     public func close() {
         let wasShown = isShown
         removeMonitors()
-        window.orderOut(nil)
         anchor = nil
+        if wasShown { fadeOut() } else if !closing { window.orderOut(nil) }
         if wasShown { onClose?() }
+    }
+
+    /// Native snap close: a 100 ms ease-in fade with no move; instant under Reduce Motion.
+    private func fadeOut() {
+        motionGeneration += 1
+        openTarget = nil
+        guard !OnePlusMotion.reducesMotion else { window.orderOut(nil); window.alphaValue = 1; return }
+        closing = true
+        let generation = motionGeneration
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = OnePlusMotion.panelClose
+            context.timingFunction = OnePlusMotion.easeInTiming
+            window.animator().alphaValue = 0
+        } completionHandler: { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, self.motionGeneration == generation else { return }
+                self.closing = false
+                self.window.orderOut(nil)
+                self.window.alphaValue = 1
+            }
+        }
     }
 
     static func frame(anchor: NSRect, size: NSSize, screen: NSRect) -> NSRect {
