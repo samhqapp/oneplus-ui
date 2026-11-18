@@ -96,8 +96,19 @@ public extension OnePlusLinearAppletForm where Footer == EmptyView {
 public struct OnePlusLinearAppletSection<Content: View>: View {
     private let title: String
     private let content: Content
+    @Environment(\.onePlusLinearEditorial) private var editorial
     public init(_ title: String, @ViewBuilder content: () -> Content) { self.title = title; self.content = content() }
     public var body: some View {
+        if editorial {
+            VStack(alignment: .leading, spacing: 0) {
+                OnePlusLinearEditorialCaption(title: title)
+                OnePlusLinearEditorialGroup(content: content)
+            }
+        } else {
+            filled
+        }
+    }
+    private var filled: some View {
         VStack(alignment: .leading, spacing: OnePlusLinearMetrics.appletCaptionBelow) {
             Text(title).linearText(OnePlusLinearMetrics.appletCaption, weight: .medium, color: OnePlusLinearColor.appletMuted)
                 .frame(height: OnePlusLinearMetrics.appletCaptionHeight)
@@ -111,8 +122,12 @@ public struct OnePlusLinearAppletSection<Content: View>: View {
 /// A filled group: no border, 10 pt radius, hairlines between rows that start at the text edge.
 public struct OnePlusLinearAppletGroup<Content: View>: View {
     private let content: Content
+    @Environment(\.onePlusLinearEditorial) private var editorial
     public init(@ViewBuilder content: () -> Content) { self.content = content() }
     public var body: some View {
+        if editorial { OnePlusLinearEditorialGroup(content: content) } else { filled }
+    }
+    private var filled: some View {
         VStack(spacing: 0) {
             Group(subviews: content) { rows in
                 ForEach(rows) { row in
@@ -139,18 +154,22 @@ public struct OnePlusLinearAppletRow<Trailing: View>: View {
     public init(_ label: String, detail: String? = nil, @ViewBuilder trailing: () -> Trailing) {
         self.label = label; self.detail = detail; self.trailing = trailing()
     }
+    @Environment(\.onePlusLinearEditorial) private var editorial
     public var body: some View {
         HStack(spacing: OnePlusLinearMetrics.appletRowGap) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(label).linearText().lineLimit(1)
-                if let detail { Text(detail).linearText(OnePlusLinearMetrics.control, color: OnePlusLinearColor.appletSecondary).lineLimit(2) }
+                if let detail {
+                    Text(detail).linearText(OnePlusLinearMetrics.control,
+                                            color: editorial ? OnePlusLinearColor.secondary : OnePlusLinearColor.appletSecondary).lineLimit(2)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             trailing
         }
         .padding(.horizontal, OnePlusLinearMetrics.appletRowPadding)
         .padding(.vertical, detail == nil ? 0 : 8)
-        .frame(minHeight: OnePlusLinearMetrics.appletRow)
+        .frame(minHeight: editorial ? OnePlusLinearEditorialMetrics.row : OnePlusLinearMetrics.appletRow)
         .accessibilityElement(children: .contain)
     }
 }

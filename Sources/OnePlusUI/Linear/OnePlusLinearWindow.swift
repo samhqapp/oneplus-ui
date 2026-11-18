@@ -40,11 +40,24 @@ public struct OnePlusLinearNavRow: View {
     private let count: Int?
     private let dimmed: Bool
     private let action: () -> Void
+    private enum GlyphMode { case artwork, template, symbol }
+    private var glyphMode = GlyphMode.artwork
+    private var glyphColor: Color {
+        selected ? OnePlusLinearColor.ink : dimmed ? OnePlusLinearColor.muted : OnePlusLinearColor.secondary
+    }
     /// A tool row with its own icon artwork. `dimmed` marks a disabled tool.
     public init(_ title: String, image: Image, selected: Bool = false, dimmed: Bool = false, count: Int? = nil,
                 action: @escaping () -> Void) {
         self.title = title; self.image = image; systemImage = nil; self.selected = selected
         shortcut = nil; self.count = count; self.dimmed = dimmed; self.action = action
+    }
+    /// A monochrome glyph row: a template glyph in `secondary`, `ink` when selected, never clipped.
+    /// Pass `Image(systemName:)` for an SF Symbol; it draws at 13 pt medium in the 16 pt slot.
+    public init(_ title: String, glyph: Image, symbol: Bool = false, selected: Bool = false, dimmed: Bool = false,
+                shortcut: String? = nil, action: @escaping () -> Void) {
+        self.title = title; image = glyph; systemImage = nil; self.selected = selected
+        self.shortcut = shortcut; count = nil; self.dimmed = dimmed; self.action = action
+        glyphMode = symbol ? .symbol : .template
     }
     /// A glyph row such as Settings (`⌘,`) or Exit (`⌘Q`), or a page with a trailing count.
     public init(_ title: String, systemImage: String, selected: Bool = false, dimmed: Bool = false, count: Int? = nil,
@@ -56,7 +69,11 @@ public struct OnePlusLinearNavRow: View {
         Button(action: action) {
             HStack(spacing: OnePlusLinearMetrics.navIconGap) {
                 Group {
-                    if let image {
+                    if let image, glyphMode == .template {
+                        image.renderingMode(.template).resizable().scaledToFit().foregroundStyle(glyphColor)
+                    } else if let image, glyphMode == .symbol {
+                        image.font(.system(size: 13, weight: .medium)).foregroundStyle(glyphColor)
+                    } else if let image {
                         image.resizable().scaledToFit()
                             .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearMetrics.navIcon * 0.22))
                     } else if let systemImage {
@@ -229,10 +246,18 @@ public struct OnePlusLinearSection<Content: View>: View {
     public init(_ title: String, count: Int? = nil, @ViewBuilder content: () -> Content) {
         self.title = title; self.count = count; self.content = content()
     }
+    @Environment(\.onePlusLinearEditorial) private var editorial
     public var body: some View {
-        VStack(alignment: .leading, spacing: OnePlusLinearMetrics.sectionCaptionBelow) {
-            OnePlusLinearSectionCaption(title, count: count)
-            OnePlusLinearList(style: .window) { content }
+        if editorial {
+            VStack(alignment: .leading, spacing: 0) {
+                OnePlusLinearEditorialCaption(title: title)
+                OnePlusLinearEditorialGroup(content: content)
+            }
+        } else {
+            VStack(alignment: .leading, spacing: OnePlusLinearMetrics.sectionCaptionBelow) {
+                OnePlusLinearSectionCaption(title, count: count)
+                OnePlusLinearList(style: .window) { content }
+            }
         }
     }
 }
