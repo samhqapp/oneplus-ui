@@ -10,6 +10,8 @@ public enum OnePlusLinearPanelStyle: Sendable {
     public var radius: CGFloat { self == .fillSteps ? 12 : OnePlusLinearMetrics.panelRadius }
     public var bar: CGFloat { self == .fillSteps ? 46 : OnePlusLinearMetrics.footer }
     public var barInset: CGFloat { self == .fillSteps ? 10 : OnePlusLinearMetrics.footerInset }
+    /// The gap between the bar's trailing items (gear, `Open App`).
+    public var barTrailingGap: CGFloat { self == .fillSteps ? 2 : 8 }
     public var bodyTopUnderBar: CGFloat { self == .fillSteps ? 2 : OnePlusLinearMetrics.panelBodyTopUnderToolbar }
     public var bodyInset: CGFloat { self == .fillSteps ? 10 : OnePlusLinearMetrics.panelBodyInset }
     public var blockGap: CGFloat { self == .fillSteps ? 10 : OnePlusLinearMetrics.panelBlockGap }
@@ -82,7 +84,7 @@ public struct OnePlusLinearPanelFooter<Leading: View, Trailing: View>: View {
         HStack(spacing: 8) {
             leading
             Spacer(minLength: 0)
-            trailing
+            HStack(spacing: style.barTrailingGap) { trailing }
         }
         .padding(.horizontal, style.barInset)
         .frame(height: style.bar)
@@ -117,10 +119,18 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
                         if let image = tab.image { image.onePlusAssetGlyph(size: 14) }
                         else { Image(systemName: tab.systemImage).font(.system(size: 13)) }
                     }
-                    .foregroundStyle(on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
+                    .foregroundStyle(on ? (fill ? OnePlusLinearColor.softKeyInk : OnePlusLinearColor.ink)
+                                     : (fill ? OnePlusLinearColor.softKeyTrackInk : OnePlusLinearColor.secondary))
                     .frame(width: size, height: size)
                     .background {
                         if fill, on { OnePlusLinearSoftKey(radius: radius).matchedGeometryEffect(id: "chip", in: chip) }
+                    }
+                    .overlay(alignment: .leading) {
+                        // Between two unselected tabs only, centered in the 2 pt gap.
+                        if fill, !on, let index = tabs.firstIndex(where: { $0.id == tab.id }), index > 0, tabs[index - 1].id != selection {
+                            LinearGradient(colors: [.clear, OnePlusLinearColor.softKeyDivider, .clear], startPoint: .top, endPoint: .bottom)
+                                .frame(width: 1, height: size - 8).offset(x: -1.5).allowsHitTesting(false)
+                        }
                     }
                     .linearSegmentSelected(!fill && on, radius: radius, in: chip)
                 }
@@ -149,12 +159,14 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
 
 private struct OnePlusLinearTabTrack: ViewModifier {
     let soft: Bool
+    @Environment(\.colorScheme) private var colorScheme
     @ViewBuilder func body(content: Content) -> some View {
         if soft {
             let shape = RoundedRectangle(cornerRadius: 8)
+            let shade = colorScheme == .dark ? OnePlusLinearColor.softKeyTrackShadeGeometry.dark : OnePlusLinearColor.softKeyTrackShadeGeometry.light
             content.padding(2).background {
                 shape.fill(Self.vertical(OnePlusLinearColor.softKeyTrackTop, OnePlusLinearColor.softKeyTrackBottom)
-                    .shadow(.inner(color: OnePlusLinearColor.softKeyTrackShade, radius: 2, y: 1)))
+                    .shadow(.inner(color: OnePlusLinearColor.softKeyTrackShade, radius: shade.radius, y: shade.y)))
                     .overlay { shape.strokeBorder(Self.vertical(OnePlusLinearColor.softKeyTrackEdgeTop,
                                                                 OnePlusLinearColor.softKeyTrackEdgeBottom), lineWidth: 1) }
             }
@@ -707,7 +719,12 @@ public struct OnePlusLinearAction: Identifiable {
 public struct OnePlusLinearActionBar: View {
     private let actions: [OnePlusLinearAction]
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
+    @Environment(\.colorScheme) private var colorScheme
     public init(_ actions: [OnePlusLinearAction]) { self.actions = actions }
+    private var labelWeight: Font.Weight {
+        guard panelStyle == .fillSteps else { return .medium }
+        return colorScheme == .dark ? OnePlusLinearColor.actionKeyLabelWeight.dark : OnePlusLinearColor.actionKeyLabelWeight.light
+    }
     public var body: some View {
         if panelStyle == .fillSteps { filled } else { toolbar }
     }
@@ -728,7 +745,7 @@ public struct OnePlusLinearActionBar: View {
         HStack(spacing: 6) {
             Image(systemName: item.systemImage).font(.system(size: 12)).foregroundStyle(OnePlusLinearColor.secondary)
                 .frame(height: 14).accessibilityHidden(true)
-            Text(item.title).font(.system(size: OnePlusLinearMetrics.control, weight: .medium)).tracking(-0.04)
+            Text(item.title).font(.system(size: OnePlusLinearMetrics.control, weight: labelWeight)).tracking(-0.04)
                 .foregroundStyle(OnePlusLinearColor.ink).lineLimit(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -761,10 +778,18 @@ private struct OnePlusLinearFillStepButtonStyle: ButtonStyle {
         @Environment(\.isEnabled) private var enabled
         var body: some View {
             let pressed = enabled && (configuration.isPressed || sample == .pressed)
-            let fill = pressed ? OnePlusLinearColor.fillButtonPressed
-                : enabled && (hover || sample == .hover) ? OnePlusLinearColor.fillButtonHover : OnePlusLinearColor.fillGroup
+            let hovered = enabled && (hover || sample == .hover)
+            let shape = RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius)
+            let fill = pressed ? LinearGradient(colors: [OnePlusLinearColor.fillButtonPressed], startPoint: .top, endPoint: .bottom)
+                : hovered ? OnePlusLinearTabTrack.vertical(OnePlusLinearColor.actionKeyHoverTop, OnePlusLinearColor.actionKeyHoverBottom)
+                : OnePlusLinearTabTrack.vertical(OnePlusLinearColor.actionKeyTop, OnePlusLinearColor.actionKeyBottom)
             configuration.label
-                .background(RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius).fill(fill))
+                .background {
+                    shape.fill(fill)
+                        .overlay { shape.strokeBorder(OnePlusLinearTabTrack.vertical(OnePlusLinearColor.actionKeyEdgeTop,
+                                                                                     OnePlusLinearColor.actionKeyEdgeBottom), lineWidth: 1) }
+                        .shadow(color: OnePlusLinearColor.actionKeyShadow, radius: 1.5, y: 1)
+                }
                 .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
                 .contentShape(Rectangle())
                 .onePlusHover($hover)
