@@ -56,9 +56,26 @@ public enum OnePlusLinearColor {
     public static let fillRowHover = color("fillRowHover", light: 0xF0F0F2, dark: 0x2A2A2E)
     public static let fillTrack = color("fillTrack", light: 0xEBEBEE, dark: 0x2A2A2E)
     public static let fillThumb = color("fillThumb", light: 0xFFFFFF, dark: 0x48484E)
-    public static let fillTabSelected = color("fillTabSelected", light: 0xE2E2E6, dark: 0x26262A)
     public static let fillButtonHover = color("fillButtonHover", light: 0xE4E4E8, dark: 0x2C2C30)
     public static let fillButtonPressed = color("fillButtonPressed", light: 0xDADADF, dark: 0x34343A)
+    /// Bento "Floating tiles with wash" (owner pick 2026-11-19): one soft drop and a contact shade under all tiles.
+    public static let fillTileShadow = color("fillTileShadow", light: 0x000000, lightAlpha: 0.08, dark: 0x000000, darkAlpha: 0.5)
+    public static let fillTileContact = color("fillTileContact", light: 0x000000, lightAlpha: 0.06, dark: 0x000000, darkAlpha: 0.35)
+    /// The data-color wash at a tile's top: tint at this opacity, fading to clear at 75% of the tile height.
+    public static let fillTileWashOpacity = (light: 0.09, dark: 0.16)
+
+    // Panel tabs "Soft keys" (owner pick 2026-11-19): a sunken track and a raised key for the selected tab.
+    // Top and Bottom are the vertical gradient ends; Edge is the 1 pt border gradient.
+    public static let softKeyTrackTop = color("softKeyTrackTop", light: 0xDADADE, dark: 0x0D0D0F)
+    public static let softKeyTrackBottom = color("softKeyTrackBottom", light: 0xE6E6EA, dark: 0x121214)
+    public static let softKeyTrackEdgeTop = color("softKeyTrackEdgeTop", light: 0x000000, lightAlpha: 0.06, dark: 0x000000, darkAlpha: 0.5)
+    public static let softKeyTrackEdgeBottom = color("softKeyTrackEdgeBottom", light: 0xFFFFFF, lightAlpha: 0.9, dark: 0xFFFFFF, darkAlpha: 0.07)
+    public static let softKeyTrackShade = color("softKeyTrackShade", light: 0x000000, lightAlpha: 0.2, dark: 0x000000, darkAlpha: 0.7)
+    public static let softKeyTop = color("softKeyTop", light: 0xFFFFFF, dark: 0x58585F)
+    public static let softKeyBottom = color("softKeyBottom", light: 0xEEEEF1, dark: 0x46464C)
+    public static let softKeyEdgeTop = color("softKeyEdgeTop", light: 0xFFFFFF, dark: 0xFFFFFF, darkAlpha: 0.2)
+    public static let softKeyEdgeBottom = color("softKeyEdgeBottom", light: 0x000000, lightAlpha: 0.15, dark: 0x000000, darkAlpha: 0.4)
+    public static let softKeyShadow = color("softKeyShadow", light: 0x000000, lightAlpha: 0.2, dark: 0x000000, darkAlpha: 0.6)
 
     // Lines
     public static let line = color("line", light: 0x000000, lightAlpha: 0.085, dark: 0xFFFFFF, darkAlpha: 0.075)

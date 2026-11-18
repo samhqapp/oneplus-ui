@@ -13,7 +13,10 @@ public enum OnePlusLinearPanelStyle: Sendable {
     public var bodyTopUnderBar: CGFloat { self == .fillSteps ? 2 : OnePlusLinearMetrics.panelBodyTopUnderToolbar }
     public var bodyInset: CGFloat { self == .fillSteps ? 10 : OnePlusLinearMetrics.panelBodyInset }
     public var blockGap: CGFloat { self == .fillSteps ? 10 : OnePlusLinearMetrics.panelBlockGap }
-    public var bentoGap: CGFloat { self == .fillSteps ? 4 : OnePlusLinearMetrics.bentoGap }
+    /// Fill steps: a 7 pt gap gives each floating tile's shadow room; 84 and 140 pt tiles keep the bento at 266 pt.
+    public var bentoGap: CGFloat { self == .fillSteps ? 7 : OnePlusLinearMetrics.bentoGap }
+    public var tile: CGFloat { self == .fillSteps ? 84 : OnePlusLinearMetrics.tile }
+    public var tallTile: CGFloat { self == .fillSteps ? 140 : OnePlusLinearMetrics.tallTile }
     /// Fill steps: list and control-card radius, tile and action radius, and the list's top and bottom padding.
     static let groupRadius: CGFloat = 10
     static let tileRadius: CGFloat = 8
@@ -91,7 +94,8 @@ public struct OnePlusLinearPanelFooter<Leading: View, Trailing: View>: View {
     }
 }
 
-/// Panel tabs as 26 pt icons in one quiet track. The selected tab is raised.
+/// Panel tabs as 26 pt icons in one quiet track. The selected tab is raised. Fill steps draws "Soft keys":
+/// a sunken track and a raised key.
 public struct OnePlusLinearIconTabs<Value: Hashable>: View {
     private let tabs: [OnePlusMenuTab<Value>]
     @Binding private var selection: Value
@@ -102,10 +106,9 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
         self.tabs = tabs; _selection = selection; self.onMove = onMove
     }
     public var body: some View {
-        // Fill steps: 28 pt tabs with no track; the selected tab is one fill step up, radius 7.
         let fill = style == .fillSteps
-        let size = fill ? 28 : OnePlusLinearMetrics.iconTab
-        let radius: CGFloat = fill ? 7 : 5
+        let size = OnePlusLinearMetrics.iconTab
+        let radius: CGFloat = fill ? 6 : 5
         HStack(spacing: 2) {
             ForEach(tabs) { tab in
                 let on = tab.id == selection
@@ -117,10 +120,7 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
                     .foregroundStyle(on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
                     .frame(width: size, height: size)
                     .background {
-                        if fill, on {
-                            RoundedRectangle(cornerRadius: radius).fill(OnePlusLinearColor.fillTabSelected)
-                                .matchedGeometryEffect(id: "chip", in: chip)
-                        }
+                        if fill, on { OnePlusLinearSoftKey(radius: radius).matchedGeometryEffect(id: "chip", in: chip) }
                     }
                     .linearSegmentSelected(!fill && on, radius: radius, in: chip)
                 }
@@ -137,7 +137,7 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
             }
         }
         .linearMotion(OnePlusMotion.tabSlide, value: selection)
-        .modifier(OnePlusLinearTabTrack(on: !fill))
+        .modifier(OnePlusLinearTabTrack(soft: fill))
         .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
             guard press.modifiers.isEmpty else { return .ignored }
             if let next = OnePlusSegmented<Value>.nextSelection(in: tabs.map(\.id), current: selection,
@@ -148,9 +148,35 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
 }
 
 private struct OnePlusLinearTabTrack: ViewModifier {
-    let on: Bool
+    let soft: Bool
     @ViewBuilder func body(content: Content) -> some View {
-        if on { content.linearTrack(radius: 7) } else { content }
+        if soft {
+            let shape = RoundedRectangle(cornerRadius: 8)
+            content.padding(2).background {
+                shape.fill(Self.vertical(OnePlusLinearColor.softKeyTrackTop, OnePlusLinearColor.softKeyTrackBottom)
+                    .shadow(.inner(color: OnePlusLinearColor.softKeyTrackShade, radius: 2, y: 1)))
+                    .overlay { shape.strokeBorder(Self.vertical(OnePlusLinearColor.softKeyTrackEdgeTop,
+                                                                OnePlusLinearColor.softKeyTrackEdgeBottom), lineWidth: 1) }
+            }
+        } else {
+            content.linearTrack(radius: 7)
+        }
+    }
+
+    static func vertical(_ top: Color, _ bottom: Color) -> LinearGradient {
+        LinearGradient(colors: [top, bottom], startPoint: .top, endPoint: .bottom)
+    }
+}
+
+/// The raised key under the selected soft-key tab: a light-to-dark fill, a lit top edge, and a short drop.
+private struct OnePlusLinearSoftKey: View {
+    let radius: CGFloat
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: radius)
+        shape.fill(OnePlusLinearTabTrack.vertical(OnePlusLinearColor.softKeyTop, OnePlusLinearColor.softKeyBottom))
+            .overlay { shape.strokeBorder(OnePlusLinearTabTrack.vertical(OnePlusLinearColor.softKeyEdgeTop,
+                                                                         OnePlusLinearColor.softKeyEdgeBottom), lineWidth: 1) }
+            .shadow(color: OnePlusLinearColor.softKeyShadow, radius: 1.5, y: 1)
     }
 }
 
@@ -223,6 +249,21 @@ public struct OnePlusLinearBento<Leading: View, Trailing: View>: View {
                 .background(OnePlusLinearColor.panelTile)
                 .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearMetrics.tileRadius))
                 .linearOuterRing(OnePlusLinearColor.line, radius: OnePlusLinearMetrics.tileRadius)
+        } else if panelStyle == .fillSteps {
+            // "Floating tiles": one shadow under all tile shapes, drawn behind every tile, so no tile darkens a neighbor.
+            columns.backgroundPreferenceValue(OnePlusLinearTileFrames.self) { anchors in
+                GeometryReader { proxy in
+                    ForEach(anchors.indices, id: \.self) { index in
+                        let frame = proxy[anchors[index]]
+                        RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius).fill(OnePlusLinearColor.fillGroup)
+                            .frame(width: frame.width, height: frame.height).offset(x: frame.minX, y: frame.minY)
+                    }
+                }
+                .compositingGroup()
+                .shadow(color: OnePlusLinearColor.fillTileContact, radius: 0.75, y: 0.5)
+                .shadow(color: OnePlusLinearColor.fillTileShadow, radius: 8, y: 3)
+                .allowsHitTesting(false)
+            }
         } else {
             columns
         }
@@ -244,6 +285,11 @@ public struct OnePlusLinearBento<Leading: View, Trailing: View>: View {
             }
         }
     }
+}
+
+private struct OnePlusLinearTileFrames: PreferenceKey {
+    static var defaultValue: [Anchor<CGRect>] { [] }
+    static func reduce(value: inout [Anchor<CGRect>], nextValue: () -> [Anchor<CGRect>]) { value += nextValue() }
 }
 
 public struct OnePlusLinearSeries: Sendable {
@@ -276,17 +322,20 @@ public struct OnePlusLinearUsage: Sendable {
 }
 
 /// A bento metric tile: panel-tile fill, 6 pt radius, outer 1 pt ring, 10 pt padding.
-/// Heights: `OnePlusLinearMetrics.tile` (86), `.tallTile` (146), `.shortTile` (56).
+/// Heights: the panel style's `tile` (default) and `tallTile`, and `OnePlusLinearMetrics.shortTile` (56).
+/// Fill steps: a floating tile with a faint `tint` wash at its top.
 public struct OnePlusLinearTile<Content: View>: View {
-    private let height: CGFloat
+    private let height: CGFloat?
     private let chart: OnePlusLinearChart?
     private let usage: OnePlusLinearUsage?
+    private let tint: Color?
     private let content: Content
     @Environment(\.onePlusLinearBentoStyle) private var style
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
-    public init(height: CGFloat = OnePlusLinearMetrics.tile, chart: OnePlusLinearChart? = nil, usage: OnePlusLinearUsage? = nil,
-                @ViewBuilder content: () -> Content) {
-        self.height = height; self.chart = chart; self.usage = usage; self.content = content()
+    @Environment(\.colorScheme) private var colorScheme
+    public init(height: CGFloat? = nil, chart: OnePlusLinearChart? = nil, usage: OnePlusLinearUsage? = nil,
+                tint: Color? = nil, @ViewBuilder content: () -> Content) {
+        self.height = height; self.chart = chart; self.usage = usage; self.tint = tint; self.content = content()
     }
     public var body: some View {
         let tile = VStack(alignment: .leading, spacing: 0) { content }
@@ -298,11 +347,18 @@ public struct OnePlusLinearTile<Content: View>: View {
             .overlay(alignment: .bottom) {
                 if let usage { OnePlusLinearUsageRow(usage: usage) }
             }
-            .frame(height: height)
+            .frame(height: height ?? panelStyle.tile)
         Group {
             if panelStyle == .fillSteps {
-                tile.background(OnePlusLinearColor.fillGroup)
-                    .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius))
+                let wash = colorScheme == .dark ? OnePlusLinearColor.fillTileWashOpacity.dark : OnePlusLinearColor.fillTileWashOpacity.light
+                tile.background {
+                    if let tint {
+                        LinearGradient(colors: [tint.opacity(wash), tint.opacity(0)], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.75))
+                    }
+                }
+                .background(OnePlusLinearColor.fillGroup)
+                .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius))
+                .anchorPreference(key: OnePlusLinearTileFrames.self, value: .bounds) { [$0] }
             } else if style == .instrument {
                 tile
             } else {
