@@ -100,9 +100,10 @@ public enum OnePlusLinearColor {
     public static let actionKeyBottom = color("actionKeyBottom", light: 0xEEEEF1, dark: 0x1F1F22)
     public static let actionKeyHoverTop = color("actionKeyHoverTop", light: 0xF7F7F9, dark: 0x2C2C30)
     public static let actionKeyHoverBottom = color("actionKeyHoverBottom", light: 0xE6E6EA, dark: 0x2C2C30)
-    public static let actionKeyEdgeTop = color("actionKeyEdgeTop", light: 0xFFFFFF, dark: 0xFFFFFF, darkAlpha: 0)
-    public static let actionKeyEdgeBottom = color("actionKeyEdgeBottom", light: 0x000000, lightAlpha: 0.15, dark: 0x000000, darkAlpha: 0)
-    public static let actionKeyShadow = color("actionKeyShadow", light: 0x000000, lightAlpha: 0.2, dark: 0x000000, darkAlpha: 0)
+    /// Light keys: one even hairline edge and no shadow (owner pick "Hairline edge", 2026-11-19).
+    public static let actionKeyEdgeTop = color("actionKeyEdgeTop", light: 0x000000, lightAlpha: 0.12, dark: 0xFFFFFF, darkAlpha: 0)
+    public static let actionKeyEdgeBottom = color("actionKeyEdgeBottom", light: 0x000000, lightAlpha: 0.12, dark: 0x000000, darkAlpha: 0)
+    public static let actionKeyShadow = color("actionKeyShadow", light: 0x000000, lightAlpha: 0, dark: 0x000000, darkAlpha: 0)
     public static let actionKeyLabelWeight = (light: Font.Weight.regular, dark: Font.Weight.medium)
 
     // Lines
