@@ -52,7 +52,6 @@ private final class WindowContentObserver: NSView {
     var changed: (CGSize?) -> Void
     private weak var observedWindow: NSWindow?
     private var observers: [NSObjectProtocol] = []
-    private var isClosed = false
 
     init(changed: @escaping (CGSize?) -> Void) {
         self.changed = changed
@@ -70,7 +69,7 @@ private final class WindowContentObserver: NSView {
         observedWindow = window
         guard let window else { return }
         for name in [NSWindow.willCloseNotification, windowContentWillOpen,
-                     NSWindow.didChangeOcclusionStateNotification] {
+                     NSWindow.didChangeOcclusionStateNotification, NSWindow.didBecomeKeyNotification] {
             observers.append(NotificationCenter.default.addObserver(forName: name, object: window, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.received(name) }
             })
@@ -80,11 +79,10 @@ private final class WindowContentObserver: NSView {
     private func received(_ name: Notification.Name) {
         guard let window = observedWindow else { return }
         if name == NSWindow.willCloseNotification {
-            isClosed = true
             changed(window.contentView?.frame.size ?? .zero)
             window.contentView?.layoutSubtreeIfNeeded()
-        } else if isClosed, name == windowContentWillOpen || window.isVisible {
-            isClosed = false
+        } else if name == windowContentWillOpen || window.isVisible {
+            // Always clear: the scene keeps closedSize while SwiftUI may rebuild this observer on reopen.
             changed(nil)
         }
     }
