@@ -102,7 +102,6 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
     private let tabs: [OnePlusMenuTab<Value>]
     @Binding private var selection: Value
     private let onMove: ((Int, Int) -> Void)?
-    @Namespace private var chip
     @Environment(\.onePlusLinearPanelStyle) private var style
     public init(tabs: [OnePlusMenuTab<Value>], selection: Binding<Value>, onMove: ((Int, Int) -> Void)? = nil) {
         self.tabs = tabs; _selection = selection; self.onMove = onMove
@@ -123,7 +122,7 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
                                      : (fill ? OnePlusLinearColor.softKeyTrackInk : OnePlusLinearColor.secondary))
                     .frame(width: size, height: size)
                     .background {
-                        if fill, on { OnePlusLinearSoftKey(radius: radius).matchedGeometryEffect(id: "chip", in: chip) }
+                        if fill, on { OnePlusLinearSoftKey(radius: radius) }
                     }
                     .overlay(alignment: .leading) {
                         // Between two unselected tabs only, centered in the 2 pt gap.
@@ -132,7 +131,7 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
                                 .frame(width: 1, height: size - 8).offset(x: -1.5).allowsHitTesting(false)
                         }
                     }
-                    .linearSegmentSelected(!fill && on, radius: radius, in: chip)
+                    .linearSegmentSelected(!fill && on, radius: radius)
                 }
                 .buttonStyle(OnePlusLinearButtonStyle(radius: radius))
                 .help(tab.title).accessibilityLabel(tab.title)
@@ -146,7 +145,8 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
                 }
             }
         }
-        .linearMotion(OnePlusMotion.tabSlide, value: selection)
+        // The key, glyph colors, and dividers change at once: an animated tab swap rides the panel resize and rolls the key.
+        .transaction(value: selection) { $0.animation = nil }
         .modifier(OnePlusLinearTabTrack(soft: fill))
         .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
             guard press.modifiers.isEmpty else { return .ignored }

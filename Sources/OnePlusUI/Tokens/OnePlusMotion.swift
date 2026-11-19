@@ -21,7 +21,7 @@ public enum OnePlusMotion {
     public static let hoverOut: TimeInterval = 0.15
     /// Sidebar selection: the old and new fills crossfade, no slide.
     public static let selection: TimeInterval = 0.12
-    /// Pane toolbar tab underline and panel footer tab chip slide to the new tab.
+    /// Pane toolbar tab underline slides to the new tab. The menu panel tab key changes at once.
     public static let tabSlide: TimeInterval = 0.18
     /// Segmented control thumb.
     public static let segment: TimeInterval = 0.16
