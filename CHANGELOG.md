@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.3.31
+
+- Add `OnePlusLinearToolPages`: `OnePlusLinearSpace` and
+  `OnePlusLinearControlWidth` scales, `linearGroupRowHover(selected:)`,
+  `onePlusLinearEditorialPage()`, `OnePlusLinearEditorialFixedBody`, and
+  `OnePlusLinearSheet` for editorial tool windows and their sheets.
+- Tables (`onePlusTableRow`, `OnePlusTableSkin`, `OnePlusNativeTable`) follow
+  the editorial look under `onePlusLinearEditorial`: group fill, `lineSoft`
+  row lines, `selection` fill, no zebra stripes. `OnePlusTablePalette` holds
+  both palettes.
+- `OnePlusLinearList(.window)` renders an inset group under editorial.
+- `OnePlusLinearBanner` gains `.error` and selectable text.
+- Linear tokens gain `destructiveFill` and `success`.
+
 ## 1.3.30
 
 - Add `OnePlusLinearMenuPanel`, the Home variant of `OnePlusMenuPanel` for a

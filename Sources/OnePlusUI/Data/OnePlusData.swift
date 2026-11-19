@@ -128,12 +128,7 @@ public enum OnePlusTable {
 public extension View {
     /// Use the same column for this cell and `onePlusNativeTable(columns:)`.
     func onePlusTableCell(_ column: OnePlusGridColumn, position: OnePlusTable.CellPosition = .middle) -> some View {
-        // ponytail: AppKit's bordered Table reserves 6pt at each outside edge;
-        // the native geometry regression test gates updates to that platform inset.
-        onePlusText(column.textRole ?? .row, color: column.textColor)
-            .frame(maxWidth: .infinity, alignment: column.swiftUIAlignment)
-            .padding(.leading, max(0, column.leadingInset - (position == .first ? 6 : 0)))
-            .padding(.trailing, max(0, column.trailingInset - (position == .last ? 6 : 0)))
+        modifier(OnePlusTableCellModifier(column: column, position: position))
     }
     func onePlusTableHeader() -> some View {
         onePlusText(.tableHeader).frame(height: OnePlusTable.headerHeight).frame(maxWidth: .infinity, alignment: .leading)
@@ -147,11 +142,18 @@ private struct OnePlusTableRowModifier: ViewModifier {
     let index: Int
     let selected: Bool
     @Environment(\.onePlusDensity) private var density
+    @Environment(\.onePlusLinearEditorial) private var editorial
     func body(content: Content) -> some View {
-        content.onePlusText(.row).padding(.horizontal, OnePlusTable.cellInset).frame(height: OnePlusTable.rowHeight(density))
-            .onePlusRowHover(selected: selected)
-            .background(OnePlusTable.rowBackground(index))
-            .overlay(alignment: .bottom) { OnePlusColor.lineSoft.frame(height: 1) }
+        if editorial {
+            content.linearText().padding(.horizontal, OnePlusTable.cellInset).frame(height: OnePlusTable.rowHeight(density))
+                .linearGroupRowHover(selected: selected)
+                .overlay(alignment: .bottom) { OnePlusLinearColor.lineSoft.frame(height: 1) }
+        } else {
+            content.onePlusText(.row).padding(.horizontal, OnePlusTable.cellInset).frame(height: OnePlusTable.rowHeight(density))
+                .onePlusRowHover(selected: selected)
+                .background(OnePlusTable.rowBackground(index))
+                .overlay(alignment: .bottom) { OnePlusColor.lineSoft.frame(height: 1) }
+        }
     }
 }
 
@@ -210,7 +212,7 @@ public struct OnePlusGridTable: View {
     }
 }
 
-private extension OnePlusGridColumn {
+extension OnePlusGridColumn {
     var swiftUIAlignment: SwiftUI.Alignment {
         switch alignment {
         case .leading: .leading

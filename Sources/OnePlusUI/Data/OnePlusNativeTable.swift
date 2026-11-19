@@ -26,6 +26,8 @@ public struct OnePlusTableAction {
 /// A native selectable table with the OnePlus row and header geometry.
 public struct OnePlusNativeTable: NSViewRepresentable {
     @Environment(\.onePlusDensity) private var density
+    @Environment(\.onePlusLinearEditorial) private var editorial
+    var palette: OnePlusTablePalette { .for(editorial: editorial) }
     let columns: [OnePlusGridColumn]
     let rows: [OnePlusTableItem]
     @Binding var selection: Set<String>
@@ -59,7 +61,9 @@ public struct OnePlusNativeTable: NSViewRepresentable {
         table.gridStyleMask = []
         table.gridColor = NSColor(OnePlusColor.lineSoft)
         table.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
-        table.headerView = OnePlusTableHeaderView(frame: NSRect(x: 0, y: 0, width: 0, height: OnePlusTable.headerHeight))
+        let header = OnePlusTableHeaderView(frame: NSRect(x: 0, y: 0, width: 0, height: OnePlusTable.headerHeight))
+        header.palette = palette
+        table.headerView = header
         configureColumns(in: table)
         table.setDraggingSourceOperationMask(.copy, forLocal: false)
         table.makeMenu = { [weak coordinator = context.coordinator] ids in coordinator?.menu(ids) }
@@ -81,14 +85,16 @@ public struct OnePlusNativeTable: NSViewRepresentable {
                 textCell: item.title,
                 leadingInset: (index == 0 ? max(OnePlusTable.primaryIconInset, item.leadingInset) + 25 : item.leadingInset) - 2 + item.headerLabelInset,
                 trailingInset: item.trailingInset - 2,
-                alignment: item.alignment
+                alignment: item.alignment,
+                palette: palette
             )
             column.sortDescriptorPrototype = NSSortDescriptor(key: String(index), ascending: index != 2)
             table.addTableColumn(column)
         }
         let action = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("actions"))
         action.width = 40; action.minWidth = 40; action.maxWidth = 40
-        action.headerCell = OnePlusTableHeaderCell(textCell: "")
+        action.headerCell = OnePlusTableHeaderCell(textCell: "", palette: palette)
+        (table.headerView as? OnePlusTableHeaderView)?.palette = palette
         table.addTableColumn(action)
     }
     public func updateNSView(_ scroll: NSScrollView, context: Context) {
@@ -121,8 +127,8 @@ public struct OnePlusNativeTable: NSViewRepresentable {
             updating = true
             defer { updating = false }
             table.rowHeight = OnePlusTable.rowHeight(density)
-            table.backgroundColor = NSColor(OnePlusColor.panel)
-            let columnsChanged = previous.columns.map(\.id) != owner.columns.map(\.id)
+            table.backgroundColor = NSColor(owner.palette.panel)
+            let columnsChanged = previous.columns.map(\.id) != owner.columns.map(\.id) || previous.palette != owner.palette
             if columnsChanged { owner.configureColumns(in: table) }
             let sameOrder = previous.rows.count == owner.rows.count &&
                 zip(previous.rows, owner.rows).allSatisfy { $0.id == $1.id }
@@ -184,20 +190,24 @@ public struct OnePlusNativeTable: NSViewRepresentable {
             guard let text = cell.textField else { return cell }
             text.stringValue = item.cells[index]
             let role = owner.columns[index].textRole ?? (owner.columns[index].trailing || index == 3 ? .mono : .row)
-            let weight: NSFont.Weight = switch role.weight {
+            let palette = owner.palette
+            let font = palette.cellFont(role, density: density)
+            let weight: NSFont.Weight = switch font.weight {
             case .medium: .medium
             case .semibold: .semibold
             default: .regular
             }
-            text.font = role == .mono ? .monospacedSystemFont(ofSize: role.size(for: density), weight: weight)
-                : .systemFont(ofSize: role.size(for: density), weight: weight)
-            cell.restingInk = NSColor(owner.columns[index].textColor ?? owner.columns[index].textRole.map(\.color) ?? (index == 0 ? OnePlusColor.ink : OnePlusColor.secondary))
+            text.font = font.mono ? .monospacedSystemFont(ofSize: font.size, weight: weight)
+                : .systemFont(ofSize: font.size, weight: weight)
+            cell.selectedInk = NSColor(palette.ink)
+            cell.restingInk = NSColor(owner.columns[index].textColor ?? owner.columns[index].textRole.map(palette.cellColor)
+                ?? (index == 0 ? palette.ink : palette.secondary))
             let semantic = owner.columns[index].textColor
             cell.preservesSemanticInk = semantic == OnePlusColor.danger || semantic == OnePlusColor.warn
             cell.selected = tableView.selectedRowIndexes.contains(row)
             text.alignment = owner.columns[index].nsTextAlignment
             cell.imageView?.image = item.image ?? NSImage(systemSymbolName: item.symbol, accessibilityDescription: nil)
-            cell.imageView?.contentTintColor = item.image == nil ? NSColor(OnePlusColor.secondary) : nil
+            cell.imageView?.contentTintColor = item.image == nil ? NSColor(palette.secondary) : nil
             return cell
         }
         private func makeActionButton() -> NSButton {
@@ -250,6 +260,7 @@ public struct OnePlusNativeTable: NSViewRepresentable {
         public func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
             let view = tableView.makeView(withIdentifier: Self.rowID, owner: self) as? StorageRow ?? StorageRow()
             view.identifier = Self.rowID
+            view.palette = owner.palette
             view.rowIndex = row
             return view
         }
@@ -333,17 +344,19 @@ final class StorageTable: NSTableView {
 
 private final class StorageTextCell: NSTableCellView {
     var restingInk = NSColor(OnePlusColor.ink) { didSet { updateInk() } }
+    var selectedInk = NSColor(OnePlusColor.ink) { didSet { updateInk() } }
     var preservesSemanticInk = false { didSet { updateInk() } }
     var selected = false { didSet { updateInk() } }
     override var backgroundStyle: NSView.BackgroundStyle { didSet { updateInk() } }
     private func updateInk() {
         textField?.cell?.backgroundStyle = .normal
-        textField?.textColor = selected && !preservesSemanticInk ? NSColor(OnePlusColor.ink) : restingInk
+        textField?.textColor = selected && !preservesSemanticInk ? selectedInk : restingInk
     }
 }
 
 private final class StorageRow: NSTableRowView {
     var rowIndex = 0 { didSet { needsDisplay = true } }
+    var palette = OnePlusTablePalette.standard { didSet { needsDisplay = true } }
     private var hovering = false
     private var hoverArea: NSTrackingArea?
     override var isSelected: Bool { didSet { updateCells(); needsDisplay = true } }
@@ -371,13 +384,13 @@ private final class StorageRow: NSTableRowView {
         if button.alphaValue != opacity { button.alphaValue = opacity }
     }
     override func drawBackground(in dirtyRect: NSRect) {
-        NSColor(hovering ? OnePlusColor.raised : OnePlusTable.rowBackground(rowIndex)).setFill(); bounds.fill()
+        NSColor(hovering ? palette.hover : palette.row(rowIndex)).setFill(); bounds.fill()
     }
     override func drawSelection(in dirtyRect: NSRect) {
-        NSColor(isEmphasized ? OnePlusColor.selection : OnePlusColor.selectionInactive).setFill(); bounds.fill()
+        NSColor(isEmphasized ? palette.selection : palette.selectionInactive).setFill(); bounds.fill()
     }
     override func drawSeparator(in dirtyRect: NSRect) {
-        NSColor(OnePlusColor.lineSoft).setFill()
+        NSColor(palette.line).setFill()
         NSRect(x: 0, y: bounds.maxY - 1, width: bounds.width, height: 1).fill()
     }
 }
@@ -407,28 +420,25 @@ final class OnePlusTableHeaderCell: NSTableHeaderCell {
     let leadingInset: CGFloat
     let trailingInset: CGFloat
     let columnAlignment: OnePlusGridColumn.Alignment
+    let palette: OnePlusTablePalette
     init(textCell string: String, leadingInset: CGFloat = OnePlusTable.nativeHeaderInset,
          trailingInset: CGFloat = OnePlusTable.nativeHeaderInset,
-         alignment: OnePlusGridColumn.Alignment = .leading) {
+         alignment: OnePlusGridColumn.Alignment = .leading, palette: OnePlusTablePalette = .standard) {
         self.leadingInset = leadingInset
         self.trailingInset = trailingInset
         self.columnAlignment = alignment
+        self.palette = palette
         super.init(textCell: string)
     }
     @available(*, unavailable) required init(coder: NSCoder) { fatalError() }
-    var label: NSAttributedString {
-        NSAttributedString(string: stringValue.uppercased(), attributes: [
-            .font: NSFont.systemFont(ofSize: 9, weight: .medium),
-            .foregroundColor: NSColor(OnePlusColor.muted), .kern: 0.4
-        ])
-    }
+    var label: NSAttributedString { palette.headerLabel(stringValue) }
     override var cellSize: NSSize {
         NSSize(width: ceil(label.size().width) + leadingInset + trailingInset, height: OnePlusTable.headerHeight)
     }
     override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
-        NSColor(OnePlusColor.sidebar).setFill(); cellFrame.fill()
+        NSColor(palette.headerFill).setFill(); cellFrame.fill()
         drawInterior(withFrame: cellFrame, in: controlView)
-        NSColor(OnePlusColor.lineSoft).setFill()
+        NSColor(palette.line).setFill()
         NSRect(x: cellFrame.minX, y: cellFrame.maxY - 1, width: cellFrame.width, height: 1).fill()
     }
     override func drawInterior(withFrame cellFrame: NSRect, in controlView: NSView) {
@@ -475,6 +485,7 @@ private extension OnePlusGridColumn {
 }
 
 final class OnePlusTableHeaderView: NSTableHeaderView {
+    var palette = OnePlusTablePalette.standard
     override func setFrameSize(_ newSize: NSSize) {
         // AppKit retiles the floating header after native appearance/layout changes.
         // Keep its reserved extent identical to the header cells in both themes.
@@ -487,7 +498,7 @@ final class OnePlusTableHeaderView: NSTableHeaderView {
         return NSRect(x: rect.minX, y: 0, width: rect.width, height: OnePlusTable.headerHeight)
     }
     override func draw(_ dirtyRect: NSRect) {
-        NSColor(OnePlusColor.sidebar).setFill(); bounds.fill()
+        NSColor(palette.headerFill).setFill(); bounds.fill()
         super.draw(dirtyRect)
     }
 }

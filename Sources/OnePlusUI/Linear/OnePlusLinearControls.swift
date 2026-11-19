@@ -198,15 +198,19 @@ public struct OnePlusLinearIconButton: View {
 }
 
 /// A rounded group with hairline separators between its rows.
-/// `.window` is the main window tool list; `.panel` is a menu-panel card.
+/// `.window` is the main window tool list; `.panel` is a menu-panel card. Under the editorial page a `.window`
+/// list is the main window's inset group.
 public struct OnePlusLinearList<Content: View>: View {
     public enum Style: Sendable { case window, panel }
     private let style: Style
     private let content: Content
     public init(style: Style = .window, @ViewBuilder content: () -> Content) { self.style = style; self.content = content() }
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
+    @Environment(\.onePlusLinearEditorial) private var editorial
     public var body: some View {
-        if style == .panel, panelStyle == .fillSteps {
+        if style == .window, editorial {
+            OnePlusLinearInsetGroup(content: content)
+        } else if style == .panel, panelStyle == .fillSteps {
             VStack(spacing: 0) { content }
                 .padding(.vertical, OnePlusLinearPanelStyle.listPadding)
                 .background(OnePlusLinearColor.fillGroup)

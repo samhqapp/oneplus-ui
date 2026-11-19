@@ -170,6 +170,10 @@ public enum OnePlusLinearColor {
     /// The warning banner: an amber tint fill and its glyph. Banner text stays `ink`.
     public static let warningFill = color("warningFill", light: 0xE89B0C, lightAlpha: 0.14, dark: 0xF0B040, darkAlpha: 0.16)
     public static let warning = color("warning", light: 0xA86500, dark: 0xF2BC55)
+    /// The error banner: a red tint fill. Its glyph and text use `destructiveText`.
+    public static let destructiveFill = color("destructiveFill", light: 0xD64035, lightAlpha: 0.10, dark: 0xFF6F64, darkAlpha: 0.14)
+    /// A finished state as text, such as "Completed". Keeps Lc 60 on the window and the group fill.
+    public static let success = color("success", light: 0x237A40, dark: 0x6CCB8C)
 
     // Data
     public static let cpu = color("cpu", light: 0x2A7DE1, dark: 0x4C8FE6)

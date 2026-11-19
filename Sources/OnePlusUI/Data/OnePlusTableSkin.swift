@@ -4,26 +4,30 @@ import SwiftUI
 struct OnePlusNativeTableSkin: ViewModifier {
     let columns: [OnePlusGridColumn]
     @Environment(\.onePlusDensity) private var density
+    @Environment(\.onePlusLinearEditorial) private var editorial
     func body(content: Content) -> some View {
+        let palette = OnePlusTablePalette.for(editorial: editorial)
         content.tableStyle(.bordered(alternatesRowBackgrounds: false))
             .environment(\.defaultMinListRowHeight, OnePlusTable.rowHeight(density))
-            .scrollContentBackground(.hidden).background(OnePlusColor.panel)
+            .scrollContentBackground(.hidden).background(palette.panel)
             .onePlusText(.row).onePlusScrollIndicators()
-            .background(OnePlusTableConfigurator(density: density, columns: columns))
+            .background(OnePlusTableConfigurator(density: density, columns: columns, palette: palette))
     }
 }
 
 private struct OnePlusTableConfigurator: NSViewRepresentable {
     let density: OnePlusDensity
     let columns: [OnePlusGridColumn]
+    let palette: OnePlusTablePalette
     func makeNSView(context: Context) -> Probe { Probe() }
     func updateNSView(_ view: Probe, context: Context) {
-        view.density = density; view.columns = columns; view.configure()
+        view.density = density; view.columns = columns; view.palette = palette; view.configure()
     }
 
     final class Probe: NSView {
         var density = OnePlusDensity.regular
         var columns: [OnePlusGridColumn] = []
+        var palette = OnePlusTablePalette.standard
         private weak var table: NSTableView?
         private var borderObservation: NSKeyValueObservation?
         private var pending: DispatchWorkItem?
@@ -50,7 +54,7 @@ private struct OnePlusTableConfigurator: NSViewRepresentable {
                             MainActor.assumeIsolated { self?.configure() }
                         }
                     }
-                    Self.apply(to: table, density: self.density, columns: self.columns)
+                    Self.apply(to: table, density: self.density, columns: self.columns, palette: self.palette)
                 }
             }
             pending = work
@@ -64,7 +68,9 @@ private struct OnePlusTableConfigurator: NSViewRepresentable {
             }
             return view.subviews.lazy.compactMap { self.findTable(in: $0) }.first
         }
-        private static func apply(to table: NSTableView, density: OnePlusDensity, columns: [OnePlusGridColumn]) {
+        private static func apply(to table: NSTableView, density: OnePlusDensity, columns: [OnePlusGridColumn],
+                                  palette: OnePlusTablePalette) {
+            let panelColor = palette.linear ? Self.linearPanelColor : Self.panelColor
             // Keep SwiftUI's native style and gridColor. A custom gridColor
             // makes AppKit ask new SwiftUI rows for cells before they exist.
             if table.rowSizeStyle != .custom { table.rowSizeStyle = .custom }
@@ -77,11 +83,14 @@ private struct OnePlusTableConfigurator: NSViewRepresentable {
             }
             let lines = table.subviews.compactMap { $0 as? OnePlusTableLines }.first ?? OnePlusTableLines(table: table)
             if lines.superview == nil { table.addSubview(lines) }
+            if lines.palette != palette { lines.palette = palette }
             lines.updateRowBackgrounds()
             if table.focusRingType != .none { table.focusRingType = .none }
             var headerChanged = false
-            if !(table.headerView is OnePlusTableHeaderView) {
-                table.headerView = OnePlusTableHeaderView(frame: NSRect(x: 0, y: 0, width: table.bounds.width, height: OnePlusTable.headerHeight))
+            if (table.headerView as? OnePlusTableHeaderView)?.palette != palette {
+                let header = OnePlusTableHeaderView(frame: NSRect(x: 0, y: 0, width: table.bounds.width, height: OnePlusTable.headerHeight))
+                header.palette = palette
+                table.headerView = header
                 headerChanged = true
             }
             for (index, column) in table.tableColumns.enumerated() {
@@ -96,9 +105,9 @@ private struct OnePlusTableConfigurator: NSViewRepresentable {
                 let resolvedAlignment = model?.alignment ?? (column.headerCell as? OnePlusTableHeaderCell)?.columnAlignment ?? alignment
                 let header = column.headerCell as? OnePlusTableHeaderCell
                 if header == nil || header?.leadingInset != leading || header?.trailingInset != trailing ||
-                    header?.columnAlignment != resolvedAlignment {
+                    header?.columnAlignment != resolvedAlignment || header?.palette != palette {
                     column.headerCell = OnePlusTableHeaderCell(textCell: column.title,
-                        leadingInset: leading, trailingInset: trailing, alignment: resolvedAlignment)
+                        leadingInset: leading, trailingInset: trailing, alignment: resolvedAlignment, palette: palette)
                     headerChanged = true
                 }
             }
@@ -106,6 +115,7 @@ private struct OnePlusTableConfigurator: NSViewRepresentable {
             if headerChanged { table.headerView?.needsDisplay = true }
         }
         private static let panelColor = NSColor(OnePlusColor.panel)
+        private static let linearPanelColor = NSColor(OnePlusLinearColor.fillGroup)
     }
 }
 
@@ -116,6 +126,7 @@ final class OnePlusTableLines: NSView {
     private weak var hoveredRow: NSTableRowView?
     private var hoverArea: NSTrackingArea?
     private var selectionObservation: NSKeyValueObservation?
+    var palette = OnePlusTablePalette.standard { didSet { updateRowBackgrounds(); needsDisplay = true } }
     init(table: NSTableView) {
         self.table = table
         super.init(frame: table.bounds)
@@ -156,8 +167,9 @@ final class OnePlusTableLines: NSView {
     func updateRowBackgrounds() {
         table?.enumerateAvailableRowViews { row, index in
             row.selectionHighlightStyle = .none
-            let color = NSColor(row.isSelected ? (row.isEmphasized ? OnePlusColor.selection : OnePlusColor.selectionInactive)
-                : row === self.hoveredRow ? OnePlusColor.raised : OnePlusTable.rowBackground(index))
+            let palette = self.palette
+            let color = NSColor(row.isSelected ? (row.isEmphasized ? palette.selection : palette.selectionInactive)
+                : row === self.hoveredRow ? palette.hover : palette.row(index))
             if row.backgroundColor != color { row.backgroundColor = color }
         }
     }
@@ -166,7 +178,7 @@ final class OnePlusTableLines: NSView {
         updateRowBackgrounds()
         let rows = table.rows(in: dirtyRect)
         guard rows.location != NSNotFound else { return }
-        NSColor(OnePlusColor.lineSoft).setFill()
+        NSColor(palette.line).setFill()
         for row in rows.location..<NSMaxRange(rows) {
             let rect = table.rect(ofRow: row)
             NSRect(x: 0, y: rect.maxY - 1, width: bounds.width, height: 1).fill()

@@ -248,10 +248,10 @@ public extension OnePlusLinearEmptyState where Action == EmptyView {
 }
 
 /// An applet banner: a filled 10 pt group with a leading glyph, a 13 pt medium title, an optional 12 pt line,
-/// and an optional trailing action. `.info` uses the group fill; `.warning` an amber tint and a triangle glyph,
-/// so the state never relies on color alone.
+/// and an optional trailing action. `.info` uses the group fill; `.warning` an amber tint and a triangle glyph;
+/// `.error` a red tint and an octagon glyph, so the state never relies on color alone.
 public struct OnePlusLinearBanner<Action: View>: View {
-    public enum Kind: Sendable { case info, warning }
+    public enum Kind: Sendable { case info, warning, error }
     private let kind: Kind
     private let title: String
     private let message: String?
@@ -261,20 +261,43 @@ public struct OnePlusLinearBanner<Action: View>: View {
     }
     public var body: some View {
         HStack(spacing: OnePlusLinearMetrics.appletRowGap) {
-            Image(systemName: kind == .info ? "info.circle" : "exclamationmark.triangle.fill").font(.system(size: 13))
-                .foregroundStyle(kind == .info ? OnePlusLinearColor.appletSecondary : OnePlusLinearColor.warning)
-                .accessibilityLabel(kind == .info ? "Information" : "Warning")
+            Image(systemName: glyph).font(.system(size: 13))
+                .foregroundStyle(tint)
+                .accessibilityLabel(kind == .info ? "Information" : kind == .warning ? "Warning" : "Error")
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).linearText(weight: .medium)
-                if let message { Text(message).linearText(OnePlusLinearMetrics.control, color: OnePlusLinearColor.appletSecondary) }
+                Text(title).linearText(weight: .medium).textSelection(.enabled)
+                if let message {
+                    Text(message).linearText(OnePlusLinearMetrics.control, color: OnePlusLinearColor.appletSecondary)
+                        .textSelection(.enabled)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             action
         }
         .padding(.horizontal, OnePlusLinearMetrics.appletRowPadding).padding(.vertical, 9)
-        .background(kind == .info ? OnePlusLinearColor.appletGroup : OnePlusLinearColor.warningFill,
-                    in: RoundedRectangle(cornerRadius: OnePlusLinearMetrics.appletGroupRadius))
+        .background(fill, in: RoundedRectangle(cornerRadius: OnePlusLinearMetrics.appletGroupRadius))
         .accessibilityElement(children: .contain)
+    }
+    private var glyph: String {
+        switch kind {
+        case .info: "info.circle"
+        case .warning: "exclamationmark.triangle.fill"
+        case .error: "exclamationmark.octagon.fill"
+        }
+    }
+    private var tint: Color {
+        switch kind {
+        case .info: OnePlusLinearColor.appletSecondary
+        case .warning: OnePlusLinearColor.warning
+        case .error: OnePlusLinearColor.destructiveText
+        }
+    }
+    private var fill: Color {
+        switch kind {
+        case .info: OnePlusLinearColor.appletGroup
+        case .warning: OnePlusLinearColor.warningFill
+        case .error: OnePlusLinearColor.destructiveFill
+        }
     }
 }
 
