@@ -55,11 +55,28 @@ public enum OnePlusMotion {
     public static let keyLift: CGFloat = 1
     public static let keyPress: CGFloat = 0.5
 
+    // Main window "Soft spring" (owner pick 2026-11-19). Native snap still applies everywhere else.
+    /// Tool row hover fill: in 120 ms, out 220 ms; the chevron moves 2 pt right.
+    public static let springRowHover: (TimeInterval, TimeInterval) = (0.12, 0.22)
+    public static let springChevronNudge: CGFloat = 2
+    /// Page switch: the old page fades out moving 6 pt up, the new one fades in from 6 pt below, 200 ms ease-out.
+    public static let springPage: TimeInterval = 0.2
+    public static let springPageOffset: CGFloat = 6
+    /// Launch tile: rises 2 pt on hover and settles; a press sinks it 0.5 pt and scales it to 98%.
+    public static let springTileLift: CGFloat = 2
+    public static let springTileHoverIn = Animation.spring(response: 0.35, dampingFraction: 0.75)
+    public static let springTileHoverOut = Animation.spring(response: 0.35, dampingFraction: 0.9)
+    public static let springTilePress = Animation.spring(response: 0.18, dampingFraction: 0.8)
+    public static let springTileRelease = Animation.spring(response: 0.25, dampingFraction: 0.7)
+    public static let springTilePressScale: CGFloat = 0.98
+    /// Switch knob: a soft spring with a small overshoot.
+    public static let springSwitch = Animation.spring(response: 0.3, dampingFraction: 0.72)
+
     public static func animation(_ duration: TimeInterval) -> Animation { .timingCurve(easeOut, duration: duration) }
 
     /// The animation for one change, or nil when the surface is instant or Reduce Motion is on.
     public static func resolved(_ duration: TimeInterval, style: OnePlusLinearMotionStyle, reduceMotion: Bool) -> Animation? {
-        style == .quiet && !reduceMotion ? animation(duration) : nil
+        style != .instant && !reduceMotion ? animation(duration) : nil
     }
 
     /// Runs a hover state change: the fill fades in (`entering`) or out with the hover timing.

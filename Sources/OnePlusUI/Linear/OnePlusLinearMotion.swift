@@ -1,9 +1,10 @@
 import SwiftUI
 
 /// Whether a surface moves on a real state change. `.quiet` (the default) uses the Native snap motion in
-/// `OnePlusMotion`; `.instant` changes in one frame. Reduce Motion is always instant.
+/// `OnePlusMotion`; `.spring` (the main window) adds the Soft spring row hover, page switch, launch tile, and switch;
+/// `.instant` changes in one frame. Reduce Motion is always instant.
 public enum OnePlusLinearMotionStyle: Sendable, Equatable {
-    case instant, quiet
+    case instant, quiet, spring
 }
 
 public extension EnvironmentValues {
@@ -18,8 +19,9 @@ public extension View {
 
     /// Animates changes of `value` inside this view with the ease-out curve when the surface allows motion.
     /// An instant surface keeps whatever transaction the host sent.
-    func linearMotion<V: Equatable>(_ duration: TimeInterval, value: V, enabled: Bool = true) -> some View {
-        modifier(OnePlusLinearMotionModifier(duration: duration, value: value, enabled: enabled))
+    /// `spring` replaces the ease-out on a `.spring` surface.
+    func linearMotion<V: Equatable>(_ duration: TimeInterval, value: V, enabled: Bool = true, spring: Animation? = nil) -> some View {
+        modifier(OnePlusLinearMotionModifier(duration: duration, value: value, enabled: enabled, spring: spring))
     }
 }
 
@@ -29,8 +31,10 @@ private struct OnePlusLinearMotionModifier<V: Equatable>: ViewModifier {
     let duration: TimeInterval
     let value: V
     let enabled: Bool
+    let spring: Animation?
     func body(content: Content) -> some View {
-        let animation = enabled ? OnePlusMotion.resolved(duration, style: style, reduceMotion: reduceMotion) : nil
+        let eased = enabled ? OnePlusMotion.resolved(duration, style: style, reduceMotion: reduceMotion) : nil
+        let animation = style == .spring && eased != nil ? spring ?? eased : eased
         content.transaction(value: value) { transaction in
             if let animation { transaction.animation = animation }
         }
@@ -45,6 +49,26 @@ public struct OnePlusLinearContentSwitch<Value: Hashable, Content: View>: View {
     public init(_ value: Value, @ViewBuilder content: () -> Content) { self.value = value; self.content = content() }
     public var body: some View {
         content.id(value).transaction { $0.animation = nil }
+    }
+}
+
+/// Swaps the main window page when `value` changes. On a `.spring` surface the old page fades out moving 6 pt up
+/// while the new one fades in from 6 pt below; otherwise, and under Reduce Motion, the switch is instant.
+public struct OnePlusLinearPageSwitch<Value: Hashable, Content: View>: View {
+    private let value: Value
+    private let content: Content
+    @Environment(\.onePlusLinearMotion) private var style
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    public init(_ value: Value, @ViewBuilder content: () -> Content) { self.value = value; self.content = content() }
+    public var body: some View {
+        let moves = style == .spring && !reduceMotion
+        let offset = OnePlusMotion.springPageOffset
+        ZStack {
+            content.id(value)
+                .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: offset)),
+                                        removal: .opacity.combined(with: .offset(y: -offset))))
+        }
+        .animation(moves ? OnePlusMotion.animation(OnePlusMotion.springPage) : nil, value: value)
     }
 }
 
