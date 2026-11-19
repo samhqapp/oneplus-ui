@@ -166,22 +166,34 @@ public struct OnePlusLinearIconButton: View {
     private let systemImage: String
     private let help: String
     private let size: CGFloat
+    private let busy: String?
     private let action: () -> Void
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
-    public init(systemImage: String, help: String, size: CGFloat = OnePlusLinearMetrics.iconButton, action: @escaping () -> Void) {
-        self.systemImage = systemImage; self.help = help; self.size = size; self.action = action
+    /// `busy` names running work (such as "Scanning"): the glyph turns into a small spinner in the same frame,
+    /// so progress never moves the controls around it.
+    public init(systemImage: String, help: String, size: CGFloat = OnePlusLinearMetrics.iconButton, busy: String? = nil,
+                action: @escaping () -> Void) {
+        self.systemImage = systemImage; self.help = help; self.size = size; self.busy = busy; self.action = action
     }
     public var body: some View {
         // Fill steps: the bar's glyphs share the 13 pt tab glyph size.
         let glyph: CGFloat = panelStyle == .fillSteps ? 13 : size >= OnePlusLinearMetrics.iconButton ? 15 : 12
         Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.system(size: glyph, weight: .regular))
-                .foregroundStyle(OnePlusLinearColor.secondary)
-                .frame(width: size, height: size)
+            Group {
+                if busy != nil {
+                    ProgressView().controlSize(.small).scaleEffect(glyph / 16)
+                } else {
+                    Image(systemName: systemImage)
+                        .font(.system(size: glyph, weight: .regular))
+                        .foregroundStyle(OnePlusLinearColor.secondary)
+                }
+            }
+            .frame(width: size, height: size)
         }
         .buttonStyle(OnePlusLinearButtonStyle())
-        .help(help).accessibilityLabel(help)
+        .help(busy.map { "\($0). \(help)" } ?? help)
+        .accessibilityLabel(busy ?? help)
+        .accessibilityValue(busy == nil ? "" : help)
     }
 }
 

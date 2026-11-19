@@ -8,6 +8,8 @@ final class OnePlusPopupSession: ObservableObject {
     let showsSelectionColumn: Bool
     let showsSymbolColumn: Bool
     @Published private(set) var highlightedID: UUID?
+    /// Bumped only by keyboard moves, so the list scrolls for keys and never for pointer hover.
+    @Published private(set) var keyboardScroll = 0
     private var navigation = OnePlusPopupNavigationState()
     var select: (UUID) -> Void = { _ in }
     var close: (Bool) -> Void = { _ in }
@@ -30,6 +32,7 @@ final class OnePlusPopupSession: ObservableObject {
 
     func handle(_ key: OnePlusPopupKey) -> Bool {
         let result = navigation.handle(key, entries: entries)
+        if navigation.highlightedID != highlightedID { keyboardScroll += 1 }
         highlightedID = navigation.highlightedID
         switch result {
         case .none:
@@ -57,9 +60,9 @@ struct OnePlusPopupMenuView: View {
                 ScrollViewReader { proxy in
                     ScrollView { entries }
                         .onePlusScrollIndicators(axes: .vertical)
-                        .onChange(of: session.highlightedID) { _, id in
-                            guard let id else { return }
-                            proxy.scrollTo(id, anchor: .center)
+                        .onAppear { if let id = session.highlightedID { proxy.scrollTo(id, anchor: .center) } }
+                        .onChange(of: session.keyboardScroll) {
+                            if let id = session.highlightedID { proxy.scrollTo(id) }
                         }
                 }
             } else {
@@ -132,7 +135,7 @@ struct OnePlusPopupItemView: View {
                     .frame(width: OnePlusPopupMetrics.symbolColumn)
                 }
                 OnePlusControlContentLayout(pointSize: OnePlusTextRole.control.size(for: session.density), iconIndex: nil) {
-                    Text(item.title).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
+                    Text(item.title).lineLimit(1).truncationMode(.middle).frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             .onePlusText(.control, color: item.role == .destructive ? OnePlusColor.danger : nil)
@@ -147,6 +150,7 @@ struct OnePlusPopupItemView: View {
         .background { OnePlusPopupRowGeometry(id: item.id, session: session) }
         .disabled(!item.isEnabled)
         .opacity(item.isEnabled ? 1 : OnePlusMetrics.disabledOpacity)
+        .help(item.title)
         .onHover { hovering in
             guard item.isEnabled else { return }
             session.hover(hovering ? item.id : nil)

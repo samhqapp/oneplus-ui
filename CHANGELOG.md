@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.27
+
+- `OnePlusPopupMenu` scrolls only for the wheel and for arrow keys. Pointer
+  hover no longer scrolls the list (it caused a scroll and hover loop). Long
+  item titles truncate in the middle and show the full title as help.
+- `OnePlusStepperField` in the linear looks is one control column wide
+  (160 pt). The value and its unit right-align, so "4 hours", "3 days", and
+  "3 sec" line up.
+- `OnePlusLinearIconButton(busy:)` swaps its glyph for a small spinner in
+  the same frame. The accessibility label becomes the busy text, such as
+  "Scanning".
+
 ## 1.3.26
 
 - Breaking: the "Apps by Sam" parts take the owner's round 3-5 picks.

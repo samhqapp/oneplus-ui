@@ -86,20 +86,19 @@ public struct OnePlusStepperField: View {
             HStack(spacing: 3) {
                 TextField(title, text: $draft).textFieldStyle(.plain).linearText().focusEffectDisabled()
                     .multilineTextAlignment(unit == nil ? .center : .trailing)
-                    .frame(width: unit == nil ? look.stepperValueWidth : Self.unitValueWidth)
                     .focused($focused).onSubmit(commit)
                     .onKeyPress(.upArrow) { change(by: step); return .handled }
                     .onKeyPress(.downArrow) { change(by: -step); return .handled }
                     .accessibilityLabel(title).accessibilityHint(error ?? "")
                 if let unit { Text(unit).linearText(color: OnePlusLinearColor.appletMuted).fixedSize().accessibilityHidden(true) }
             }
-            .padding(.horizontal, unit == nil ? 0 : 6)
+            .padding(.horizontal, 8)
+            .frame(maxWidth: .infinity)
             columnLine
             stepButton("plus", "Increase \(title)", step, look)
         }
-        // A tight row truncates the row label, never the value or its unit.
-        .fixedSize(horizontal: true, vertical: false)
-        .frame(height: look.height)
+        // Every stepper is one control column wide, so values and units line up from row to row.
+        .frame(width: OnePlusMetrics.controlColumn, height: look.height)
         .clipShape(shape)
         .background { OnePlusQuietWell.field(shape, focused: focused) }
         .overlay { if error != nil { shape.strokeBorder(OnePlusColor.dangerLine, lineWidth: 1) } }
@@ -116,9 +115,6 @@ public struct OnePlusStepperField: View {
     }
 
     /// A short hairline between the value and a minus or plus column.
-    /// Fits five digits at 13 pt, right-aligned before the unit.
-    private static let unitValueWidth: CGFloat = 44
-
     private var columnLine: some View {
         OnePlusLinearColor.quietFieldLine.frame(width: 1 / max(displayScale, 1)).padding(.vertical, 5)
     }
