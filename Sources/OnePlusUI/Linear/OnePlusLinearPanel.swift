@@ -319,18 +319,24 @@ public struct OnePlusLinearChart: Sendable {
     public let height: CGFloat
     public let midline: Bool
     public let slots: Int
+    /// The chart's place in the first-open draw-in: each later chart starts `chartDrawInStagger` later.
+    public let order: Int
     public init(_ series: [OnePlusLinearSeries], range: ClosedRange<Double> = 0...100,
-                height: CGFloat = OnePlusLinearMetrics.chart, midline: Bool = false, slots: Int = 0) {
+                height: CGFloat = OnePlusLinearMetrics.chart, midline: Bool = false, slots: Int = 0, order: Int = 0) {
         self.series = series; self.range = range; self.height = height; self.midline = midline; self.slots = slots
+        self.order = order
     }
 }
 
-/// A usage bar pinned 12 pt above a tile's bottom, with an optional trailing caption.
+/// A usage bar pinned 12 pt above a tile's bottom, with an optional trailing caption that changes at `pace`.
 public struct OnePlusLinearUsage: Sendable {
     public let fraction: Double
     public let color: Color
     public let caption: String?
-    public init(_ fraction: Double, color: Color, caption: String? = nil) { self.fraction = fraction; self.color = color; self.caption = caption }
+    public let pace: OnePlusNumberPace
+    public init(_ fraction: Double, color: Color, caption: String? = nil, pace: OnePlusNumberPace = .memory) {
+        self.fraction = fraction; self.color = color; self.caption = caption; self.pace = pace
+    }
 }
 
 /// A bento metric tile: panel-tile fill, 6 pt radius, outer 1 pt ring, 10 pt padding.
@@ -345,6 +351,9 @@ public struct OnePlusLinearTile<Content: View>: View {
     @Environment(\.onePlusLinearBentoStyle) private var style
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.onePlusControlState) private var sample
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var hover = false
     public init(height: CGFloat? = nil, chart: OnePlusLinearChart? = nil, usage: OnePlusLinearUsage? = nil,
                 tint: Color? = nil, @ViewBuilder content: () -> Content) {
         self.height = height; self.chart = chart; self.usage = usage; self.tint = tint; self.content = content()
@@ -362,7 +371,9 @@ public struct OnePlusLinearTile<Content: View>: View {
             .frame(height: height ?? panelStyle.tile)
         Group {
             if panelStyle == .fillSteps {
-                let wash = colorScheme == .dark ? OnePlusLinearColor.fillTileWashOpacity.dark : OnePlusLinearColor.fillTileWashOpacity.light
+                let lifted = hover || sample == .hover
+                let rest = colorScheme == .dark ? OnePlusLinearColor.fillTileWashOpacity.dark : OnePlusLinearColor.fillTileWashOpacity.light
+                let wash = rest * (lifted ? OnePlusMotion.tileWashBoost : 1)
                 tile.background {
                     if let tint {
                         LinearGradient(colors: [tint.opacity(wash), tint.opacity(0)], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.75))
@@ -370,7 +381,10 @@ public struct OnePlusLinearTile<Content: View>: View {
                 }
                 .background(OnePlusLinearColor.fillGroup)
                 .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius))
+                // The shared shadow layer reads this anchor, so the tile and its unchanged shadow rise together.
+                .offset(y: lifted && !reduceMotion ? -OnePlusMotion.tileLift : 0)
                 .anchorPreference(key: OnePlusLinearTileFrames.self, value: .bounds) { [$0] }
+                .onePlusHover($hover, timing: (OnePlusMotion.tileHoverIn, OnePlusMotion.tileHoverOut))
             } else if style == .instrument {
                 tile
             } else {
@@ -420,12 +434,16 @@ public struct OnePlusLinearInlineValue: View {
     private let value: String
     private let unit: String
     private let color: Color?
+    private let pace: OnePlusNumberPace
     @Environment(\.onePlusLinearBentoStyle) private var style
-    /// `color` is the data color; the `instrument` bento draws the value in it.
-    public init(_ value: String, unit: String, color: Color? = nil) { self.value = value; self.unit = unit; self.color = color }
+    /// `color` is the data color; the `instrument` bento draws the value in it. `pace` sets how often it changes.
+    public init(_ value: String, unit: String, color: Color? = nil, pace: OnePlusNumberPace = .memory) {
+        self.value = value; self.unit = unit; self.color = color; self.pace = pace
+    }
     public var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 3) {
-            Text(value).linearText(weight: .semibold, color: style == .instrument ? color ?? OnePlusLinearColor.ink : OnePlusLinearColor.ink)
+            OnePlusLinearNumberText(value, pace: pace)
+                .linearText(weight: .semibold, color: style == .instrument ? color ?? OnePlusLinearColor.ink : OnePlusLinearColor.ink)
             Text(unit).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted)
         }
     }
@@ -438,11 +456,13 @@ public struct OnePlusLinearTileValue: View {
     private let glyph: (systemImage: String, color: Color)?
     private let note: String?
     private let color: Color?
+    private let pace: OnePlusNumberPace
     @Environment(\.onePlusLinearBentoStyle) private var style
     /// `color` is the data color; the `instrument` bento draws the value large, light, and in it, with a neutral glyph.
+    /// `pace` sets how often the value and note change and how fast they roll.
     public init(_ value: String, unit: String, glyph: (systemImage: String, color: Color)? = nil, note: String? = nil,
-                color: Color? = nil) {
-        self.value = value; self.unit = unit; self.glyph = glyph; self.note = note; self.color = color
+                color: Color? = nil, pace: OnePlusNumberPace = .cpu) {
+        self.value = value; self.unit = unit; self.glyph = glyph; self.note = note; self.color = color; self.pace = pace
     }
     public var body: some View {
         let instrument = style == .instrument
@@ -453,14 +473,14 @@ public struct OnePlusLinearTileValue: View {
                     .frame(width: 12, height: 12).alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 4 }
                     .accessibilityHidden(true)
             }
-            Text(value)
+            OnePlusLinearNumberText(value, pace: pace)
                 .font(.system(size: instrument ? OnePlusLinearMetrics.instrumentValue : OnePlusLinearMetrics.tileValue,
                               weight: instrument ? .light : .semibold))
                 .tracking(-0.5)
                 .foregroundStyle(instrument ? color ?? OnePlusLinearColor.ink : OnePlusLinearColor.ink).monospacedDigit()
             Text(unit).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted)
             if let note {
-                Text(note).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.secondary)
+                OnePlusLinearNumberText(note, pace: pace).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.secondary)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
@@ -473,13 +493,17 @@ public struct OnePlusLinearTileValue: View {
 /// A row of small labeled values under a tile value, such as `User 14 %  System 9 %`.
 public struct OnePlusLinearTileSplit: View {
     private let items: [(label: String, value: String, unit: String)]
-    public init(_ items: [(label: String, value: String, unit: String)]) { self.items = items }
+    private let pace: OnePlusNumberPace
+    public init(_ items: [(label: String, value: String, unit: String)], pace: OnePlusNumberPace = .cpu) {
+        self.items = items; self.pace = pace
+    }
     public var body: some View {
         HStack(spacing: 12) {
             ForEach(items, id: \.label) { item in
                 HStack(alignment: .firstTextBaseline, spacing: 0) {
                     Text("\(item.label) ").linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted)
-                    Text(item.value).linearText(OnePlusLinearMetrics.caption, weight: .medium, color: OnePlusLinearColor.secondary)
+                    OnePlusLinearNumberText(item.value, pace: pace)
+                        .linearText(OnePlusLinearMetrics.caption, weight: .medium, color: OnePlusLinearColor.secondary)
                     Text(item.unit).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted).padding(.leading, 3)
                 }
             }
@@ -491,19 +515,21 @@ public struct OnePlusLinearTileSplit: View {
 
 private struct OnePlusLinearUsageRow: View {
     let usage: OnePlusLinearUsage
+    @Environment(\.onePlusLinearReveal) private var reveal
     var body: some View {
         HStack(spacing: 8) {
             let fraction = usage.fraction.isFinite ? min(max(usage.fraction, 0), 1) : 0
             RoundedRectangle(cornerRadius: 3).fill(OnePlusLinearColor.barTrack)
                 .overlay(alignment: .leading) {
                     GeometryReader { proxy in
-                        RoundedRectangle(cornerRadius: 3).fill(usage.color).frame(width: proxy.size.width * fraction)
+                        RoundedRectangle(cornerRadius: 3).fill(usage.color).frame(width: proxy.size.width * fraction * min(max(reveal, 0), 1))
                     }
                 }
                 .frame(height: OnePlusLinearMetrics.usageBar)
                 .accessibilityLabel("Usage").accessibilityValue("\(Int((fraction * 100).rounded())) percent")
             if let caption = usage.caption {
-                Text(caption).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted).fixedSize()
+                OnePlusLinearNumberText(caption, pace: usage.pace)
+                    .linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted).fixedSize()
             }
         }
         .frame(height: 14)
@@ -515,14 +541,18 @@ private struct OnePlusLinearUsageRow: View {
 private struct OnePlusLinearChartView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.onePlusLinearReveal) private var reveal
     let chart: OnePlusLinearChart
     let instrument: Bool
     var body: some View {
-        let canvas = Canvas { context, size in draw(in: &context, size: size) }
+        // The top value eases to a new ceiling; the hosted canvas animates it inside its own hosting view.
+        let canvas = OnePlusLinearChartCanvas(chart: chart, instrument: instrument, dark: colorScheme == .dark,
+                                              top: chart.range.upperBound)
+            .animation(reduceMotion ? nil : OnePlusMotion.animation(OnePlusMotion.chartScale), value: chart.range.upperBound)
         Group {
             if instrument {
                 OnePlusChartTicker(content: canvas, trigger: chart.series.first?.values ?? [], slots: chart.slots,
-                                   animates: !reduceMotion && chart.slots > 1)
+                                   animates: !reduceMotion && chart.slots > 1, reveal: reveal, order: chart.order)
             } else {
                 canvas.clipped()
             }
@@ -530,6 +560,21 @@ private struct OnePlusLinearChartView: View {
         .allowsHitTesting(false)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(chart.series.first?.values.last.flatMap { $0.isFinite ? "Latest value \($0.formatted())" : nil } ?? "No history")
+    }
+}
+
+private struct OnePlusLinearChartCanvas: View, @MainActor Animatable {
+    let chart: OnePlusLinearChart
+    let instrument: Bool
+    let dark: Bool
+    var top: Double
+    var animatableData: Double {
+        get { top }
+        set { top = newValue }
+    }
+
+    var body: some View {
+        Canvas { context, size in draw(in: &context, size: size) }
     }
 
     private func draw(in context: inout GraphicsContext, size: CGSize) {
@@ -541,11 +586,12 @@ private struct OnePlusLinearChartView: View {
             line.move(to: CGPoint(x: 0, y: height / 2)); line.addLine(to: CGPoint(x: width, y: height / 2))
             context.stroke(line, with: .color(OnePlusLinearColor.lineSoft), lineWidth: 1)
         }
-        let fill = colorScheme == .dark ? OnePlusLinearColor.chartFillOpacity.dark : OnePlusLinearColor.chartFillOpacity.light
-        let fade = colorScheme == .dark ? OnePlusLinearColor.chartFadeOpacity.dark : OnePlusLinearColor.chartFadeOpacity.light
+        let fill = dark ? OnePlusLinearColor.chartFillOpacity.dark : OnePlusLinearColor.chartFillOpacity.light
+        let fade = dark ? OnePlusLinearColor.chartFadeOpacity.dark : OnePlusLinearColor.chartFadeOpacity.light
         let transform = CGAffineTransform(scaleX: width, y: height)
+        let range = chart.range.lowerBound...max(top, chart.range.lowerBound + .ulpOfOne)
         for series in chart.series {
-            let paths = OnePlusChartPaths.cached(values: series.values, range: chart.range, smoothed: true, slots: chart.slots)
+            let paths = OnePlusChartPaths.cached(values: series.values, range: range, smoothed: true, slots: chart.slots)
             let line = paths.line.applying(transform)
             if series.filled, !paths.area.isEmpty {
                 let area = paths.area.applying(transform)
@@ -567,19 +613,24 @@ private struct OnePlusLinearChartView: View {
     }
 }
 
-/// Instrument chart host: clips the chart, fades its left edge, and runs the ticker. Each new sample starts
-/// the drawing one step to the right and a Core Animation translation slides it left over the sample
-/// interval, linear. The render server runs the frames, so the app draws the chart once per sample.
+/// Instrument chart host: clips the chart, fades its left edge, draws the line in on the first-open reveal, and
+/// scrolls it. The scroll keeps one constant speed (one step per sample interval): a new sample shifts the drawing
+/// one step left and the layer one step right from wherever the scroll is now, so the line never stops or jumps
+/// when a sample comes early or late. The render server runs the frames; the app draws once per sample.
 private struct OnePlusChartTicker<Content: View>: NSViewRepresentable {
     let content: Content
     let trigger: [Double]
     let slots: Int
     let animates: Bool
+    let reveal: Double
+    let order: Int
 
     func makeNSView(context: Context) -> OnePlusChartTickerView<Content> { OnePlusChartTickerView(content) }
 
     func updateNSView(_ view: OnePlusChartTickerView<Content>, context: Context) {
         view.host.rootView = content
+        view.setReveal(reveal, order: order)
+        if !animates { view.stop() }
         guard trigger != view.lastTrigger else { return }
         let first = view.lastTrigger == nil
         view.lastTrigger = trigger
@@ -591,6 +642,9 @@ private final class OnePlusChartTickerView<Content: View>: NSView {
     let host: NSHostingView<Content>
     var lastTrigger: [Double]?
     private let fade = CAGradientLayer()
+    private let revealView = NSView()
+    private let revealMask = CALayer()
+    private var revealed = true
 
     init(_ content: Content) {
         host = NSHostingView(rootView: content)
@@ -601,31 +655,74 @@ private final class OnePlusChartTickerView<Content: View>: NSView {
         fade.startPoint = CGPoint(x: 0, y: 0.5)
         fade.endPoint = CGPoint(x: 1, y: 0.5)
         layer?.mask = fade
+        revealView.wantsLayer = true
+        revealMask.backgroundColor = NSColor.black.cgColor
+        revealMask.anchorPoint = CGPoint(x: 0, y: 0.5)
+        revealView.layer?.mask = revealMask
         host.wantsLayer = true
-        addSubview(host)
+        revealView.addSubview(host)
+        addSubview(revealView)
     }
 
     @available(*, unavailable) required init?(coder: NSCoder) { nil }
 
     override func layout() {
         super.layout()
+        revealView.frame = bounds
         host.frame = bounds
         CATransaction.begin(); CATransaction.setDisableActions(true)
         fade.frame = bounds
+        revealMask.bounds = bounds
+        revealMask.position = CGPoint(x: 0, y: bounds.midY)
         let edge = bounds.width > 0 ? OnePlusLinearMetrics.chartEdgeFade / bounds.width : 0
         fade.locations = [0, NSNumber(value: Double(min(edge, 1))), 1]
         CATransaction.commit()
     }
 
+    /// Below 1 the line shows that share from the left; the change to 1 draws it in, `order` charts later.
+    func setReveal(_ reveal: Double, order: Int) {
+        CATransaction.begin(); CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
+        if reveal < 1 {
+            revealed = false
+            revealMask.removeAnimation(forKey: "reveal")
+            revealMask.transform = CATransform3DMakeScale(CGFloat(max(reveal, 0.0001)), 1, 1)
+        } else if !revealed {
+            revealed = true
+            let from = (revealMask.presentation() ?? revealMask).value(forKeyPath: "transform.scale.x") as? CGFloat ?? 0
+            revealMask.transform = CATransform3DIdentity
+            let draw = CABasicAnimation(keyPath: "transform.scale.x")
+            draw.fromValue = from
+            draw.toValue = 1
+            draw.duration = OnePlusMotion.chartDrawIn
+            draw.beginTime = CACurrentMediaTime() + OnePlusMotion.chartDrawInStagger * Double(order)
+            draw.fillMode = .backwards
+            draw.timingFunction = OnePlusMotion.easeOutTiming
+            revealMask.add(draw, forKey: "reveal")
+        }
+    }
+
     func tick(slots: Int) {
         guard let layer = host.layer, bounds.width > 0 else { return }
         let step = (bounds.width - OnePlusLinearMetrics.chartDot * 2) / CGFloat(max(slots - 1, 1))
-        let slide = CABasicAnimation(keyPath: "transform.translation.x")
-        slide.fromValue = step
-        slide.toValue = 0
-        slide.duration = OnePlusMotion.chartTick
-        slide.timingFunction = CAMediaTimingFunction(name: .linear)
-        layer.add(slide, forKey: "ticker")
+        let speed = step / OnePlusMotion.chartTick
+        let now = layer.presentation()?.value(forKeyPath: "transform.translation.x") as? CGFloat ?? 0
+        // Bounds keep the newest point near the right edge: a burst of samples cannot push it far out of view,
+        // and a stalled sampler leaves the line resting half a step in.
+        let start = min(now + step, step * 1.5)
+        let rest = -step * 0.5
+        let scroll = CABasicAnimation(keyPath: "transform.translation.x")
+        scroll.fromValue = start
+        scroll.toValue = rest
+        scroll.duration = max(Double((start - rest) / speed), 0.01)
+        scroll.timingFunction = CAMediaTimingFunction(name: .linear)
+        scroll.fillMode = .forwards
+        scroll.isRemovedOnCompletion = false
+        layer.add(scroll, forKey: "ticker")
+    }
+
+    func stop() {
+        host.layer?.removeAnimation(forKey: "ticker")
     }
 }
 
@@ -690,11 +787,11 @@ public struct OnePlusLinearProcessRow: View {
             Text(name).linearText(OnePlusLinearMetrics.control).lineLimit(1).truncationMode(.tail)
                 .frame(maxWidth: .infinity, alignment: .leading)
             HStack(alignment: .firstTextBaseline, spacing: 1) {
-                Text(cpu).linearText(OnePlusLinearMetrics.control, weight: .medium, color: color)
+                OnePlusLinearNumberText(cpu, pace: .process).linearText(OnePlusLinearMetrics.control, weight: .medium, color: color)
                 Text("%").linearText(OnePlusLinearMetrics.caption, color: color)
             }
             .frame(width: OnePlusLinearMetrics.cpuColumn, alignment: .trailing)
-            Text(memory).linearText(OnePlusLinearMetrics.control, color: OnePlusLinearColor.secondary)
+            OnePlusLinearNumberText(memory, pace: .process).linearText(OnePlusLinearMetrics.control, color: OnePlusLinearColor.secondary)
                 .lineLimit(1).fixedSize()
                 .frame(width: OnePlusLinearMetrics.memoryColumn, alignment: .trailing)
         }
@@ -780,9 +877,11 @@ private struct OnePlusLinearFillStepButtonStyle: ButtonStyle {
         @State private var hover = false
         @Environment(\.onePlusControlState) private var sample
         @Environment(\.isEnabled) private var enabled
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
         var body: some View {
             let pressed = enabled && (configuration.isPressed || sample == .pressed)
             let hovered = enabled && (hover || sample == .hover)
+            let shift = reduceMotion ? 0 : pressed ? OnePlusMotion.keyPress : hovered ? -OnePlusMotion.keyLift : 0
             let shape = RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius)
             let fill = pressed ? LinearGradient(colors: [OnePlusLinearColor.fillButtonPressed], startPoint: .top, endPoint: .bottom)
                 : hovered ? OnePlusLinearTabTrack.vertical(OnePlusLinearColor.actionKeyHoverTop, OnePlusLinearColor.actionKeyHoverBottom)
@@ -794,10 +893,11 @@ private struct OnePlusLinearFillStepButtonStyle: ButtonStyle {
                                                                                      OnePlusLinearColor.actionKeyEdgeBottom), lineWidth: 1) }
                         .shadow(color: OnePlusLinearColor.actionKeyShadow, radius: 1.5, y: 1)
                 }
+                .offset(y: shift)
                 .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
                 .contentShape(Rectangle())
-                .onePlusHover($hover)
-                .linearMotion(hover ? OnePlusMotion.hoverIn : OnePlusMotion.hoverOut, value: hover)
+                .onePlusHover($hover, timing: (OnePlusMotion.keyHover, OnePlusMotion.keyHover))
+                .linearMotion(OnePlusMotion.keyHover, value: hover)
         }
     }
 }

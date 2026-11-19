@@ -29,8 +29,31 @@ public enum OnePlusMotion {
     public static let knob: TimeInterval = 0.14
     /// Slider knob on a programmatic change (reset). A dragged knob follows the pointer with no animation.
     public static let slider: TimeInterval = 0.16
-    /// Instrument chart ticker: a new sample slides the line left one step over the 1 s sample interval, linear.
+    /// Instrument chart ticker: the line scrolls left one step per 1 s sample interval at one constant speed.
     public static let chartTick: TimeInterval = 1
+
+    // Combined menu panel ("Live instrument", owner picks 2026-11-19). Native snap still applies everywhere else.
+    /// First Home open after launch: numbers count up from 0 and usage bars grow, ease-out.
+    public static let panelReveal: TimeInterval = 0.6
+    /// First Home open after launch: each chart line draws in left to right, ease-out, the next chart 30 ms later.
+    public static let chartDrawIn: TimeInterval = 0.45
+    public static let chartDrawInStagger: TimeInterval = 0.03
+    /// A chart's top value (scale) eases to its new ceiling.
+    public static let chartScale: TimeInterval = 0.4
+    /// Reduce Motion: a changed number crossfades instead of rolling.
+    public static let numberCrossfade: TimeInterval = 0.15
+    /// Metric tile hover: the tile rises 1 pt and its color wash gets 1.8 times stronger. The shadow never changes.
+    public static let tileHoverIn: TimeInterval = 0.16
+    public static let tileHoverOut: TimeInterval = 0.24
+    public static let tileLift: CGFloat = 1
+    public static let tileWashBoost: Double = 1.8
+    /// Panel row hover fill.
+    public static let panelRowHoverIn: TimeInterval = 0.09
+    public static let panelRowHoverOut: TimeInterval = 0.2
+    /// Panel action key: rises 1 pt on hover with a 120 ms fill fade, moves 0.5 pt down while pressed. Same shadow.
+    public static let keyHover: TimeInterval = 0.12
+    public static let keyLift: CGFloat = 1
+    public static let keyPress: CGFloat = 0.5
 
     public static func animation(_ duration: TimeInterval) -> Animation { .timingCurve(easeOut, duration: duration) }
 
@@ -40,8 +63,9 @@ public enum OnePlusMotion {
     }
 
     /// Runs a hover state change: the fill fades in (`entering`) or out with the hover timing.
-    public static func withHover(_ entering: Bool, _ change: () -> Void) {
-        let animation = reducesMotion ? nil : animation(entering ? hoverIn : hoverOut)
+    public static func withHover(_ entering: Bool, in timing: (TimeInterval, TimeInterval) = (hoverIn, hoverOut),
+                                 _ change: () -> Void) {
+        let animation = reducesMotion ? nil : animation(entering ? timing.0 : timing.1)
         withTransaction(Transaction(animation: animation), change)
     }
 
@@ -52,7 +76,31 @@ public enum OnePlusMotion {
 
 public extension View {
     /// Tracks pointer hover into `hover`; the fill that depends on it fades with the Native snap hover timing.
-    func onePlusHover(_ hover: Binding<Bool>) -> some View {
-        onHover { inside in OnePlusMotion.withHover(inside) { hover.wrappedValue = inside } }
+    func onePlusHover(_ hover: Binding<Bool>,
+                      timing: (TimeInterval, TimeInterval) = (OnePlusMotion.hoverIn, OnePlusMotion.hoverOut)) -> some View {
+        onHover { inside in OnePlusMotion.withHover(inside, in: timing) { hover.wrappedValue = inside } }
     }
+}
+
+/// How fast a live number changes on the combined panel. Busy, fast-moving values change often with a quick roll;
+/// slow values change rarely with a calm roll, so the whole panel never flickers at once. `interval` is the
+/// shortest time between two shown changes; `offset` delays each change after its sample, so tiles that share a
+/// sample change in different frames. Sampling and charts are not slowed down; only the shown text is.
+public struct OnePlusNumberPace: Sendable, Equatable {
+    public let response: Double
+    public let damping: Double
+    public let interval: TimeInterval
+    public let offset: TimeInterval
+    public init(response: Double, damping: Double = 0.9, interval: TimeInterval, offset: TimeInterval) {
+        self.response = response; self.damping = damping; self.interval = interval; self.offset = offset
+    }
+
+    public static let network = OnePlusNumberPace(response: 0.25, interval: 0, offset: 0)
+    public static let cpu = OnePlusNumberPace(response: 0.45, interval: 2, offset: 0.15)
+    public static let gpu = OnePlusNumberPace(response: 0.45, interval: 2, offset: 0.3)
+    public static let memory = OnePlusNumberPace(response: 0.6, interval: 4, offset: 0.45)
+    public static let disk = OnePlusNumberPace(response: 0.6, interval: 5, offset: 0.6)
+    public static let battery = OnePlusNumberPace(response: 0.6, interval: 5, offset: 0.75)
+    /// Process rows already refresh every 2 s; they only roll calmly.
+    public static let process = OnePlusNumberPace(response: 0.5, interval: 0, offset: 0)
 }

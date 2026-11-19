@@ -47,3 +47,70 @@ public struct OnePlusLinearContentSwitch<Value: Hashable, Content: View>: View {
         content.id(value).transaction { $0.animation = nil }
     }
 }
+
+public extension EnvironmentValues {
+    /// The panel's first-open reveal, 0 to 1. Below 1, live numbers show that share of their value, usage bars that
+    /// share of their length, and chart lines are hidden; the change to 1 counts numbers up, grows bars, and draws
+    /// charts in. Animate it to 1 with `OnePlusMotion.panelReveal`. 1 (the default) shows everything as is.
+    @Entry var onePlusLinearReveal: Double = 1
+}
+
+/// A live number on the combined panel: it rolls only the digits that change (up when the value rises), at the pace
+/// of its metric, and counts up during the first-open reveal. Reduce Motion crossfades. Font and color come from
+/// the caller. While the surface is hidden, a new value shows at once, so a reopen starts with current text.
+public struct OnePlusLinearNumberText: View {
+    private let text: String
+    private let pace: OnePlusNumberPace
+    @State private var shown: String?
+    @State private var shownAt = Date.distantPast
+    @Environment(\.onePlusIsVisible) private var isVisible
+    @Environment(\.onePlusLinearReveal) private var reveal
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    public init(_ text: String, pace: OnePlusNumberPace) { self.text = text; self.pace = pace }
+
+    public var body: some View {
+        let current = shown ?? text
+        let value = Double(current)
+        OnePlusLinearCountText(text: current, value: value, progress: reveal)
+            .contentTransition(reveal < 1 ? .identity : reduceMotion ? .opacity : .numericText(value: value ?? 0))
+            .animation(reduceMotion ? OnePlusMotion.animation(OnePlusMotion.numberCrossfade)
+                       : .spring(response: pace.response, dampingFraction: pace.damping), value: shown)
+            .task(id: text) { await follow() }
+    }
+
+    private func follow() async {
+        guard let shown, shown != text, isVisible, reveal >= 1 else {
+            var instant = Transaction(); instant.disablesAnimations = true
+            withTransaction(instant) { self.shown = text }
+            return
+        }
+        // The deadline is anchored to the last shown change, so samples that keep arriving never starve it.
+        let wait = max(pace.offset, pace.interval - Date.now.timeIntervalSince(shownAt))
+        try? await Task.sleep(for: .seconds(wait))
+        guard !Task.isCancelled else { return }
+        self.shown = text
+        shownAt = .now
+    }
+}
+
+/// Shows `progress` of a plain decimal value with the same decimals; text that is not a plain number shows as is.
+private struct OnePlusLinearCountText: View, @MainActor Animatable {
+    let text: String
+    let value: Double?
+    var progress: Double
+    var animatableData: Double {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    var body: some View {
+        Text(verbatim: shownText)
+    }
+
+    private var shownText: String {
+        guard progress < 1, let value, value.isFinite else { return text }
+        let decimals = text.split(separator: ".").dropFirst().first?.count ?? 0
+        return String(format: "%.\(decimals)f", value * max(progress, 0))
+    }
+}

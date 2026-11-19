@@ -220,6 +220,7 @@ extension View {
                 }
             }
             .contentShape(Rectangle())
-            .onePlusHover(hover)
+            .onePlusHover(hover, timing: panelStyle == .fillSteps ? (OnePlusMotion.panelRowHoverIn, OnePlusMotion.panelRowHoverOut)
+                          : (OnePlusMotion.hoverIn, OnePlusMotion.hoverOut))
     }
 }
