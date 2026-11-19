@@ -58,7 +58,7 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
             guard enabled else { return OnePlusLinearColor.softButton }
             return isPressed ? OnePlusLinearColor.softButtonPressed : isHovered ? OnePlusLinearColor.softButtonHover : OnePlusLinearColor.softButton
         case .filled where panelStyle == .fillSteps:
-            return .clear // The coral key draws its own fill, hover, and press.
+            return .clear // The open key draws its own fill, hover, and press.
         case .filled:
             guard enabled else { return OnePlusColor.primaryFill }
             return isPressed ? OnePlusColor.primaryPressed : isHovered ? OnePlusColor.primaryHover : OnePlusColor.primaryFill
@@ -83,9 +83,9 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.button)
                     .linearRaised(radius: radius)
             case .filled where panelStyle == .fillSteps:
-                // Fill steps panel `Open App`: a 26 pt coral soft key, 10 pt padding, white 12 pt text.
+                // Fill steps panel open key: a 26 pt ink key, 10 pt padding, 12 pt text.
                 // The label centers on its cap height, not its line box, which sits the caps low.
-                label.linearText(OnePlusLinearMetrics.control, weight: .medium, color: OnePlusColor.accentPrimaryInk)
+                label.linearText(OnePlusLinearMetrics.control, weight: .medium, color: OnePlusLinearColor.openKeyInk)
                     .alignmentGuide(VerticalAlignment.center) { $0[.firstTextBaseline] - OnePlusLinearMetrics.controlCapHeight / 2 }
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.iconTab)
                     .background {
@@ -95,7 +95,7 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                             .overlay { shape.strokeBorder(LinearGradient(colors: [OnePlusLinearColor.openKeyEdgeTop, OnePlusLinearColor.openKeyEdgeBottom],
                                                                          startPoint: .top, endPoint: .bottom), lineWidth: 1) }
                             .shadow(color: OnePlusLinearColor.openKeyShadow, radius: 1.5, y: 1)
-                            .overlay { shape.fill(enabled && isPressed ? OnePlusLinearColor.pressed : enabled && isHovered ? OnePlusLinearColor.hover : .clear) }
+                            .overlay { shape.fill(enabled && isPressed ? OnePlusLinearColor.openKeyPressed : enabled && isHovered ? OnePlusLinearColor.openKeyHover : .clear) }
                     }
             case .filled:
                 label.linearText(weight: .medium, color: OnePlusColor.primaryInk)

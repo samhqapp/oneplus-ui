@@ -84,12 +84,16 @@ public enum OnePlusLinearColor {
     /// 1 pt line between two unselected tabs, fading out at both ends. Dark only.
     public static let softKeyDivider = color("softKeyDivider", light: 0xFFFFFF, lightAlpha: 0, dark: 0xFFFFFF, darkAlpha: 0.12)
 
-    // Panel `Open App` (round 8, "12 pt, centered"): a 26 pt coral soft key with a lit top edge and a short drop.
-    public static let openKeyTop = color("openKeyTop", light: 0xEC6156, dark: 0xEC6A5F)
-    public static let openKeyBottom = color("openKeyBottom", light: 0xD63F35, dark: 0xD44A40)
-    public static let openKeyEdgeTop = color("openKeyEdgeTop", light: 0xFFFFFF, lightAlpha: 0.35, dark: 0xFFFFFF, darkAlpha: 0.35)
-    public static let openKeyEdgeBottom = color("openKeyEdgeBottom", light: 0x000000, lightAlpha: 0.12, dark: 0x000000, darkAlpha: 0.2)
-    public static let openKeyShadow = color("openKeyShadow", light: 0x000000, lightAlpha: 0.14, dark: 0x000000, darkAlpha: 0.5)
+    // Panel open key ("Ink key"): a 26 pt key, dark ink in Light and light ink in Dark, with a lit top edge and a short drop.
+    public static let openKeyTop = color("openKeyTop", light: 0x34343A, dark: 0xEDEDEF)
+    public static let openKeyBottom = color("openKeyBottom", light: 0x1C1D22, dark: 0xD2D2D7)
+    public static let openKeyInk = color("openKeyInk", light: 0xFFFFFF, dark: 0x141416)
+    public static let openKeyEdgeTop = color("openKeyEdgeTop", light: 0xFFFFFF, lightAlpha: 0.16, dark: 0xFFFFFF, darkAlpha: 0.6)
+    public static let openKeyEdgeBottom = color("openKeyEdgeBottom", light: 0x000000, lightAlpha: 0.25, dark: 0x000000, darkAlpha: 0.15)
+    public static let openKeyShadow = color("openKeyShadow", light: 0x000000, lightAlpha: 0.18, dark: 0x000000, darkAlpha: 0.5)
+    /// One surface step toward the middle gray: lighter on the dark Light key, darker on the light Dark key.
+    public static let openKeyHover = color("openKeyHover", light: 0xFFFFFF, lightAlpha: 0.07, dark: 0x000000, darkAlpha: 0.05)
+    public static let openKeyPressed = color("openKeyPressed", light: 0xFFFFFF, lightAlpha: 0.12, dark: 0x000000, darkAlpha: 0.1)
 
     // Panel action buttons: Light soft keys with regular labels (round 8); Dark keeps the flat group fill.
     public static let actionKeyTop = color("actionKeyTop", light: 0xFFFFFF, dark: 0x1F1F22)

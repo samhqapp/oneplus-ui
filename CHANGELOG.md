@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.17
+
+- The fill-steps panel open key becomes the "Ink key" (owner pick): a dark
+  ink key with a white label in Light, a light ink key with a near-black label
+  in Dark. Adds `openKeyInk`, `openKeyHover`, and `openKeyPressed`.
+
 ## 1.3.15
 
 - Add the "Apps by Sam" parts (owner pick "Featured Pro, then a list"):
