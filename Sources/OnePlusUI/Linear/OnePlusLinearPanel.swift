@@ -660,19 +660,21 @@ public struct OnePlusLinearControlRow<Control: View>: View {
 }
 
 /// A 30 pt process row in 12 pt text: 16 pt app icon (terminal glyph when nil), name, CPU percent in the data color
-/// (number and percent sign), memory. Pass preformatted strings.
+/// (number and percent sign), memory. Pass preformatted strings. A selected row keeps the hover fill step.
 public struct OnePlusLinearProcessRow: View {
     private let name: String
     private let icon: Image?
     private let cpu: String
     private let memory: String
     private let color: Color
+    private let selected: Bool
     @State private var hover = false
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.isEnabled) private var enabled
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
-    public init(_ name: String, icon: Image?, cpu: String, memory: String, color: Color = OnePlusLinearColor.cpuText) {
-        self.name = name; self.icon = icon; self.cpu = cpu; self.memory = memory; self.color = color
+    public init(_ name: String, icon: Image?, cpu: String, memory: String, color: Color = OnePlusLinearColor.cpuText,
+                selected: Bool = false) {
+        self.name = name; self.icon = icon; self.cpu = cpu; self.memory = memory; self.color = color; self.selected = selected
     }
     public var body: some View {
         HStack(spacing: OnePlusLinearMetrics.rowGap) {
@@ -698,9 +700,11 @@ public struct OnePlusLinearProcessRow: View {
         }
         .padding(.horizontal, OnePlusLinearMetrics.panelRowInset)
         .frame(height: OnePlusLinearMetrics.processRow)
-        .linearRowHover($hover, sample: sample, enabled: enabled, fill: OnePlusLinearColor.selection, panelStyle: panelStyle)
+        .linearRowHover($hover, sample: sample, enabled: enabled, fill: OnePlusLinearColor.selection, panelStyle: panelStyle,
+                        selected: selected)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(name), CPU \(cpu) percent, memory \(memory)")
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 

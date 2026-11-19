@@ -206,8 +206,9 @@ public struct OnePlusLinearList<Content: View>: View {
 
 extension View {
     func linearRowHover(_ hover: Binding<Bool>, sample: OnePlusControlState, enabled: Bool,
-                        fill: Color = OnePlusLinearColor.hover, panelStyle: OnePlusLinearPanelStyle = .lines) -> some View {
-        let on = enabled && (hover.wrappedValue || sample == .hover)
+                        fill: Color = OnePlusLinearColor.hover, panelStyle: OnePlusLinearPanelStyle = .lines,
+                        selected: Bool = false) -> some View {
+        let on = enabled && (selected || hover.wrappedValue || sample == .hover)
         // Fill steps: a rounded fill step inset 4 pt from the group edge and 1 pt from the row edge.
         return frame(maxWidth: .infinity, alignment: .leading)
             .background {
