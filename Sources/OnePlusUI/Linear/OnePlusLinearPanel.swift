@@ -446,6 +446,7 @@ public struct OnePlusLinearInlineValue: View {
                 .linearText(weight: .semibold, color: style == .instrument ? color ?? OnePlusLinearColor.ink : OnePlusLinearColor.ink)
             Text(unit).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted)
         }
+        .lineLimit(1)
     }
 }
 
@@ -790,7 +791,9 @@ public struct OnePlusLinearProcessRow: View {
                 OnePlusLinearNumberText(cpu, pace: .process).linearText(OnePlusLinearMetrics.control, weight: .medium, color: color)
                 Text("%").linearText(OnePlusLinearMetrics.caption, color: color)
             }
-            .frame(width: OnePlusLinearMetrics.cpuColumn, alignment: .trailing)
+            .lineLimit(1).fixedSize()
+            // A value wider than the column grows it to the left; it never wraps.
+            .frame(minWidth: OnePlusLinearMetrics.cpuColumn, alignment: .trailing)
             OnePlusLinearNumberText(memory, pace: .process).linearText(OnePlusLinearMetrics.control, color: OnePlusLinearColor.secondary)
                 .lineLimit(1).fixedSize()
                 .frame(width: OnePlusLinearMetrics.memoryColumn, alignment: .trailing)
