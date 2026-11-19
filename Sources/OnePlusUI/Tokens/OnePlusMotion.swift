@@ -71,6 +71,12 @@ public enum OnePlusMotion {
     public static let springTilePressScale: CGFloat = 0.98
     /// Switch knob: a soft spring with a small overshoot.
     public static let springSwitch = Animation.spring(response: 0.3, dampingFraction: 0.72)
+    /// The panel row mark (`onePlusLinearRowMark`): in 0.3 s after the panel opens, over 0.2 s, held 1.2 s,
+    /// out over 0.5 s.
+    public static let rowMarkDelay = 0.3
+    public static let rowMarkIn = 0.2
+    public static let rowMarkHold = 1.2
+    public static let rowMarkOut = 0.5
 
     public static func animation(_ duration: TimeInterval) -> Animation { .timingCurve(easeOut, duration: duration) }
 

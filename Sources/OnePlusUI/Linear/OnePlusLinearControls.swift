@@ -18,8 +18,8 @@ public struct OnePlusLinearButtonStyle: ButtonStyle {
         /// The applet destructive action (`Reset to Factory Defaults`): plain red text with no fill and no border,
         /// on the group's row text edge. A native confirmation still guards it.
         case destructive
-        /// The tool page reset or clear (`Reset to Factory Defaults`, `Clear History`): one full-width 32 pt block,
-        /// 1 pt `line` border, no fill until hover, red medium text. Its own block outside every group.
+        /// The tool page reset or clear (`Reset to Factory Defaults`, `Clear History`): one full-width 40 pt inset
+        /// row like a settings group (`fillGroup`, 1 pt `line` ring, radius 10), red text on the row text edge.
         case resetBlock
     }
     let kind: Kind
@@ -39,7 +39,6 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
     @Environment(\.isEnabled) private var enabled
     @Environment(\.isFocused) private var focused
     @Environment(\.onePlusControlState) private var sample
-    @Environment(\.onePlusLinearEditorial) private var editorial
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     @Environment(\.onePlusLinearControlLook) private var look
     @State private var hover = false
@@ -77,8 +76,8 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
         case .destructive:
             return .clear
         case .resetBlock:
-            guard enabled else { return .clear }
-            return isPressed ? OnePlusLinearColor.softButtonPressed : isHovered ? OnePlusLinearColor.softButtonHover : .clear
+            guard enabled else { return OnePlusLinearColor.fillGroup }
+            return isPressed ? OnePlusLinearColor.softButtonPressed : isHovered ? OnePlusLinearColor.softButtonHover : OnePlusLinearColor.fillGroup
         case .plain, .raised, .ghost:
             guard enabled else { return .clear }
             if isPressed { return OnePlusLinearColor.pressed }
@@ -128,13 +127,14 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.appletButton)
             case .destructive:
                 label.linearText(color: enabled && isPressed ? OnePlusLinearColor.destructivePressedText : OnePlusLinearColor.destructiveText)
-                    .padding(.leading, editorial ? 0 : OnePlusLinearMetrics.appletRowPadding)
+                    .padding(.leading, OnePlusLinearMetrics.appletRowPadding)
                     .frame(maxWidth: .infinity, minHeight: OnePlusLinearMetrics.appletDestructive, alignment: .leading)
             case .resetBlock:
-                label.linearText(weight: .medium, color: OnePlusLinearColor.destructiveText)
-                    .frame(maxWidth: .infinity, minHeight: OnePlusLinearEditorialMetrics.resetBlock)
+                label.linearText(color: OnePlusLinearColor.destructiveText)
+                    .padding(.horizontal, OnePlusLinearMetrics.appletRowPadding)
+                    .frame(maxWidth: .infinity, minHeight: OnePlusLinearEditorialMetrics.resetBlock, alignment: .leading)
                     .overlay {
-                        RoundedRectangle(cornerRadius: radius).strokeBorder(OnePlusLinearColor.line, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: radius, style: .continuous).strokeBorder(OnePlusLinearColor.line, lineWidth: 1)
                     }
             case .plain:
                 label

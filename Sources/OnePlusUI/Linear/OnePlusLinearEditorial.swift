@@ -45,9 +45,19 @@ public enum OnePlusLinearEditorialMetrics {
     public static let launchTileKeyScale: CGFloat = 1.2
     public static let launchTileKeyGap: CGFloat = 6
     public static let launchTileName: CGFloat = 20
-    /// The bordered reset block (`OnePlusLinearButtonStyle(.resetBlock)`): full width, 32 pt, radius 8.
-    public static let resetBlock: CGFloat = 32
-    public static let resetBlockRadius: CGFloat = 8
+    /// The reset block (`OnePlusLinearButtonStyle(.resetBlock)`): one full-width inset row, 40 pt, radius 10.
+    public static let resetBlock: CGFloat = 40
+    public static let resetBlockRadius: CGFloat = OnePlusLinearMetrics.appletGroupRadius
+    /// "Inset, gray glyphs": a 13 pt glyph in a 20 pt slot; the separator starts after the slot and the row padding.
+    public static let rowGlyph: CGFloat = 20
+    public static let rowGlyphSize: CGFloat = 13
+    static var rowGlyphSlot: CGFloat { rowGlyph + OnePlusLinearMetrics.appletRowPadding }
+    /// The panel row mark: radius 6, 4 pt inside the group sides, a 2 pt dotted line at 40%, a fill at 5%.
+    public static let rowMarkRadius: CGFloat = 6
+    public static let rowMarkInset: CGFloat = 4
+    public static let rowMarkLine = 0.4
+    public static let rowMarkFill = 0.05
+    public static let rowMarkDash: [CGFloat] = [2, 2]
 }
 
 /// The scrolling editorial body: 20 pt top, 32 pt gutters, blocks 20 pt apart, 24 pt bottom inside the scroll.
@@ -216,24 +226,109 @@ struct OnePlusLinearEditorialCaption: View {
 }
 
 /// The editorial group: no fill or ring, a `line` hairline on top, a `lineSoft` hairline between rows and none
-/// under the last. Both hairlines fade out at their ends. `flush` cancels the applet row padding, so setting rows
-/// start on the page's one leading edge (the header and caption edge); hover rows (tool rows) keep their own inset.
+/// under the last. Both hairlines fade out at their ends. Used by the All tools list; settings use the inset group.
 struct OnePlusLinearEditorialGroup<Content: View>: View {
     let content: Content
-    var flush = false
     var body: some View {
         VStack(spacing: 0) {
             Group(subviews: content) { rows in
                 ForEach(rows) { row in
-                    row.padding(.horizontal, flush ? -OnePlusLinearMetrics.appletRowPadding : 0)
-                        .overlay(alignment: .bottom) {
-                            if row.id != rows.last?.id { OnePlusLinearFadedHairline(OnePlusLinearColor.lineSoft) }
-                        }
+                    row.overlay(alignment: .bottom) {
+                        if row.id != rows.last?.id { OnePlusLinearFadedHairline(OnePlusLinearColor.lineSoft) }
+                    }
                 }
             }
         }
         .frame(maxWidth: .infinity)
         .overlay(alignment: .top) { OnePlusLinearFadedHairline(OnePlusLinearColor.line) }
+    }
+}
+
+extension ContainerValues {
+    /// True for a tool page row that leads with a glyph, so the inset group starts its separator at the text.
+    @Entry var onePlusLinearRowGlyph = false
+}
+
+/// "Inset, gray glyphs": a tool page settings group. `fillGroup` fill, 1 pt `line` ring, 10 pt radius,
+/// 40 pt rows, and `lineSoft` separators that start at the row text and run to the right edge.
+struct OnePlusLinearInsetGroup<Content: View>: View {
+    let content: Content
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: OnePlusLinearMetrics.appletGroupRadius, style: .continuous)
+        VStack(spacing: 0) {
+            Group(subviews: content) { rows in
+                ForEach(rows) { row in
+                    let glyph = row.containerValues.onePlusLinearRowGlyph ? OnePlusLinearEditorialMetrics.rowGlyphSlot : 0
+                    row.frame(minHeight: OnePlusLinearEditorialMetrics.row)
+                        .overlay(alignment: .top) {
+                            if row.id != rows.first?.id {
+                                OnePlusLinearColor.lineSoft.frame(height: 1)
+                                    .padding(.leading, OnePlusLinearMetrics.appletRowPadding + glyph)
+                                    .allowsHitTesting(false).accessibilityHidden(true)
+                            }
+                        }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .background(shape.fill(OnePlusLinearColor.fillGroup))
+        .overlay(shape.strokeBorder(OnePlusLinearColor.line, lineWidth: 1))
+    }
+}
+
+/// The plain monochrome row glyph of an inset group: 13 pt regular `secondary` in a 20 pt slot. Never a tile.
+struct OnePlusLinearRowGlyph: View {
+    let symbol: String
+    init(_ symbol: String) { self.symbol = symbol }
+    var body: some View {
+        Image(systemName: symbol).font(.system(size: OnePlusLinearEditorialMetrics.rowGlyphSize, weight: .regular))
+            .foregroundStyle(OnePlusLinearColor.secondary)
+            .frame(width: OnePlusLinearEditorialMetrics.rowGlyph, height: OnePlusLinearEditorialMetrics.rowGlyph)
+            .accessibilityHidden(true)
+    }
+}
+
+/// "Dotted border and faint fill": marks a panel row for a moment when another surface sends the reader to it.
+/// Set `pending` to true; the mark fades in 0.3 s later over 0.2 s, holds 1.2 s, fades out over 0.5 s, and
+/// resets `pending`. Reduce Motion shows and hides it at once.
+public struct OnePlusLinearRowMark: ViewModifier {
+    @Binding var pending: Bool
+    @State private var amount = 0.0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    public init(pending: Binding<Bool>) { _pending = pending }
+    public func body(content: Content) -> some View {
+        content
+            .background { OnePlusLinearRowMarkShape(amount: amount) }
+            .onChange(of: pending, initial: true) { _, value in
+                guard value else { return }
+                pending = false
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(OnePlusMotion.rowMarkDelay))
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: OnePlusMotion.rowMarkIn)) { amount = 1 }
+                    try? await Task.sleep(for: .seconds(OnePlusMotion.rowMarkIn + OnePlusMotion.rowMarkHold))
+                    withAnimation(reduceMotion ? nil : .easeInOut(duration: OnePlusMotion.rowMarkOut)) { amount = 0 }
+                }
+            }
+    }
+}
+
+public extension View {
+    func onePlusLinearRowMark(pending: Binding<Bool>) -> some View { modifier(OnePlusLinearRowMark(pending: pending)) }
+}
+
+/// The row mark at `amount` (0 hidden, 1 full): a 2 pt dotted accent line at 40% and an accent fill at 5%.
+public struct OnePlusLinearRowMarkShape: View {
+    let amount: Double
+    public init(amount: Double) { self.amount = amount }
+    public var body: some View {
+        let shape = RoundedRectangle(cornerRadius: OnePlusLinearEditorialMetrics.rowMarkRadius, style: .continuous)
+        ZStack {
+            shape.fill(OnePlusLinearColor.accent.opacity(OnePlusLinearEditorialMetrics.rowMarkFill * amount))
+            shape.strokeBorder(OnePlusLinearColor.accent.opacity(OnePlusLinearEditorialMetrics.rowMarkLine * amount),
+                               style: StrokeStyle(lineWidth: 1, dash: OnePlusLinearEditorialMetrics.rowMarkDash))
+        }
+        .padding(.horizontal, OnePlusLinearEditorialMetrics.rowMarkInset).padding(.vertical, 1)
+        .allowsHitTesting(false).accessibilityHidden(true)
     }
 }
 

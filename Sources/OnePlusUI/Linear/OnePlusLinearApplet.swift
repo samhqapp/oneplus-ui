@@ -100,9 +100,11 @@ public struct OnePlusLinearAppletSection<Content: View>: View {
     public init(_ title: String, @ViewBuilder content: () -> Content) { self.title = title; self.content = content() }
     public var body: some View {
         if editorial {
-            VStack(alignment: .leading, spacing: 0) {
-                OnePlusLinearEditorialCaption(title: title)
-                OnePlusLinearEditorialGroup(content: content, flush: true)
+            VStack(alignment: .leading, spacing: OnePlusLinearMetrics.appletCaptionBelow) {
+                Text(title).linearText(OnePlusLinearMetrics.control, weight: .semibold, color: OnePlusLinearColor.secondary)
+                    .padding(.leading, OnePlusLinearMetrics.appletRowPadding)
+                    .accessibilityAddTraits(.isHeader)
+                OnePlusLinearInsetGroup(content: content)
             }
         } else {
             filled
@@ -125,7 +127,7 @@ public struct OnePlusLinearAppletGroup<Content: View>: View {
     @Environment(\.onePlusLinearEditorial) private var editorial
     public init(@ViewBuilder content: () -> Content) { self.content = content() }
     public var body: some View {
-        if editorial { OnePlusLinearEditorialGroup(content: content, flush: true) } else { filled }
+        if editorial { OnePlusLinearInsetGroup(content: content) } else { filled }
     }
     private var filled: some View {
         VStack(spacing: 0) {
@@ -147,15 +149,25 @@ public struct OnePlusLinearAppletGroup<Content: View>: View {
 }
 
 /// A 36 pt group row: the label and an optional second line lead; the control or value trails.
+/// On a tool page (editorial) a `systemImage` draws a plain 13 pt `secondary` glyph before the label.
 public struct OnePlusLinearAppletRow<Trailing: View>: View {
     private let label: String
     private let detail: String?
+    private let systemImage: String?
     private let trailing: Trailing
-    public init(_ label: String, detail: String? = nil, @ViewBuilder trailing: () -> Trailing) {
-        self.label = label; self.detail = detail; self.trailing = trailing()
+    public init(_ label: String, detail: String? = nil, systemImage: String? = nil, @ViewBuilder trailing: () -> Trailing) {
+        self.label = label; self.detail = detail; self.systemImage = systemImage; self.trailing = trailing()
     }
     @Environment(\.onePlusLinearEditorial) private var editorial
     public var body: some View {
+        let glyph = editorial ? systemImage : nil
+        HStack(spacing: 0) {
+            if let glyph { OnePlusLinearRowGlyph(glyph).padding(.leading, OnePlusLinearMetrics.appletRowPadding) }
+            row
+        }
+        .containerValue(\.onePlusLinearRowGlyph, glyph != nil)
+    }
+    private var row: some View {
         HStack(spacing: OnePlusLinearMetrics.appletRowGap) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(label).linearText().lineLimit(1)
@@ -176,8 +188,8 @@ public struct OnePlusLinearAppletRow<Trailing: View>: View {
 
 public extension OnePlusLinearAppletRow where Trailing == Text {
     /// A label and a read-only value.
-    init(_ label: String, value: String) {
-        self.init(label) {
+    init(_ label: String, value: String, systemImage: String? = nil) {
+        self.init(label, systemImage: systemImage) {
             Text(value).font(.system(size: OnePlusLinearMetrics.body)).tracking(OnePlusLinearMetrics.bodyTracking)
                 .monospacedDigit().foregroundStyle(OnePlusLinearColor.appletSecondary)
         }
@@ -192,13 +204,15 @@ public struct OnePlusLinearAppletSliderRow: View {
     private let range: ClosedRange<Double>
     private let step: Double
     private let format: (Double) -> String
+    private let systemImage: String?
     @Environment(\.onePlusLinearControlLook) private var look
     public init(_ label: String, value: Binding<Double>, in range: ClosedRange<Double> = 0...1, step: Double = 0.01,
-                format: @escaping (Double) -> String = { "\(Int(($0 * 100).rounded()))%" }) {
+                systemImage: String? = nil, format: @escaping (Double) -> String = { "\(Int(($0 * 100).rounded()))%" }) {
         self.label = label; _value = value; self.range = range; self.step = step; self.format = format
+        self.systemImage = systemImage
     }
     public var body: some View {
-        OnePlusLinearAppletRow(label) {
+        OnePlusLinearAppletRow(label, systemImage: systemImage) {
             HStack(spacing: 8) {
                 OnePlusLinearSlider(label, value: $value, in: range, step: step)
                 Text(format(value)).linearText(color: OnePlusLinearColor.appletSecondary).lineLimit(1)
