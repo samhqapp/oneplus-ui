@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.28
+
+- `OnePlusStepperField` in the linear looks right-aligns its value with or
+  without a unit, so every stepper lines up.
+- Add `OnePlusLinearControlLook.quietRaisedActionRow`: Quiet Raised with
+  24 pt fields, for an applet row where a field sits beside a soft button.
+
 ## 1.3.27
 
 - `OnePlusPopupMenu` scrolls only for the wheel and for arrow keys. Pointer

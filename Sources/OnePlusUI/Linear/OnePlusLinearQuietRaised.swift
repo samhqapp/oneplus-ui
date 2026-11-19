@@ -39,6 +39,13 @@ public struct OnePlusLinearControlLook: Sendable, Equatable {
         switchSize: CGSize(width: 32, height: 18), switchKnob: 14, switchFrame: CGSize(width: 40, height: 24),
         stepperButton: 22, stepperValueWidth: 59, well: CGSize(width: 40, height: 22), wellInset: 3)
 
+    /// An applet row where a field sits beside a soft or ghost button: the field matches the 24 pt button.
+    public static let quietRaisedActionRow: OnePlusLinearControlLook = {
+        var look = quietRaised
+        look.height = OnePlusLinearMetrics.appletButton
+        return look
+    }()
+
     /// The main window and tool pages: every control in a row is 28 pt.
     public static let raisedKeys: OnePlusLinearControlLook = {
         var look = quietRaised

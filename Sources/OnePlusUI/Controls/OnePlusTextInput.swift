@@ -77,7 +77,7 @@ public struct OnePlusStepperField: View {
     }
 
     /// The applet look (Quiet Raised): one 22 pt field with plain minus and plus columns behind short hairlines,
-    /// around a centered 13 pt value and an optional 13 pt unit.
+    /// around a right-aligned 13 pt value and an optional 13 pt unit.
     private func linearBody(_ look: OnePlusLinearControlLook) -> some View {
         let shape = RoundedRectangle(cornerRadius: look.radius)
         return HStack(spacing: 0) {
@@ -85,7 +85,7 @@ public struct OnePlusStepperField: View {
             columnLine
             HStack(spacing: 3) {
                 TextField(title, text: $draft).textFieldStyle(.plain).linearText().focusEffectDisabled()
-                    .multilineTextAlignment(unit == nil ? .center : .trailing)
+                    .multilineTextAlignment(.trailing)
                     .focused($focused).onSubmit(commit)
                     .onKeyPress(.upArrow) { change(by: step); return .handled }
                     .onKeyPress(.downArrow) { change(by: -step); return .handled }
