@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.15
+
+- Add the "Apps by Sam" parts (owner pick "Featured Pro, then a list"):
+  `OnePlusLinearFeaturedApp`, `OnePlusLinearAppRow`, `OnePlusLinearAppAction`
+  (a soft Open or Get button, disabled when its action is nil), and
+  `OnePlusLinearAppListMetrics`.
+
 ## 1.3.0
 
 - Breaking: the applet control look `.depth` becomes `.quietRaised` (owner
