@@ -109,6 +109,64 @@ struct OnePlusMenuPanelShell<Tabs: View, Actions: View, Body: View>: View {
     }
 }
 
+/// The Home variant of `OnePlusMenuPanel` for a one-tool status item: the fill-steps `OnePlusLinearPanel` with the
+/// Home top bar (`leading` such as a one-key icon track and title, `trailing` such as the gear and `Open App`).
+/// The body keeps its natural height and scrolls only at the screen ceiling; the panel reports its height the same way.
+public struct OnePlusLinearMenuPanel<Leading: View, Trailing: View, Body: View>: View {
+    private let leading: Leading
+    private let trailing: Trailing
+    private let content: Body
+    @Environment(\.onePlusMenuHeightChanged) private var heightChanged
+    @Environment(\.onePlusMenuMaximumHeight) private var suppliedHeight
+    @State private var screen = OnePlusMenuPanelScreen()
+
+    public init(@ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing, @ViewBuilder content: () -> Body) {
+        self.leading = leading(); self.trailing = trailing(); self.content = content()
+    }
+
+    public var body: some View {
+        let style = OnePlusLinearPanelStyle.fillSteps
+        let screenHeight = NSScreen.main?.visibleFrame.height ?? 800
+        let ceiling = suppliedHeight ?? max(0, screenHeight) * OnePlusMenuMetrics.heightFraction
+        let bodyCap = ceiling - style.bar - style.bodyTopUnderBar - OnePlusLinearMetrics.panelBodyBottom
+        OnePlusLinearPanel(style: style) {
+            OnePlusLinearPanelFooter(edge: .top) { leading } trailing: { trailing }
+        } content: {
+            OnePlusLinearMenuBodyLayout(maximumHeight: max(0, bodyCap)) {
+                ScrollView(.vertical) {
+                    VStack(alignment: .leading, spacing: style.blockGap) { content }
+                        .frame(width: OnePlusLinearMetrics.panelWidth - 2 * style.bodyInset)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+                .onePlusScrollIndicators(axes: .vertical)
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .background(OnePlusMenuHeightReporter(changed: heightChanged, screen: screen))
+        .onePlusDensity(.compact)
+        .onePlusNeutralControls()
+        .onePlusFocusPolicy()
+        .onePlusAppAppearance()
+        .transaction { $0.animation = nil }
+        .onePlusLiveUpdates()
+    }
+}
+
+/// One scrolling body: its natural height, capped at `maximumHeight`, known in the first layout pass.
+private struct OnePlusLinearMenuBodyLayout: Layout {
+    let maximumHeight: CGFloat
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
+        let width = proposal.width ?? OnePlusLinearMetrics.panelWidth
+        return CGSize(width: width, height: height(subviews, width: width))
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+        subviews.first?.place(at: bounds.origin, proposal: .init(width: bounds.width, height: height(subviews, width: bounds.width)))
+    }
+    private func height(_ subviews: Subviews, width: CGFloat) -> CGFloat {
+        min(subviews.first?.sizeThatFits(.init(width: width, height: nil)).height ?? 0, maximumHeight)
+    }
+}
+
 private struct OnePlusMenuHeightChangedKey: EnvironmentKey {
     static var defaultValue: (CGFloat) -> Void { { _ in } }
 }

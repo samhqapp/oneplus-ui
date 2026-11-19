@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.30
+
+- Add `OnePlusLinearMenuPanel`, the Home variant of `OnePlusMenuPanel` for a
+  one-tool status item: the fill-steps panel with the Home top bar, a body that
+  scrolls only at the screen ceiling, and the same height reporting.
+
 ## 1.3.29
 
 - Add `OnePlusLinearDisclosureRow`: a 32 pt panel row with glyph, name,
