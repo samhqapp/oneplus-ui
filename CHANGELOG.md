@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.26
+
+- Breaking: the "Apps by Sam" parts take the owner's round 3-5 picks.
+  `OnePlusLinearAppAction` is the App Store GET or OPEN capsule,
+  `OnePlusLinearFeaturedApp` is the floating banner with the raised Paid key,
+  and `OnePlusLinearAppRow` is an open 64 pt row (no price word, optional
+  separator). Adds `OnePlusLinearAppCoverCard` (half-width card with its cover
+  edge to edge across the top) and `OnePlusLinearAppShelf` (banner, caption,
+  two cover cards side by side, then the rows).
+
 ## 1.3.17
 
 - The fill-steps panel open key becomes the "Ink key" (owner pick): a dark
