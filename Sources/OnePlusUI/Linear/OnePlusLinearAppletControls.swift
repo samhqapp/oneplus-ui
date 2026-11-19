@@ -203,7 +203,7 @@ public struct OnePlusLinearTextField: View {
         let look = environmentLook ?? .quietRaised
         let shape = RoundedRectangle(cornerRadius: look.radius)
         TextField(text: $text, prompt: Text(title).foregroundStyle(OnePlusLinearColor.appletMuted)) { Text(title) }
-            .textFieldStyle(.plain).linearText()
+            .textFieldStyle(.plain).linearText().focusEffectDisabled()
             .focused($focused).onSubmit(onSubmit)
             .padding(.horizontal, 8).frame(height: look.height)
             .background { OnePlusQuietWell.field(shape, focused: focused) }

@@ -117,7 +117,7 @@ public final class OnePlusFocusPolicy {
 
     private func configureRings(_ view: NSView?) {
         guard let view else { return }
-        view.focusRingType = showsFocus ? .default : .none
+        view.focusRingType = Self.ringType(for: view)
         view.needsDisplay = true
         view.subviews.forEach { configureRings($0) }
     }
@@ -129,6 +129,11 @@ public final class OnePlusFocusPolicy {
             hit = view.superview
         }
         window.makeFirstResponder(window)
+    }
+
+    /// Text inputs sit inside a OnePlus bezel that draws the whole-field focus line; the native ring would outline only the inner text area.
+    static func ringType(for view: NSView) -> NSFocusRingType {
+        shared.showsFocus && !isTextInput(view) ? .default : .none
     }
 
     private static func isTextInput(_ responder: NSResponder?) -> Bool {
@@ -172,7 +177,7 @@ extension NSWindow {
         let pointer = OnePlusFocusPolicy.isPointerEvent(NSApp.currentEvent?.type)
         guard OnePlusFocusPolicy.allows(responder, in: self, pointer: pointer) else { return false }
         if let view = responder as? NSView {
-            view.focusRingType = OnePlusFocusPolicy.shared.showsFocus ? .default : .none
+            view.focusRingType = OnePlusFocusPolicy.ringType(for: view)
         }
         return onePlusMakeFirstResponder(responder)
     }

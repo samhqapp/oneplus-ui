@@ -84,7 +84,7 @@ public struct OnePlusStepperField: View {
             stepButton("minus", "Decrease \(title)", -step, look)
             columnLine
             HStack(spacing: 3) {
-                TextField(title, text: $draft).textFieldStyle(.plain).linearText()
+                TextField(title, text: $draft).textFieldStyle(.plain).linearText().focusEffectDisabled()
                     .multilineTextAlignment(unit == nil ? .center : .trailing)
                     .frame(width: unit == nil ? look.stepperValueWidth : Self.unitValueWidth)
                     .focused($focused).onSubmit(commit)
@@ -126,7 +126,7 @@ public struct OnePlusStepperField: View {
     private var regularBody: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 0) {
-                TextField(title, text: $draft).textFieldStyle(.plain).onePlusText(.control)
+                TextField(title, text: $draft).textFieldStyle(.plain).onePlusText(.control).focusEffectDisabled()
                     .padding(.horizontal, 8).focused($focused).onSubmit(commit)
                     .onKeyPress(.upArrow) { change(by: step); return .handled }
                     .onKeyPress(.downArrow) { change(by: -step); return .handled }
