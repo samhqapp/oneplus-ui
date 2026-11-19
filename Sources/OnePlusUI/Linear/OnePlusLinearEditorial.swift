@@ -16,6 +16,17 @@ public enum OnePlusLinearEditorialMetrics {
     public static let row: CGFloat = 40
     public static let toolRow: CGFloat = 48
     public static let toolRowInset: CGFloat = 4
+    /// The tool row hover fill: radius 8, 4 pt past the row sides (8 pt past the content), 2 pt inside the
+    /// row top and bottom, so two rows' fills never touch and the separator sits in the gap.
+    public static let toolRowHoverOutset: CGFloat = 4
+    public static let toolRowHoverInset: CGFloat = 2
+    public static let toolRowHoverRadius: CGFloat = 8
+    /// The key chip (`OnePlusLinearKeyChip`), drawn like the sidebar search `⌘K` chip.
+    public static let keyChipHeight: CGFloat = 18
+    public static let keyChipPadding: CGFloat = 5
+    public static let keyChipRadius: CGFloat = 4
+    /// Editorial hairlines fade to clear over this share of their width at each end.
+    public static let hairlineFade: CGFloat = 0.12
     public static let toolIcon: CGFloat = 24
     public static let headerIcon: CGFloat = 56
     public static let headerGap: CGFloat = 16
@@ -187,8 +198,8 @@ struct OnePlusLinearEditorialCaption: View {
 }
 
 /// The editorial group: no fill or ring, a `line` hairline on top, a `lineSoft` hairline between rows and none
-/// under the last. `flush` cancels the applet row padding, so setting rows start on the page's one leading edge
-/// (the header and caption edge); hover rows (tool rows) keep their own inset.
+/// under the last. Both hairlines fade out at their ends. `flush` cancels the applet row padding, so setting rows
+/// start on the page's one leading edge (the header and caption edge); hover rows (tool rows) keep their own inset.
 struct OnePlusLinearEditorialGroup<Content: View>: View {
     let content: Content
     var flush = false
@@ -198,35 +209,64 @@ struct OnePlusLinearEditorialGroup<Content: View>: View {
                 ForEach(rows) { row in
                     row.padding(.horizontal, flush ? -OnePlusLinearMetrics.appletRowPadding : 0)
                         .overlay(alignment: .bottom) {
-                            if row.id != rows.last?.id {
-                                OnePlusLinearColor.lineSoft.frame(height: 1).allowsHitTesting(false)
-                            }
+                            if row.id != rows.last?.id { OnePlusLinearFadedHairline(OnePlusLinearColor.lineSoft) }
                         }
                 }
             }
         }
         .frame(maxWidth: .infinity)
-        .overlay(alignment: .top) { OnePlusLinearColor.line.frame(height: 1).allowsHitTesting(false) }
+        .overlay(alignment: .top) { OnePlusLinearFadedHairline(OnePlusLinearColor.line) }
+    }
+}
+
+/// A 1 pt hairline in `color` at its center that fades to clear over the last 12% at each end.
+public struct OnePlusLinearFadedHairline: View {
+    private let color: Color
+    public init(_ color: Color) { self.color = color }
+    public var body: some View {
+        let fade = OnePlusLinearEditorialMetrics.hairlineFade
+        LinearGradient(stops: [.init(color: color.opacity(0), location: 0), .init(color: color, location: fade),
+                               .init(color: color, location: 1 - fade), .init(color: color.opacity(0), location: 1)],
+                       startPoint: .leading, endPoint: .trailing)
+            .frame(height: 1).allowsHitTesting(false).accessibilityHidden(true)
+    }
+}
+
+/// All keys of a shortcut in one small chip, like the sidebar search `⌘K` chip: 18 pt, `kbd` fill, 1 pt `line`,
+/// 11 pt `muted` text.
+public struct OnePlusLinearKeyChip: View {
+    private let keys: String
+    public init(_ keys: String) { self.keys = keys }
+    public var body: some View {
+        let shape = RoundedRectangle(cornerRadius: OnePlusLinearEditorialMetrics.keyChipRadius)
+        Text(keys).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.muted).fixedSize()
+            .padding(.horizontal, OnePlusLinearEditorialMetrics.keyChipPadding)
+            .frame(height: OnePlusLinearEditorialMetrics.keyChipHeight)
+            .background(shape.fill(OnePlusLinearColor.kbd))
+            .overlay(shape.strokeBorder(OnePlusLinearColor.line, lineWidth: 1))
+            .accessibilityLabel("Shortcut \(keys)")
     }
 }
 
 /// The 48 pt editorial tool row: 24 pt icon, the name over a one-line summary, then a quiet "Off" word for a
-/// tool that is off, the favorite star slot, and a chevron. The star slot sits at one x on every row. The whole
-/// row opens the tool. The star paints on hover, keyboard focus, or when set.
+/// tool that is off or the shortcut key chip for a tool that is on, the favorite star slot, and a chevron. The
+/// star slot sits at one x on every row, and the chip or "Off" right-aligns against it. The whole row opens the
+/// tool. The star paints on hover, keyboard focus, or when set. Hover paints a radius 8 fill wider than the row.
 public struct OnePlusLinearEditorialToolRow: View {
     private let name: String
     private let summary: String
     private let icon: Image
     private let isOn: Bool
+    private let shortcut: String?
     private let isFavorite: Binding<Bool>?
     private let open: () -> Void
     @State private var hover = false
     @FocusState private var starFocused: Bool
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.isEnabled) private var interactive
-    public init(_ name: String, summary: String, icon: Image, isOn: Bool, isFavorite: Binding<Bool>? = nil,
-                open: @escaping () -> Void) {
-        self.name = name; self.summary = summary; self.icon = icon; self.isOn = isOn
+    public init(_ name: String, summary: String, icon: Image, isOn: Bool, shortcut: String? = nil,
+                isFavorite: Binding<Bool>? = nil, open: @escaping () -> Void) {
+        self.name = name; self.summary = summary; self.icon = icon; self.isOn = isOn; self.shortcut = shortcut
         self.isFavorite = isFavorite; self.open = open
     }
     private var hovering: Bool { interactive && (hover || sample == .hover) }
@@ -248,6 +288,8 @@ public struct OnePlusLinearEditorialToolRow: View {
                 .frame(maxWidth: .infinity, alignment: .leading).allowsHitTesting(false)
                 if !isOn {
                     Text("Off").linearText(OnePlusLinearMetrics.control, color: OnePlusLinearColor.muted).allowsHitTesting(false)
+                } else if let shortcut {
+                    OnePlusLinearKeyChip(shortcut).allowsHitTesting(false).accessibilityHidden(true)
                 }
                 star
                 Image(systemName: "chevron.right").font(.system(size: 10, weight: .medium))
@@ -256,11 +298,17 @@ public struct OnePlusLinearEditorialToolRow: View {
             .padding(.horizontal, OnePlusLinearEditorialMetrics.toolRowInset)
         }
         .frame(height: OnePlusLinearEditorialMetrics.toolRow)
-        .background(hovering ? OnePlusLinearColor.hover : .clear)
+        .background {
+            RoundedRectangle(cornerRadius: OnePlusLinearEditorialMetrics.toolRowHoverRadius)
+                .fill(hovering ? OnePlusLinearColor.hover : .clear)
+                .padding(.horizontal, -OnePlusLinearEditorialMetrics.toolRowHoverOutset)
+                .padding(.vertical, OnePlusLinearEditorialMetrics.toolRowHoverInset)
+        }
         .contentShape(Rectangle())
         .onHover { hover = $0 }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(isOn ? "\(name), \(summary)" : "\(name), off, \(summary)")
+        .accessibilityLabel([name, isOn ? nil : "off", summary, isOn ? shortcut.map { "shortcut \($0)" } : nil]
+                                .compactMap { $0 }.joined(separator: ", "))
     }
 
     @ViewBuilder private var star: some View {
