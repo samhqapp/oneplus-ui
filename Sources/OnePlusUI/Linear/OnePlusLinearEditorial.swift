@@ -41,7 +41,10 @@ public enum OnePlusLinearEditorialMetrics {
     public static let launchTile = CGSize(width: 176, height: 108)
     public static let launchTileRadius: CGFloat = 12
     public static let launchTilePadding: CGFloat = 14
-    public static let launchTileShortcut: CGFloat = 22
+    /// The shortcut key caps draw 1.2 times their 20 pt size, 6 pt above the action name.
+    public static let launchTileKeyScale: CGFloat = 1.2
+    public static let launchTileKeyGap: CGFloat = 6
+    public static let launchTileName: CGFloat = 20
     /// The bordered reset block (`OnePlusLinearButtonStyle(.resetBlock)`): full width, 32 pt, radius 8.
     public static let resetBlock: CGFloat = 32
     public static let resetBlockRadius: CGFloat = 8
@@ -74,7 +77,7 @@ public struct OnePlusLinearEditorialBody<Content: View, Footer: View>: View {
             .onePlusScrollIndicators()
         }
         .environment(\.onePlusLinearEditorial, true)
-        .transformEnvironment(\.onePlusLinearControlLook) { if $0 == nil { $0 = .quietRaised } }
+        .transformEnvironment(\.onePlusLinearControlLook) { if $0 == nil { $0 = .raisedKeys } }
     }
 }
 
@@ -122,30 +125,36 @@ public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
     }
 }
 
-/// The large soft Open tile of the tool page header: "Open" and an arrow on top, then the tool's global
-/// shortcut over its action name. With no shortcut, only the action name sits at the bottom.
+/// The "Key tile" of the tool page header (owner pick 2026-11-19): a large raised key with "Open" and an arrow on
+/// top, then the tool's global shortcut as key caps over its action name. With no shortcut, the tool name sits at
+/// the bottom in 20 pt semibold.
 public struct OnePlusLinearLaunchTile: View {
     private let shortcut: String?
     private let caption: String
+    private let name: String?
     private let action: () -> Void
-    public init(shortcut: String?, caption: String, action: @escaping () -> Void) {
-        self.shortcut = shortcut; self.caption = caption; self.action = action
+    public init(shortcut: String?, caption: String, name: String? = nil, action: @escaping () -> Void) {
+        self.shortcut = shortcut; self.caption = caption; self.name = name; self.action = action
     }
     public var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Text("Open").linearText(weight: .semibold)
+                    Text("Open").linearText(weight: .semibold, color: OnePlusLinearColor.softKeyInk)
                     Spacer(minLength: 0)
-                    Image(systemName: "arrow.up.right").font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(OnePlusLinearColor.secondary).accessibilityHidden(true)
+                    Image(systemName: "arrow.up.right").font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(OnePlusLinearColor.softKeyInk).accessibilityHidden(true)
                 }
                 Spacer(minLength: 0)
                 if let shortcut {
-                    Text(shortcut).font(.system(size: OnePlusLinearEditorialMetrics.launchTileShortcut, weight: .semibold))
-                        .foregroundStyle(OnePlusLinearColor.ink)
+                    OnePlusLinearKeyCombo(shortcut)
+                        .scaleEffect(OnePlusLinearEditorialMetrics.launchTileKeyScale, anchor: .bottomLeading)
+                        .padding(.bottom, OnePlusLinearEditorialMetrics.launchTileKeyGap)
+                    Text(caption).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.secondary).lineLimit(1)
+                } else {
+                    Text(name ?? caption).font(.system(size: OnePlusLinearEditorialMetrics.launchTileName, weight: .semibold))
+                        .foregroundStyle(OnePlusLinearColor.softKeyInk).lineLimit(1).minimumScaleFactor(0.7)
                 }
-                Text(caption).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.muted).lineLimit(1)
             }
         }
         .buttonStyle(OnePlusLinearLaunchTileStyle())
@@ -160,30 +169,39 @@ private struct OnePlusLinearLaunchTileStyle: ButtonStyle {
     }
 }
 
+/// The raised key with paint-only hover and press. Under Soft spring it also rises 2 pt on hover and sinks and
+/// scales to 98% while pressed, on springs.
 private struct OnePlusLinearLaunchTileBody<Label: View>: View {
     @Environment(\.isEnabled) private var enabled
     @Environment(\.isFocused) private var focused
     @Environment(\.onePlusControlState) private var sample
+    @Environment(\.onePlusLinearMotion) private var motion
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hover = false
     let label: Label
     let pressed: Bool
-    private var fill: Color {
-        guard enabled else { return OnePlusLinearColor.softButton }
-        if pressed || sample == .pressed { return OnePlusLinearColor.softButtonPressed }
-        return hover || sample == .hover ? OnePlusLinearColor.softButtonHover : OnePlusLinearColor.softButton
-    }
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: OnePlusLinearEditorialMetrics.launchTileRadius)
+        let spring = motion == .spring && !reduceMotion
+        let hovering = enabled && (hover || sample == .hover)
+        let isPressed = enabled && (pressed || sample == .pressed)
+        let lift = spring ? (hovering ? OnePlusMotion.springTileLift : 0) - (isPressed ? OnePlusMotion.keyPress : 0) : 0
         label.padding(OnePlusLinearEditorialMetrics.launchTilePadding)
             .frame(width: OnePlusLinearEditorialMetrics.launchTile.width, height: OnePlusLinearEditorialMetrics.launchTile.height)
-            .background(shape.fill(fill))
-            .overlay {
-                shape.strokeBorder(enabled && (focused || sample == .focus) && OnePlusFocusPolicy.shared.showsFocus
-                                   ? OnePlusColor.focus : .clear, lineWidth: 1)
+            .background {
+                OnePlusRaisedKey(shape: shape, lift: max(lift, 0))
+                    .overlay { shape.fill(isPressed ? OnePlusLinearColor.pressed : hovering ? OnePlusLinearColor.hover : .clear) }
             }
+            .overlay { OnePlusQuietFocusRing(shape: shape, focused: enabled && focused) }
+            .offset(y: -lift)
+            .scaleEffect(spring && isPressed ? OnePlusMotion.springTilePressScale : 1)
+            .animation(spring ? (isPressed ? OnePlusMotion.springTilePress : OnePlusMotion.springTileRelease) : nil, value: isPressed)
+            .animation(spring ? (hovering ? OnePlusMotion.springTileHoverIn : OnePlusMotion.springTileHoverOut)
+                       : OnePlusMotion.resolved(hovering ? OnePlusMotion.hoverIn : OnePlusMotion.hoverOut, style: motion, reduceMotion: reduceMotion),
+                       value: hovering)
             .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
             .contentShape(shape)
-            .onePlusHover($hover)
+            .onHover { hover = $0 }
     }
 }
 
@@ -262,6 +280,7 @@ public struct OnePlusLinearEditorialToolRow: View {
     private let open: () -> Void
     @State private var hover = false
     @FocusState private var starFocused: Bool
+    @Environment(\.onePlusLinearMotion) private var motion
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.isEnabled) private var interactive
     public init(_ name: String, summary: String, icon: Image, isOn: Bool, shortcut: String? = nil,
@@ -294,6 +313,7 @@ public struct OnePlusLinearEditorialToolRow: View {
                 star
                 Image(systemName: "chevron.right").font(.system(size: 10, weight: .medium))
                     .foregroundStyle(OnePlusLinearColor.tertiary).allowsHitTesting(false).accessibilityHidden(true)
+                    .offset(x: motion == .spring && hovering ? OnePlusMotion.springChevronNudge : 0)
             }
             .padding(.horizontal, OnePlusLinearEditorialMetrics.toolRowInset)
         }
@@ -305,7 +325,9 @@ public struct OnePlusLinearEditorialToolRow: View {
                 .padding(.vertical, OnePlusLinearEditorialMetrics.toolRowHoverInset)
         }
         .contentShape(Rectangle())
-        .onHover { hover = $0 }
+        .onHover { inside in
+            if motion == .spring { OnePlusMotion.withHover(inside, in: OnePlusMotion.springRowHover) { hover = inside } } else { hover = inside }
+        }
         .accessibilityElement(children: .contain)
         .accessibilityLabel([name, isOn ? nil : "off", summary, isOn ? shortcut.map { "shortcut \($0)" } : nil]
                                 .compactMap { $0 }.joined(separator: ", "))

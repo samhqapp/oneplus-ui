@@ -155,7 +155,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
                     .foregroundStyle(OnePlusLinearColor.appletSecondary)
             }
             .padding(.horizontal, 11)
-            .frame(width: width, height: OnePlusLinearMetrics.appletField)
+            .frame(width: width, height: look.keys ? look.height : OnePlusLinearMetrics.appletField)
             .linearFieldBezel(look, focused: focused)
             .overlay { if lit { RoundedRectangle(cornerRadius: look.radius).fill(OnePlusLinearColor.hover) } }
             .contentShape(Rectangle()).onePlusHover($hover)

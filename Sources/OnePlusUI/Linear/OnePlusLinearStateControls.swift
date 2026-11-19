@@ -67,7 +67,7 @@ private struct OnePlusQuietSwitchStyle: ButtonStyle {
                 .frame(width: look.switchKnob, height: look.switchKnob)
                 .padding((look.switchSize.height - look.switchKnob) / 2)
         }
-        .linearMotion(OnePlusMotion.knob, value: isOn)
+        .linearMotion(OnePlusMotion.knob, value: isOn, spring: OnePlusMotion.springSwitch)
         .frame(width: look.switchSize.width, height: look.switchSize.height)
         .frame(width: look.switchFrame.width, height: look.switchFrame.height, alignment: .trailing)
         .contentShape(Rectangle())
@@ -87,6 +87,7 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
     private let sizing: OnePlusLinearSegmentSizing
     private let isChoiceEnabled: (Value) -> Bool
     @Namespace private var thumb
+    @FocusState private var focusedSegment: Value?
     @Environment(\.onePlusLinearControlLook) private var look
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     @Environment(\.isEnabled) private var enabled
@@ -105,7 +106,7 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
             ForEach(choices, id: \.0) { value, title in
                 let on = value == selection
                 let previous = choices.firstIndex { $0.0 == value }.flatMap { $0 > 0 ? choices[$0 - 1].0 : nil }
-                let divided = look != nil && !on && previous != nil && previous != selection
+                let divided = look != nil && look?.keys != true && !on && previous != nil && previous != selection
                 Button { if isChoiceEnabled(value) { selection = value } } label: {
                     Text(title).linearText(fill ? OnePlusLinearMetrics.caption + 0.5
                                            : look == nil ? OnePlusLinearMetrics.caption : OnePlusLinearMetrics.body,
@@ -123,12 +124,14 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                         .overlay(alignment: .leading) { if divided { OnePlusQuietDivider() } }
                 }
                 .modifier(OnePlusLinearSegmentButton(quiet: look != nil, radius: radius))
+                // One focus line goes around the whole control, never around one segment.
+                .focused($focusedSegment, equals: value).focusEffectDisabled(look != nil)
                 .disabled(!isChoiceEnabled(value))
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
         }
         .linearMotion(OnePlusMotion.segment, value: selection)
-        .modifier(OnePlusLinearSegmentTrack(look: look, fill: fill))
+        .modifier(OnePlusLinearSegmentTrack(look: look, fill: fill, focused: focusedSegment != nil))
         .opacity(look != nil && !enabled ? OnePlusMetrics.disabledOpacity : 1)
         .accessibilityElement(children: .contain).accessibilityLabel(label)
         .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
@@ -180,10 +183,11 @@ private struct OnePlusQuietPressStyle: ButtonStyle {
 private struct OnePlusLinearSegmentTrack: ViewModifier {
     let look: OnePlusLinearControlLook?
     let fill: Bool
+    let focused: Bool
     func body(content: Content) -> some View {
         if let look {
             content.padding(look.segmentInset)
-                .background { OnePlusQuietWell(shape: RoundedRectangle(cornerRadius: look.radius)) }
+                .background { OnePlusQuietWell(shape: RoundedRectangle(cornerRadius: look.radius), focused: focused, keyable: true) }
         } else if fill {
             content.padding(2).background(OnePlusLinearColor.fillTrack, in: RoundedRectangle(cornerRadius: 7))
         } else {

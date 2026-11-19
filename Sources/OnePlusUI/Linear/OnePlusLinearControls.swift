@@ -41,18 +41,30 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.onePlusLinearEditorial) private var editorial
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
+    @Environment(\.onePlusLinearControlLook) private var look
     @State private var hover = false
     let label: Label
     let pressed: Bool
     let kind: OnePlusLinearButtonStyle.Kind
     let baseRadius: CGFloat
-    private var radius: CGFloat { kind == .filled && panelStyle == .fillSteps ? OnePlusLinearPanelStyle.tileRadius : baseRadius }
+    /// Raised keys: `.raised` and `.soft` text buttons are 28 pt raised keys.
+    private var key: OnePlusLinearControlLook? { look?.keys == true && (kind == .raised || kind == .soft) ? look : nil }
+    private var radius: CGFloat {
+        if let key { return key.radius }
+        return kind == .filled && panelStyle == .fillSteps ? OnePlusLinearPanelStyle.tileRadius : baseRadius
+    }
     let selected: Bool
 
     private var isPressed: Bool { pressed || sample == .pressed }
     private var isHovered: Bool { hover || sample == .hover }
 
+    private var keyFill: Color {
+        guard enabled else { return .clear }
+        return isPressed ? OnePlusLinearColor.pressed : isHovered ? OnePlusLinearColor.hover : .clear
+    }
+
     private var fill: Color {
+        if key != nil { return .clear }
         switch kind {
         case .soft:
             guard enabled else { return OnePlusLinearColor.softButton }
@@ -78,6 +90,11 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
     var body: some View {
         Group {
             switch kind {
+            case .raised where key != nil, .soft where key != nil:
+                let shape = RoundedRectangle(cornerRadius: radius)
+                label.labelStyle(OnePlusLinearLabelStyle()).linearText(weight: .medium).fixedSize()
+                    .padding(.horizontal, 12).frame(height: key?.height ?? OnePlusLinearMetrics.button)
+                    .background { OnePlusRaisedKey(shape: shape).overlay { shape.fill(keyFill) } }
             case .raised:
                 label.linearText(weight: .medium)
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.button)

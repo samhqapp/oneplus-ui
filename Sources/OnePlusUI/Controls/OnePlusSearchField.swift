@@ -78,10 +78,14 @@ public struct OnePlusLinearSearchField: View {
     }
     public var body: some View {
         let applet = style == .applet
+        let keys = applet && look?.keys == true
+        // Raised keys: the native field paints clear and sits in a SwiftUI key well; its focus line stays native.
+        let appletLook = keys ? look.map { var clear = $0; clear.field = .clear; clear.fieldLine = .clear; return clear } : look ?? .quietRaised
         OnePlusNativeSearch(prompt: prompt, text: $text, focusTrigger: focusTrigger &+ shortcutFocusTrigger, identifier: identifier,
                             hint: applet ? nil : "⌘K", fontSize: applet ? OnePlusLinearMetrics.body : OnePlusLinearMetrics.control,
-                            enabled: enabled, linear: true, appletLook: applet ? look ?? .quietRaised : nil)
-            .frame(height: applet ? OnePlusLinearMetrics.appletField : OnePlusLinearMetrics.searchHeight)
+                            enabled: enabled, linear: true, appletLook: applet ? appletLook : nil)
+            .frame(height: keys ? look?.height : applet ? OnePlusLinearMetrics.appletField : OnePlusLinearMetrics.searchHeight)
+            .background { if keys, let look { OnePlusKeyWell(shape: RoundedRectangle(cornerRadius: look.radius)) } }
             .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
             .background { Button("Focus search") { shortcutFocusTrigger &+= 1 }.keyboardShortcut(applet ? "f" : "k").hidden() }
     }
