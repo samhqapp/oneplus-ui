@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.29
+
+- Add `OnePlusLinearDisclosureRow`: a 32 pt panel row with glyph, name,
+  trailing detail, optional accessory, and a turning chevron. It uses the
+  Home row hover, so the fill overflows the text by 6 pt on each side.
+- Add `OnePlusLinearKeyButtonStyle` (the Home action key) with `.compact`,
+  a 24 pt row key that rests one soft step above the group fill.
+- Add `OnePlusLinearUsageBar`, the tile usage bar on its own, for panel rows.
+- Add `OnePlusLinearPlainRowStyle` for rows that draw their own hover.
+- `OnePlusLinearControlRow` takes `titleWidth: nil` for a natural-width name.
+
 ## 1.3.28
 
 - `OnePlusStepperField` in the linear looks right-aligns its value with or

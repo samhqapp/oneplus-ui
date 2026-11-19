@@ -514,20 +514,31 @@ public struct OnePlusLinearTileSplit: View {
     }
 }
 
+/// The tile usage bar on its own, for a panel row (a transfer's progress): a 5 pt `barTrack` with the data color,
+/// radius 3. On the first open it grows with `onePlusLinearReveal`.
+public struct OnePlusLinearUsageBar: View {
+    private let fraction: Double
+    private let color: Color
+    @Environment(\.onePlusLinearReveal) private var reveal
+    public init(_ fraction: Double, color: Color) { self.fraction = fraction; self.color = color }
+    public var body: some View {
+        let fraction = fraction.isFinite ? min(max(fraction, 0), 1) : 0
+        RoundedRectangle(cornerRadius: 3).fill(OnePlusLinearColor.barTrack)
+            .overlay(alignment: .leading) {
+                GeometryReader { proxy in
+                    RoundedRectangle(cornerRadius: 3).fill(color).frame(width: proxy.size.width * fraction * min(max(reveal, 0), 1))
+                }
+            }
+            .frame(height: OnePlusLinearMetrics.usageBar)
+            .accessibilityLabel("Usage").accessibilityValue("\(Int((fraction * 100).rounded())) percent")
+    }
+}
+
 private struct OnePlusLinearUsageRow: View {
     let usage: OnePlusLinearUsage
-    @Environment(\.onePlusLinearReveal) private var reveal
     var body: some View {
         HStack(spacing: 8) {
-            let fraction = usage.fraction.isFinite ? min(max(usage.fraction, 0), 1) : 0
-            RoundedRectangle(cornerRadius: 3).fill(OnePlusLinearColor.barTrack)
-                .overlay(alignment: .leading) {
-                    GeometryReader { proxy in
-                        RoundedRectangle(cornerRadius: 3).fill(usage.color).frame(width: proxy.size.width * fraction * min(max(reveal, 0), 1))
-                    }
-                }
-                .frame(height: OnePlusLinearMetrics.usageBar)
-                .accessibilityLabel("Usage").accessibilityValue("\(Int((fraction * 100).rounded())) percent")
+            OnePlusLinearUsageBar(usage.fraction, color: usage.color)
             if let caption = usage.caption {
                 OnePlusLinearNumberText(caption, pace: usage.pace)
                     .linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted).fixedSize()
@@ -729,23 +740,28 @@ private final class OnePlusChartTickerView<Content: View>: NSView {
 
 /// A 32 pt control row for a panel card: 14 pt glyph, 48 pt name, quiet status, trailing control
 /// (`OnePlusLinearSegmented` for Fan, a `Toggle` with `OnePlusLinearSwitchStyle` for Kwake).
+/// `titleWidth: nil` sizes the name to its text, for tool-tab settings rows such as `Use custom scrolling`.
 public struct OnePlusLinearControlRow<Control: View>: View {
     private let title: String
     private let systemImage: String
     private let status: String?
+    private let titleWidth: CGFloat?
     private let control: Control
     @State private var hover = false
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.isEnabled) private var enabled
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
-    public init(_ title: String, systemImage: String, status: String? = nil, @ViewBuilder control: () -> Control) {
-        self.title = title; self.systemImage = systemImage; self.status = status; self.control = control()
+    public init(_ title: String, systemImage: String, status: String? = nil, titleWidth: CGFloat? = 48,
+                @ViewBuilder control: () -> Control) {
+        self.title = title; self.systemImage = systemImage; self.status = status; self.titleWidth = titleWidth
+        self.control = control()
     }
     public var body: some View {
         HStack(spacing: OnePlusLinearMetrics.rowGap) {
             Image(systemName: systemImage).font(.system(size: 12)).foregroundStyle(OnePlusLinearColor.panelMuted)
                 .frame(width: 14, height: 14).accessibilityHidden(true)
-            Text(title).linearText().lineLimit(1).frame(width: 48, alignment: .leading)
+            Text(title).linearText().lineLimit(1).frame(width: titleWidth, alignment: .leading)
+                .layoutPriority(titleWidth == nil ? 1 : 0)
             if let status { Text(status).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted).lineLimit(1) }
             Spacer(minLength: 0)
             control
@@ -755,6 +771,66 @@ public struct OnePlusLinearControlRow<Control: View>: View {
         .linearRowHover($hover, sample: sample, enabled: enabled, panelStyle: panelStyle)
         .accessibilityElement(children: .contain)
     }
+}
+
+/// A 32 pt panel section toggle inside a group: 14 pt glyph, the name, a quiet trailing detail, an optional
+/// accessory (such as a refresh icon button), and a chevron that turns down when open. Hover is the row fill step.
+public struct OnePlusLinearDisclosureRow<Accessory: View>: View {
+    private let title: String
+    private let systemImage: String
+    private let detail: String?
+    @Binding private var isExpanded: Bool
+    private let accessory: Accessory
+    @State private var hover = false
+    @Environment(\.onePlusControlState) private var sample
+    @Environment(\.isEnabled) private var enabled
+    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
+    private static var chevron: CGFloat { 14 }
+    public init(_ title: String, systemImage: String, detail: String? = nil, isExpanded: Binding<Bool>,
+                @ViewBuilder accessory: () -> Accessory) {
+        self.title = title; self.systemImage = systemImage; self.detail = detail; _isExpanded = isExpanded
+        self.accessory = accessory()
+    }
+    public var body: some View {
+        Button { isExpanded.toggle() } label: {
+            HStack(spacing: OnePlusLinearMetrics.rowGap) {
+                Image(systemName: systemImage).font(.system(size: 12)).foregroundStyle(OnePlusLinearColor.panelMuted)
+                    .frame(width: 14, height: 14)
+                Text(title).linearText(weight: .medium).lineLimit(1).layoutPriority(1)
+                Spacer(minLength: 0)
+                if let detail {
+                    Text(detail).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted).lineLimit(1)
+                }
+                if Accessory.self != EmptyView.self { Color.clear.frame(width: OnePlusLinearMetrics.panelAccessory) }
+                Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(OnePlusLinearColor.panelMuted)
+                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                    .frame(width: Self.chevron, height: Self.chevron)
+            }
+            .padding(.horizontal, OnePlusLinearMetrics.panelRowInset)
+            .frame(height: OnePlusLinearMetrics.controlRow)
+            .linearRowHover($hover, sample: sample, enabled: enabled, panelStyle: panelStyle)
+        }
+        .buttonStyle(OnePlusLinearPlainRowStyle())
+        .overlay(alignment: .trailing) {
+            accessory.frame(width: OnePlusLinearMetrics.panelAccessory)
+                .padding(.trailing, OnePlusLinearMetrics.panelRowInset + Self.chevron + OnePlusLinearMetrics.rowGap)
+        }
+        .accessibilityLabel(title)
+        .accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
+    }
+}
+
+public extension OnePlusLinearDisclosureRow where Accessory == EmptyView {
+    init(_ title: String, systemImage: String, detail: String? = nil, isExpanded: Binding<Bool>) {
+        self.init(title, systemImage: systemImage, detail: detail, isExpanded: isExpanded) { EmptyView() }
+    }
+}
+
+/// A row that draws its own hover and selected fill, so the button adds no press look.
+public struct OnePlusLinearPlainRowStyle: ButtonStyle {
+    public init() {}
+    public func makeBody(configuration: Configuration) -> some View { configuration.label }
 }
 
 /// A 30 pt process row in 12 pt text: 16 pt app icon (terminal glyph when nil), name, CPU percent in the data color
@@ -872,24 +948,48 @@ public struct OnePlusLinearActionBar: View {
     }
 }
 
-private struct OnePlusLinearFillStepButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View { ItemBody(configuration: configuration) }
+/// The Home action key (Fill steps): a raised radius 8 key that rises 1 pt on hover and sits down while pressed.
+/// The action bar sizes it; a row key (`Grant`, `Retry`) uses `.compact`: 24 pt tall, 10 pt label padding.
+public struct OnePlusLinearKeyButtonStyle: ButtonStyle {
+    private let compact: Bool
+    public init() { compact = false }
+    public static var compact: Self { Self(compact: true) }
+    private init(compact: Bool) { self.compact = compact }
+    @ViewBuilder public func makeBody(configuration: Configuration) -> some View {
+        if compact {
+            OnePlusLinearFillStepButtonStyle.ItemBody(label: configuration.label
+                .font(.system(size: OnePlusLinearMetrics.control, weight: .medium)).foregroundStyle(OnePlusLinearColor.ink)
+                .lineLimit(1).padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.panelKey),
+                isPressed: configuration.isPressed, onGroup: true)
+        } else {
+            OnePlusLinearFillStepButtonStyle.ItemBody(label: configuration.label, isPressed: configuration.isPressed)
+        }
+    }
+}
 
-    private struct ItemBody: View {
-        let configuration: Configuration
+private struct OnePlusLinearFillStepButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { ItemBody(label: configuration.label, isPressed: configuration.isPressed) }
+
+    struct ItemBody<Label: View>: View {
+        let label: Label
+        let isPressed: Bool
+        /// A row key sits on the group fill, so it rests one soft step above it (the action key matches the group).
+        var onGroup = false
         @State private var hover = false
         @Environment(\.onePlusControlState) private var sample
         @Environment(\.isEnabled) private var enabled
         @Environment(\.accessibilityReduceMotion) private var reduceMotion
         var body: some View {
-            let pressed = enabled && (configuration.isPressed || sample == .pressed)
+            let pressed = enabled && (isPressed || sample == .pressed)
             let hovered = enabled && (hover || sample == .hover)
             let shift = reduceMotion ? 0 : pressed ? OnePlusMotion.keyPress : hovered ? -OnePlusMotion.keyLift : 0
             let shape = RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius)
             let fill = pressed ? LinearGradient(colors: [OnePlusLinearColor.fillButtonPressed], startPoint: .top, endPoint: .bottom)
+                : hovered && onGroup ? LinearGradient(colors: [OnePlusLinearColor.softButtonHover], startPoint: .top, endPoint: .bottom)
                 : hovered ? OnePlusLinearTabTrack.vertical(OnePlusLinearColor.actionKeyHoverTop, OnePlusLinearColor.actionKeyHoverBottom)
+                : onGroup ? OnePlusLinearTabTrack.vertical(OnePlusLinearColor.softKeyTop, OnePlusLinearColor.softKeyBottom)
                 : OnePlusLinearTabTrack.vertical(OnePlusLinearColor.actionKeyTop, OnePlusLinearColor.actionKeyBottom)
-            configuration.label
+            label
                 .background {
                     shape.fill(fill)
                         .overlay { shape.strokeBorder(OnePlusLinearTabTrack.vertical(OnePlusLinearColor.actionKeyEdgeTop,

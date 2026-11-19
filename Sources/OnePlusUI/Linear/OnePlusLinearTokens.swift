@@ -260,6 +260,11 @@ public enum OnePlusLinearMetrics {
     public static let usageBar: CGFloat = 5
     public static let usageRowBottom: CGFloat = 12
     public static let controlRow: CGFloat = 32
+    /// A panel row with a second line (a transfer, a remote): name over a caption.
+    public static let panelTwoLineRow: CGFloat = 40
+    /// A disclosure row's accessory slot and the compact panel key height (`OnePlusLinearKeyButtonStyle`).
+    public static let panelAccessory: CGFloat = 22
+    public static let panelKey: CGFloat = 24
     public static let processRow: CGFloat = 30
     public static let processIcon: CGFloat = 16
     public static let cpuColumn: CGFloat = 40
