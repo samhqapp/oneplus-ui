@@ -31,7 +31,7 @@ public struct OnePlusLinearDateField: View {
                     segment(part).padding(.trailing, part == .day ? Self.dayGap : 0)
                 }
                 if Self.uses12Hour {
-                    Text(Self.period.string(from: selection)).linearText(color: OnePlusLinearColor.secondary)
+                    Text(Self.period.string(from: selection)).linearText()
                         .padding(.leading, Self.dayGap / 2)
                 }
             }

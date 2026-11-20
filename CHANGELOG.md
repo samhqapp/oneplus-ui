@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.38
+
+- `OnePlusLinearColor.accent` Light is `#D94F45`, matching DESIGN.md (was `#E0493E`).
+- `OnePlusLinearTextField` takes `secure: true` for passwords.
+- `OnePlusMenuButton` `.hostTitle` and `.hostIcon` take the host's button style.
+- `OnePlusStepperField` on a page is at most one control column wide and starts at the leading edge, so it
+  lines up with the select and segmented control in a narrower column.
+- `OnePlusLinearDateField` draws AM and PM in the same ink as the time.
+
 ## 1.3.37
 
 - New `OnePlusLinearDateField`: date, hour, and minute segments on the stepper well; the chevron key and the

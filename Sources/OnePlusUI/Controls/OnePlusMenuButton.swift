@@ -1,9 +1,11 @@
 import SwiftUI
 
 /// A pull-down button that opens `OnePlusPopupMenu`. `.raised` draws the page's raised button
-/// (`OnePlusLinearButtonStyle(.raised)`) with a down chevron, for a settings row.
+/// (`OnePlusLinearButtonStyle(.raised)`) with a down chevron, for a settings row. `.hostTitle` (title and
+/// chevron) and `.hostIcon` (the image only) take the button style the host sets, so the button matches its
+/// neighbors in a toolbar.
 public struct OnePlusMenuButton: View {
-    public enum Variant: Sendable { case neutral, ghost, borderedIcon, raised }
+    public enum Variant: Sendable { case neutral, ghost, borderedIcon, raised, hostTitle, hostIcon }
 
     private let title: String
     private let systemImage: String
@@ -55,6 +57,15 @@ public struct OnePlusMenuButton: View {
                 }
             }
             .buttonStyle(OnePlusLinearButtonStyle(.raised))
+        case .hostTitle:
+            Button(action: toggle) {
+                HStack(spacing: 5) {
+                    Text(title)
+                    Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold)).accessibilityHidden(true)
+                }
+            }
+        case .hostIcon:
+            Button(action: toggle) { Image(systemName: systemImage).accessibilityHidden(true) }
         case .borderedIcon:
             Button(action: toggle) { Image(systemName: systemImage).accessibilityHidden(true) }
                 .buttonStyle(OnePlusButtonStyle(.borderedIcon, height: density.controlHeight))

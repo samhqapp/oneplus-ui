@@ -120,7 +120,7 @@ public enum OnePlusLinearColor {
     public static let panelMuted = color("panelMuted", light: 0x6E6E76, dark: 0x9999A1)
     /// Glyphs only (chevrons), never text.
     public static let tertiary = color("tertiary", light: 0x9A9AA2, dark: 0x66666E)
-    public static let accent = color("accent", light: 0xE0493E, dark: 0xEE5B50)
+    public static let accent = color("accent", light: 0xD94F45, dark: 0xEE5B50)
 
     // CPU temperature steps (DESIGN.md "CPU temperature"). Normal temperatures use `panelMuted`.
     public static let temperatureWarm = color("temperatureWarm", light: 0xA67C00, dark: 0xF2C94C)

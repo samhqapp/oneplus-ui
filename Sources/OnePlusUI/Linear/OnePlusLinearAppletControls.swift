@@ -192,19 +192,31 @@ public struct OnePlusLinearTextField: View {
     private let title: String
     @Binding private var text: String
     private let error: String?
+    private let secure: Bool
     private let onSubmit: () -> Void
     @FocusState private var focused: Bool
     @Environment(\.onePlusLinearControlLook) private var environmentLook
     @Environment(\.isEnabled) private var enabled
 
-    public init(_ title: String, text: Binding<String>, error: String? = nil, onSubmit: @escaping () -> Void = {}) {
-        self.title = title; _text = text; self.error = error; self.onSubmit = onSubmit
+    /// `secure` hides the typed text, for passwords.
+    public init(_ title: String, text: Binding<String>, error: String? = nil, secure: Bool = false,
+                onSubmit: @escaping () -> Void = {}) {
+        self.title = title; _text = text; self.error = error; self.secure = secure; self.onSubmit = onSubmit
+    }
+
+    @ViewBuilder private var input: some View {
+        let prompt = Text(title).foregroundStyle(OnePlusLinearColor.appletMuted)
+        if secure {
+            SecureField(text: $text, prompt: prompt) { Text(title) }
+        } else {
+            TextField(text: $text, prompt: prompt) { Text(title) }
+        }
     }
 
     public var body: some View {
         let look = environmentLook ?? .quietRaised
         let shape = RoundedRectangle(cornerRadius: look.radius)
-        TextField(text: $text, prompt: Text(title).foregroundStyle(OnePlusLinearColor.appletMuted)) { Text(title) }
+        input
             .textFieldStyle(.plain).linearText().focusEffectDisabled()
             .focused($focused).onSubmit(onSubmit)
             .padding(.horizontal, 8).frame(height: look.height)

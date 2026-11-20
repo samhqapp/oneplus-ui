@@ -89,7 +89,7 @@ public struct OnePlusStepperField: View {
                     if let unit { Text(unit).linearText(color: OnePlusLinearColor.secondary).fixedSize().accessibilityHidden(true) }
                 }
             }
-            .frame(width: look == nil ? nil : OnePlusMetrics.controlColumn)
+            .frame(maxWidth: look == nil ? nil : OnePlusMetrics.controlColumn, alignment: .leading)
             .overlay { if focused && OnePlusFocusPolicy.shared.showsFocus { shape.fill(OnePlusLinearColor.hover).allowsHitTesting(false) } }
             .overlay { if error != nil { shape.strokeBorder(OnePlusColor.dangerLine, lineWidth: 1) } }
             .help(error ?? "")
