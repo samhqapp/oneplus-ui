@@ -136,7 +136,7 @@ public struct OnePlusLinearFeaturedApp: View {
                     if let price {
                         Text(price).linearText(M.keyText, weight: .semibold, color: OnePlusLinearColor.softKeyInk)
                             .padding(.horizontal, M.keyPadding).frame(height: M.keyHeight)
-                            .background(OnePlusRaisedKey(shape: RoundedRectangle(cornerRadius: M.keyRadius, style: .continuous)))
+                            .background(OnePlusRaisedKey(shape: RoundedRectangle(cornerRadius: M.keyRadius, style: .continuous), button: true))
                             .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 4 }
                     }
                     Spacer(minLength: 6)

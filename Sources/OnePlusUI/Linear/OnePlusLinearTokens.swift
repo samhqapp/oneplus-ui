@@ -79,6 +79,9 @@ public enum OnePlusLinearColor {
     public static let softKeyEdgeTop = color("softKeyEdgeTop", light: 0xFFFFFF, dark: 0xFFFFFF, darkAlpha: 0.08)
     public static let softKeyEdgeBottom = color("softKeyEdgeBottom", light: 0x000000, lightAlpha: 0.15, dark: 0xFFFFFF, darkAlpha: 0)
     public static let softKeyShadow = color("softKeyShadow", light: 0x000000, lightAlpha: 0.2, dark: 0x000000, darkAlpha: 0.55)
+    /// A raised text button's lit edge and drop: the soft key's in Light; none in Dark, like the menu panel's row keys.
+    public static let buttonKeyEdgeTop = color("buttonKeyEdgeTop", light: 0xFFFFFF, dark: 0xFFFFFF, darkAlpha: 0)
+    public static let buttonKeyShadow = color("buttonKeyShadow", light: 0x000000, lightAlpha: 0.2, dark: 0x000000, darkAlpha: 0)
     public static let softKeyInk = color("softKeyInk", light: 0x1B1B1F, dark: 0xC4C4CA)
     public static let softKeyTrackInk = color("softKeyTrackInk", light: 0x55555C, dark: 0x9A9AA1)
     /// 1 pt line between two unselected tabs, fading out at both ends. Dark only.

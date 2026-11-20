@@ -110,18 +110,27 @@ struct OnePlusKeyWell<S: InsettableShape>: View {
 }
 
 /// A raised key: the panel soft-key gradient (or the ink key), a lit top edge, and a short drop. `lift` raises it.
+/// `button` draws a text button: in Dark it has no lit edge and no drop, like the menu panel's row keys.
 public struct OnePlusRaisedKey<S: InsettableShape>: View {
     let shape: S
     var ink = false
     var lift: CGFloat = 0
-    public init(shape: S, ink: Bool = false, lift: CGFloat = 0) { self.shape = shape; self.ink = ink; self.lift = lift }
+    var button = false
+    public init(shape: S, ink: Bool = false, lift: CGFloat = 0, button: Bool = false) {
+        self.shape = shape; self.ink = ink; self.lift = lift; self.button = button
+    }
+    private var edgeTop: Color {
+        ink ? OnePlusLinearColor.openKeyEdgeTop : button ? OnePlusLinearColor.buttonKeyEdgeTop : OnePlusLinearColor.softKeyEdgeTop
+    }
+    private var drop: Color {
+        ink ? OnePlusLinearColor.openKeyShadow : button ? OnePlusLinearColor.buttonKeyShadow : OnePlusLinearColor.softKeyShadow
+    }
     public var body: some View {
         shape.fill(LinearGradient(colors: ink ? [OnePlusLinearColor.openKeyTop, OnePlusLinearColor.openKeyBottom]
                                               : [OnePlusLinearColor.softKeyTop, OnePlusLinearColor.softKeyBottom], startPoint: .top, endPoint: .bottom))
-            .overlay { shape.strokeBorder(LinearGradient(colors: ink ? [OnePlusLinearColor.openKeyEdgeTop, OnePlusLinearColor.openKeyEdgeBottom]
-                                                                     : [OnePlusLinearColor.softKeyEdgeTop, OnePlusLinearColor.softKeyEdgeBottom],
+            .overlay { shape.strokeBorder(LinearGradient(colors: [edgeTop, ink ? OnePlusLinearColor.openKeyEdgeBottom : OnePlusLinearColor.softKeyEdgeBottom],
                                                          startPoint: .top, endPoint: .bottom), lineWidth: 1) }
-            .shadow(color: ink ? OnePlusLinearColor.openKeyShadow : OnePlusLinearColor.softKeyShadow, radius: 1.5 + lift, y: 1 + lift)
+            .shadow(color: drop, radius: 1.5 + lift, y: 1 + lift)
     }
 }
 

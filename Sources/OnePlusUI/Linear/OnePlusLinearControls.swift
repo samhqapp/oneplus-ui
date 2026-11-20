@@ -96,7 +96,7 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                 let shape = RoundedRectangle(cornerRadius: radius)
                 label.labelStyle(OnePlusLinearLabelStyle()).linearText(weight: .medium).fixedSize()
                     .padding(.horizontal, 12).frame(height: key?.height ?? OnePlusLinearMetrics.button)
-                    .background { OnePlusRaisedKey(shape: shape).overlay { shape.fill(keyFill) } }
+                    .background { OnePlusRaisedKey(shape: shape, button: true).overlay { shape.fill(keyFill) } }
             case .raised:
                 label.linearText(weight: .medium)
                     .padding(.horizontal, 10).frame(height: OnePlusLinearMetrics.button)

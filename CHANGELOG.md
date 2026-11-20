@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.42
+
+- Raised text buttons (`.raised` and `.soft` under `.raisedKeys`, the app list price key) drop the lit top edge
+  and the drop shadow in Dark, like the menu panel's row keys. Light is unchanged. New tokens `buttonKeyEdgeTop`
+  and `buttonKeyShadow`; `OnePlusRaisedKey(button: true)`.
+
 ## 1.3.41
 
 - `OnePlusLinearButtonStyle(.inline)`: a text action inside a caption line, such as the Fan chart's `Reset Curve`.
