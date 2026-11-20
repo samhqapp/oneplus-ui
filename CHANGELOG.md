@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.40
+
+- `OnePlusCheckboxStyle` draws its own 14 pt rounded square: the track well with a hairline when off, the accent
+  with a white check when on. Hover shades it one `pressed` step, press two, and it follows a sampled
+  `onePlusControlState`. No native checkbox and no focus ring.
+- `OnePlusLinearTextField` takes `autofocus: true` to put the cursor in the field when it appears.
+
 ## 1.3.39
 
 - `OnePlusWindowContent` applies `onePlusFocusPolicy()`, so every scene window that uses it has no focus ring.

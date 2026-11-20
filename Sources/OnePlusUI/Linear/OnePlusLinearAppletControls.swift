@@ -194,14 +194,16 @@ public struct OnePlusLinearTextField: View {
     private let error: String?
     private let secure: Bool
     private let onSubmit: () -> Void
+    private let autofocus: Bool
     @FocusState private var focused: Bool
     @Environment(\.onePlusLinearControlLook) private var environmentLook
     @Environment(\.isEnabled) private var enabled
 
-    /// `secure` hides the typed text, for passwords.
+    /// `secure` hides the typed text, for passwords. `autofocus` puts the cursor in the field when it appears.
     public init(_ title: String, text: Binding<String>, error: String? = nil, secure: Bool = false,
-                onSubmit: @escaping () -> Void = {}) {
-        self.title = title; _text = text; self.error = error; self.secure = secure; self.onSubmit = onSubmit
+                autofocus: Bool = false, onSubmit: @escaping () -> Void = {}) {
+        self.title = title; _text = text; self.error = error; self.secure = secure
+        self.autofocus = autofocus; self.onSubmit = onSubmit
     }
 
     @ViewBuilder private var input: some View {
@@ -219,6 +221,7 @@ public struct OnePlusLinearTextField: View {
         input
             .textFieldStyle(.plain).linearText().focusEffectDisabled()
             .focused($focused).onSubmit(onSubmit)
+            .onAppear { if autofocus { focused = true } }
             .padding(.horizontal, 8).frame(height: look.height)
             .background { OnePlusQuietWell.field(shape, focused: focused) }
             .overlay { if error != nil { shape.strokeBorder(OnePlusColor.dangerLine, lineWidth: 1) } }

@@ -241,8 +241,66 @@ public struct OnePlusSelect<Value: Hashable>: View {
 public struct OnePlusCheckboxStyle: ToggleStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
-        Toggle(isOn: configuration.$isOn) { configuration.label.onePlusText(.row) }
-            .toggleStyle(.checkbox).tint(OnePlusColor.primaryFill)
+        Button { configuration.isOn.toggle() } label: {
+            HStack(spacing: 6) {
+                OnePlusCheckboxBox(isOn: configuration.isOn)
+                configuration.label.onePlusText(.row)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(OnePlusCheckboxButtonStyle())
+        .focusEffectDisabled()
+        .accessibilityRepresentation { Toggle(isOn: configuration.$isOn) { configuration.label } }
+    }
+}
+
+/// A 14 pt rounded square: the track well with a hairline when off, the accent with a white check when on.
+/// Hover shades it one `pressed` step, press two steps, like the stepper key.
+private struct OnePlusCheckboxBox: View {
+    static let size: CGFloat = 14
+    static let radius: CGFloat = 4
+    static let check: CGFloat = 8
+    let isOn: Bool
+    @Environment(\.onePlusCheckboxState) private var live
+    @Environment(\.onePlusControlState) private var sample
+    @Environment(\.isEnabled) private var enabled
+    private var state: OnePlusCheckboxState {
+        live == .pressed || sample == .pressed ? .pressed : live == .hover || sample == .hover ? .hover : .rest
+    }
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: Self.radius)
+        shape.fill(isOn ? OnePlusLinearColor.accent : OnePlusLinearColor.fillTrack)
+            .overlay { if state != .rest { shape.fill(OnePlusLinearColor.pressed) } }
+            .overlay { if state == .pressed { shape.fill(OnePlusLinearColor.pressed) } }
+            .overlay { shape.strokeBorder(OnePlusLinearColor.line, lineWidth: 1) }
+            .overlay {
+                if isOn {
+                    Image(systemName: "checkmark").font(.system(size: Self.check, weight: .bold)).foregroundStyle(Color.white)
+                }
+            }
+            .frame(width: Self.size, height: Self.size)
+            .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+    }
+}
+
+private enum OnePlusCheckboxState { case rest, hover, pressed }
+
+private struct OnePlusCheckboxStateKey: EnvironmentKey { static let defaultValue = OnePlusCheckboxState.rest }
+
+private extension EnvironmentValues {
+    var onePlusCheckboxState: OnePlusCheckboxState {
+        get { self[OnePlusCheckboxStateKey.self] }
+        set { self[OnePlusCheckboxStateKey.self] = newValue }
+    }
+}
+
+private struct OnePlusCheckboxButtonStyle: ButtonStyle {
+    @State private var hover = false
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .environment(\.onePlusCheckboxState, configuration.isPressed ? .pressed : hover ? .hover : .rest)
+            .onHover { hover = $0 }
     }
 }
 
