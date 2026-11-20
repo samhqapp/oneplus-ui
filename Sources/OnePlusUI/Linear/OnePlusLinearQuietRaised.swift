@@ -147,9 +147,9 @@ struct OnePlusQuietFocusFill<S: InsettableShape>: View {
 }
 
 extension OnePlusQuietWell {
-    /// A field (stepper, well, text field) rather than a track.
-    static func field(_ shape: S, focused: Bool = false) -> OnePlusQuietWell {
-        OnePlusQuietWell(shape: shape, fill: OnePlusLinearColor.quietField, line: OnePlusLinearColor.quietFieldLine, focused: focused, keyable: true)
+    /// A text field or color well: the stepper's flat `fillTrack` well, so every field on a page has one fill.
+    static func field(_ shape: S, focused: Bool = false) -> some View {
+        shape.fill(OnePlusLinearColor.fillTrack).overlay { OnePlusQuietFocusFill(shape: shape, focused: focused) }
     }
 }
 

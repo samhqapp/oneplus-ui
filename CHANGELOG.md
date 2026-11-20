@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.43
+
+- `OnePlusLinearTextField` and `OnePlusLinearColorWell` sit on the stepper's flat `fillTrack` well instead of the
+  sunken key well, so every field on a page has one fill. In Dark the text field was near-black beside gray steppers.
+
 ## 1.3.42
 
 - Raised text buttons (`.raised` and `.soft` under `.raisedKeys`, the app list price key) drop the lit top edge
