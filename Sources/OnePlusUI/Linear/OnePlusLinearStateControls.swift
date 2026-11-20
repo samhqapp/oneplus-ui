@@ -79,7 +79,7 @@ private struct OnePlusQuietSwitchStyle: ButtonStyle {
 /// on each side, the room "Auto" has in a fixed segment, so a longer label gets the same air (the panel Fan row).
 public enum OnePlusLinearSegmentSizing: Sendable { case equal, fitted, snug }
 
-/// A compact segmented control: 22 pt track, 40 x 18 segments, 11 pt labels.
+/// The segmented control, drawn like the menu panel's everywhere (see `OnePlusLinearWell`).
 /// A choice for which `isChoiceEnabled` returns false is dimmed and takes no click, hover, or arrow-key selection.
 public struct OnePlusLinearSegmented<Value: Hashable>: View {
     private let choices: [(Value, String)]
@@ -90,51 +90,46 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
     @Namespace private var thumb
     @FocusState private var focusedSegment: Value?
     @Environment(\.onePlusLinearControlLook) private var look
-    @Environment(\.onePlusLinearPanelStyle) private var panelStyle
-    @Environment(\.isEnabled) private var enabled
-    private var fill: Bool { look == nil && panelStyle == .fillSteps }
     public init(choices: [(Value, String)], selection: Binding<Value>, accessibilityLabel: String,
                 sizing: OnePlusLinearSegmentSizing = .equal, isChoiceEnabled: @escaping (Value) -> Bool = { _ in true }) {
         self.choices = choices; _selection = selection; label = accessibilityLabel; self.sizing = sizing
         self.isChoiceEnabled = isChoiceEnabled
     }
     public var body: some View {
-        // Panel: 22 pt track, 40 x 18 segments, 11 pt labels. Applet look: a sunken 22 pt track, 36 x 18 segments,
-        // 13 pt labels, a solid thumb, and faded dividers between unselected segments.
-        // Fill steps: a 24 pt fill-step track, 40 x 20 segments touching, 11.5 pt labels, a fill-only thumb.
-        let radius = look?.segmentRadius ?? (fill ? 5 : 4)
-        HStack(spacing: look == nil && !fill ? 2 : 0) {
+        // Every look draws the menu panel's segmented control: segments touching on a `fillTrack` well, one flat
+        // `fillThumb` thumb. Only the size follows the look: 24 pt with 11.5 pt labels in a panel, the look's
+        // height with 13 pt labels on a page.
+        let well = OnePlusLinearWell(look)
+        HStack(spacing: 0) {
             ForEach(choices, id: \.0) { value, title in
                 let on = value == selection
-                let previous = choices.firstIndex { $0.0 == value }.flatMap { $0 > 0 ? choices[$0 - 1].0 : nil }
-                let divided = look != nil && look?.keys != true && !on && previous != nil && previous != selection
                 Button { if isChoiceEnabled(value) { selection = value } } label: {
-                    Text(title).linearText(fill ? OnePlusLinearMetrics.caption + 0.5
-                                           : look == nil ? OnePlusLinearMetrics.caption : OnePlusLinearMetrics.body,
+                    Text(title).linearText(look == nil ? OnePlusLinearMetrics.caption + 0.5 : OnePlusLinearMetrics.body,
                                            weight: on ? .medium : .regular,
-                                           color: on ? OnePlusLinearColor.ink : look == nil ? OnePlusLinearColor.secondary : OnePlusLinearColor.appletSecondary)
+                                           color: on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
                         .offset(y: look == nil ? 0 : Self.opticalOffset(title))
                         .fixedSize(horizontal: sizing != .equal, vertical: false)
                         .padding(.horizontal, sizing == .fitted ? 10 : sizing == .snug ? Self.snugPadding : 0)
                         .frame(width: sizing == .equal ? look?.segmentWidth ?? OnePlusLinearMetrics.segment.width : nil,
-                               height: look?.segmentHeight ?? (fill ? 20 : OnePlusLinearMetrics.segment.height))
+                               height: well.innerHeight)
                         .contentShape(Rectangle())
                         .background {
                             // One thumb moves between segments, so Quiet motion slides it.
-                            if on { thumbShape(radius: radius).matchedGeometryEffect(id: "thumb", in: thumb) }
+                            if on {
+                                RoundedRectangle(cornerRadius: well.innerRadius).fill(OnePlusLinearColor.fillThumb)
+                                    .matchedGeometryEffect(id: "thumb", in: thumb)
+                            }
                         }
-                        .overlay(alignment: .leading) { if divided { OnePlusQuietDivider() } }
                 }
-                .modifier(OnePlusLinearSegmentButton(quiet: look != nil, radius: radius))
-                // One focus line goes around the whole control, never around one segment.
+                .buttonStyle(OnePlusLinearButtonStyle(radius: well.innerRadius))
                 .focused($focusedSegment, equals: value).focusEffectDisabled()
                 .disabled(!isChoiceEnabled(value))
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
         }
         .linearMotion(OnePlusMotion.segment, value: selection)
-        .modifier(OnePlusLinearSegmentTrack(look: look, fill: fill, focused: focusedSegment != nil))
-        .opacity(look != nil && !enabled ? OnePlusMetrics.disabledOpacity : 1)
+        .padding(OnePlusLinearWell.inset)
+        .background(OnePlusLinearColor.fillTrack, in: RoundedRectangle(cornerRadius: well.radius))
         .accessibilityElement(children: .contain).accessibilityLabel(label)
         .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
             guard press.modifiers.isEmpty else { return .ignored }
@@ -153,50 +148,104 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
     public static func opticalOffset(_ title: String) -> CGFloat {
         title.contains { $0.isUppercase || $0.isNumber } ? 0 : -1.25
     }
+}
 
-    @ViewBuilder private func thumbShape(radius: CGFloat) -> some View {
-        if look != nil {
-            OnePlusQuietCap.thumb(RoundedRectangle(cornerRadius: radius))
-        } else if fill {
-            RoundedRectangle(cornerRadius: radius).fill(OnePlusLinearColor.fillThumb)
-        } else {
-            RoundedRectangle(cornerRadius: radius).fill(OnePlusLinearColor.segmentSelected)
-                .shadow(color: OnePlusLinearColor.segmentShadow, radius: 1, y: 1)
-                .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(OnePlusLinearColor.segmentRing, lineWidth: 0.5) }
+/// The menu panel's control well, shared by the segmented control and the stepper: a `fillTrack` well with a
+/// 2 pt inset around `fillThumb` parts. 24 pt, radius 7 in a panel; the look's height and radius on a page.
+struct OnePlusLinearWell {
+    static let inset: CGFloat = 2
+    static let panelHeight: CGFloat = 24
+    static let panelRadius: CGFloat = 7
+    let height: CGFloat
+    let radius: CGFloat
+    init(_ look: OnePlusLinearControlLook?) {
+        height = look?.height ?? Self.panelHeight
+        radius = look?.radius ?? Self.panelRadius
+    }
+    var innerHeight: CGFloat { height - 2 * Self.inset }
+    var innerRadius: CGFloat { radius - Self.inset }
+}
+
+/// The stepper, drawn like the menu panel's segmented control: the value sits on the `fillTrack` well and a
+/// 16 pt `fillThumb` key on the right holds a chevron up over a chevron down. Up and down arrows step while the
+/// key has keyboard focus; a text field in `content` handles its own arrows.
+public struct OnePlusLinearStepper<Content: View>: View {
+    private let title: String
+    private let canDecrement: Bool
+    private let canIncrement: Bool
+    private let decrement: () -> Void
+    private let increment: () -> Void
+    private let content: Content
+    @Environment(\.onePlusLinearControlLook) private var look
+    @Environment(\.isEnabled) private var enabled
+    static var keyWidth: CGFloat { 16 }
+
+    public init(_ title: String, canDecrement: Bool = true, canIncrement: Bool = true,
+                decrement: @escaping () -> Void, increment: @escaping () -> Void, @ViewBuilder content: () -> Content) {
+        self.title = title; self.canDecrement = canDecrement; self.canIncrement = canIncrement
+        self.decrement = decrement; self.increment = increment; self.content = content()
+    }
+
+    public var body: some View {
+        let well = OnePlusLinearWell(look)
+        HStack(spacing: 0) {
+            content.padding(.horizontal, 8).frame(maxWidth: .infinity, alignment: .trailing)
+            VStack(spacing: 0) {
+                arrow("chevron.up", "Increase \(title)", half: .top, enabled: canIncrement, action: increment)
+                arrow("chevron.down", "Decrease \(title)", half: .bottom, enabled: canDecrement, action: decrement)
+            }
+            .frame(width: Self.keyWidth, height: well.innerHeight)
+            .background(OnePlusLinearColor.fillThumb, in: RoundedRectangle(cornerRadius: well.innerRadius))
+            .clipShape(RoundedRectangle(cornerRadius: well.innerRadius))
+            .onKeyPress(keys: [.upArrow, .downArrow]) { press in
+                guard press.modifiers.isEmpty else { return .ignored }
+                if press.key == .upArrow { if canIncrement { increment() } } else if canDecrement { decrement() }
+                return .handled
+            }
         }
+        .padding(OnePlusLinearWell.inset)
+        .frame(height: well.height)
+        .background(OnePlusLinearColor.fillTrack, in: RoundedRectangle(cornerRadius: well.radius))
+        .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+    }
+
+    private func arrow(_ symbol: String, _ label: String, half: OnePlusStepperHalf, enabled: Bool,
+                       action: @escaping () -> Void) -> some View {
+        Button(action: action) { Image(systemName: symbol) }
+            .buttonStyle(OnePlusStepperArrowStyle(half: half))
+            .focusEffectDisabled()
+            .disabled(!enabled)
+            .accessibilityLabel(label)
     }
 }
 
-/// Panel segments use the shared button feedback; Quiet Raised segments only darken while pressed.
-private struct OnePlusLinearSegmentButton: ViewModifier {
-    let quiet: Bool
-    let radius: CGFloat
-    func body(content: Content) -> some View {
-        if quiet { content.buttonStyle(OnePlusQuietPressStyle(radius: radius)) } else { content.buttonStyle(OnePlusLinearButtonStyle(radius: radius)) }
-    }
-}
+enum OnePlusStepperHalf { case top, bottom }
 
-private struct OnePlusQuietPressStyle: ButtonStyle {
-    let radius: CGFloat
+/// One half of the stepper key: a 7 pt bold chevron in `secondary`; hover shades the half one `pressed` step
+/// with `ink` glyph, press two steps. A sampled hover or press shows on the top half only.
+private struct OnePlusStepperArrowStyle: ButtonStyle {
+    let half: OnePlusStepperHalf
+    @State private var hover = false
+    @Environment(\.onePlusControlState) private var sample
+    @Environment(\.isEnabled) private var enabled
+
     func makeBody(configuration: Configuration) -> some View {
+        let sampled = half == .top ? sample : .rest
+        let pressed = enabled && (configuration.isPressed || sampled == .pressed)
+        let lit = enabled && (hover || sampled == .hover || pressed)
         configuration.label
-            .background(configuration.isPressed ? OnePlusLinearColor.pressed : .clear, in: RoundedRectangle(cornerRadius: radius))
+            .font(.system(size: 7, weight: .bold))
+            .foregroundStyle(lit ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
+            .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+            .offset(y: half == .top ? 0.5 : -0.5)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background {
+                ZStack {
+                    if lit { OnePlusLinearColor.pressed }
+                    if pressed { OnePlusLinearColor.pressed }
+                }
+            }
             .contentShape(Rectangle())
-    }
-}
-
-private struct OnePlusLinearSegmentTrack: ViewModifier {
-    let look: OnePlusLinearControlLook?
-    let fill: Bool
-    let focused: Bool
-    func body(content: Content) -> some View {
-        if let look {
-            content.padding(look.segmentInset)
-                .background { OnePlusQuietWell(shape: RoundedRectangle(cornerRadius: look.radius), focused: focused, keyable: true) }
-        } else if fill {
-            content.padding(2).background(OnePlusLinearColor.fillTrack, in: RoundedRectangle(cornerRadius: 7))
-        } else {
-            content.linearTrack(radius: OnePlusLinearMetrics.radius)
-        }
+            .onePlusHover($hover)
     }
 }

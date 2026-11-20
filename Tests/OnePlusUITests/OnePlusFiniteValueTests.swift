@@ -81,13 +81,7 @@ final class OnePlusFiniteValueTests: XCTestCase {
         }
     }
 
-    func testStepperRejectsNonFiniteAndOverflowingInput() {
-        for value in [Double.nan, .infinity, -.infinity, .greatestFiniteMagnitude, -0.5] {
-            XCTAssertNil(OnePlusStepperField.nativeValue(value, in: Int.min...Int.max))
-        }
-        XCTAssertEqual(OnePlusStepperField.nativeValue(0, in: 0...10), 0)
-        XCTAssertEqual(OnePlusStepperField.nativeValue(10, in: 0...10), 10)
-        XCTAssertNil(OnePlusStepperField.nativeValue(11, in: 0...10))
+    func testStepperRejectsOverflowingInput() {
         XCTAssertNil(OnePlusStepperField.nextValue(Int.max, by: 1, in: Int.min...Int.max))
         XCTAssertNil(OnePlusStepperField.nextValue(Int.min, by: -1, in: Int.min...Int.max))
         XCTAssertEqual(OnePlusStepperField.nextValue(0, by: 1, in: 0...10), 1)

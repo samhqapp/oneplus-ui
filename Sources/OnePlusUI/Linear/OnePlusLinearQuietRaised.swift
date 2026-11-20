@@ -177,23 +177,3 @@ extension OnePlusQuietCap {
     }
 }
 
-/// A short divider that fades out at both ends, as between unselected classic macOS segments.
-struct OnePlusQuietDivider: View {
-    @Environment(\.displayScale) private var scale
-    var body: some View {
-        LinearGradient(colors: [.clear, OnePlusLinearColor.quietDivider, .clear], startPoint: .top, endPoint: .bottom)
-            .frame(width: 1 / max(scale, 1), height: 12)
-    }
-}
-
-/// A stepper field's minus or plus column: a 9 pt semibold glyph in `appletSecondary`; press fills the column.
-struct OnePlusQuietStepButtonStyle: ButtonStyle {
-    let width: CGFloat
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 9, weight: .semibold)).foregroundStyle(OnePlusLinearColor.appletSecondary)
-            .frame(width: width).frame(maxHeight: .infinity)
-            .background(configuration.isPressed ? OnePlusLinearColor.pressed : .clear)
-            .contentShape(Rectangle())
-    }
-}

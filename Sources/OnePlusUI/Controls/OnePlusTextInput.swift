@@ -70,75 +70,32 @@ public struct OnePlusStepperField: View {
         _draft = State(initialValue: String(value.wrappedValue))
     }
     @Environment(\.onePlusLinearControlLook) private var look
-    @Environment(\.displayScale) private var displayScale
 
+    /// The shared `OnePlusLinearStepper`: a right-aligned value and optional unit on the well, the chevron key on
+    /// the right. On a page it is one control column wide, so values and units line up from row to row.
     public var body: some View {
-        if let look { linearBody(look) } else { regularBody }
-    }
-
-    /// The applet look (Quiet Raised): one 22 pt field with plain minus and plus columns behind short hairlines,
-    /// around a right-aligned 13 pt value and an optional 13 pt unit.
-    private func linearBody(_ look: OnePlusLinearControlLook) -> some View {
-        let shape = RoundedRectangle(cornerRadius: look.radius)
-        return HStack(spacing: 0) {
-            stepButton("minus", "Decrease \(title)", -step, look)
-            columnLine
-            HStack(spacing: 3) {
-                TextField(title, text: $draft).textFieldStyle(.plain).linearText().focusEffectDisabled()
-                    .multilineTextAlignment(.trailing)
-                    .focused($focused).onSubmit(commit)
-                    .onKeyPress(.upArrow) { change(by: step); return .handled }
-                    .onKeyPress(.downArrow) { change(by: -step); return .handled }
-                    .accessibilityLabel(title).accessibilityHint(error ?? "")
-                if let unit { Text(unit).linearText(color: OnePlusLinearColor.appletMuted).fixedSize().accessibilityHidden(true) }
-            }
-            .padding(.horizontal, 8)
-            .frame(maxWidth: .infinity)
-            columnLine
-            stepButton("plus", "Increase \(title)", step, look)
-        }
-        // Every stepper is one control column wide, so values and units line up from row to row.
-        .frame(width: OnePlusMetrics.controlColumn, height: look.height)
-        .clipShape(shape)
-        .background { OnePlusQuietWell.field(shape, focused: focused) }
-        .overlay { if error != nil { shape.strokeBorder(OnePlusColor.dangerLine, lineWidth: 1) } }
-        .help(error ?? "")
-        .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
-        .onChange(of: value) { _, newValue in draft = String(newValue); error = nil }
-        .onChange(of: focused) { _, newValue in if !newValue { commit() } }
-    }
-
-    private func stepButton(_ symbol: String, _ label: String, _ delta: Int, _ look: OnePlusLinearControlLook) -> some View {
-        Button { change(by: delta) } label: { Image(systemName: symbol) }
-            .buttonStyle(OnePlusQuietStepButtonStyle(width: look.stepperButton))
-            .focusEffectDisabled().accessibilityLabel(label)
-    }
-
-    /// A short hairline between the value and a minus or plus column.
-    private var columnLine: some View {
-        OnePlusLinearColor.quietFieldLine.frame(width: 1 / max(displayScale, 1)).padding(.vertical, 5)
-    }
-
-    private var regularBody: some View {
+        let shape = RoundedRectangle(cornerRadius: look?.radius ?? OnePlusLinearWell.panelRadius)
         VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 0) {
-                TextField(title, text: $draft).textFieldStyle(.plain).onePlusText(.control).focusEffectDisabled()
-                    .padding(.horizontal, 8).focused($focused).onSubmit(commit)
-                    .onKeyPress(.upArrow) { change(by: step); return .handled }
-                    .onKeyPress(.downArrow) { change(by: -step); return .handled }
-                    .accessibilityLabel(title).accessibilityHint(error ?? "")
-                if let unit { Text(unit).font(.system(size: 9, design: .monospaced)).foregroundStyle(OnePlusColor.muted).padding(.trailing, 8) }
-                OnePlusColor.line.frame(width: 1)
-                OnePlusNativeStepper(title: title, value: $value, range: range, step: step, enabled: enabled)
-                    .controlSize(.small).frame(width: 17).clipped()
+            OnePlusLinearStepper(title, canDecrement: Self.nextValue(value, by: -step, in: range) != nil,
+                                 canIncrement: Self.nextValue(value, by: step, in: range) != nil,
+                                 decrement: { change(by: -step) }, increment: { change(by: step) }) {
+                HStack(spacing: 3) {
+                    TextField(title, text: $draft).textFieldStyle(.plain).linearText().focusEffectDisabled()
+                        .multilineTextAlignment(.trailing)
+                        .focused($focused).onSubmit(commit)
+                        .onKeyPress(.upArrow) { change(by: step); return .handled }
+                        .onKeyPress(.downArrow) { change(by: -step); return .handled }
+                        .accessibilityLabel(title).accessibilityHint(error ?? "")
+                    if let unit { Text(unit).linearText(color: OnePlusLinearColor.secondary).fixedSize().accessibilityHidden(true) }
+                }
             }
-            .frame(height: controlHeight ?? density.controlHeight)
-            .background(focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.fieldFocus : OnePlusColor.field, in: RoundedRectangle(cornerRadius: 6))
-            .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(error != nil ? OnePlusColor.dangerLine : OnePlusColor.line, lineWidth: 1) }
-            if let error, !groupedErrors { Text(error).onePlusText(.caption).foregroundStyle(OnePlusColor.danger) }
+            .frame(width: look == nil ? nil : OnePlusMetrics.controlColumn)
+            .overlay { if focused && OnePlusFocusPolicy.shared.showsFocus { shape.fill(OnePlusLinearColor.hover).allowsHitTesting(false) } }
+            .overlay { if error != nil { shape.strokeBorder(OnePlusColor.dangerLine, lineWidth: 1) } }
+            .help(error ?? "")
+            if let error, look == nil, !groupedErrors { Text(error).onePlusText(.caption).foregroundStyle(OnePlusColor.danger) }
         }
         .preference(key: OnePlusFieldErrorPreference.self, value: groupedErrors ? error.map { ["\(title): \($0)"] } ?? [] : [])
-        .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
         .onChange(of: value) { _, newValue in draft = String(newValue); error = nil }
         .onChange(of: focused) { _, newValue in if !newValue { commit() } }
     }
@@ -156,48 +113,6 @@ public struct OnePlusStepperField: View {
     static func nextValue(_ value: Int, by delta: Int, in range: ClosedRange<Int>) -> Int? {
         let (next, overflow) = value.addingReportingOverflow(delta)
         return !overflow && range.contains(next) ? next : nil
-    }
-    static func nativeValue(_ value: Double, in range: ClosedRange<Int>) -> Int? {
-        guard value.isFinite, let integer = Int(exactly: value), range.contains(integer) else { return nil }
-        return integer
-    }
-}
-
-private struct OnePlusNativeStepper: NSViewRepresentable {
-    let title: String
-    @Binding var value: Int
-    let range: ClosedRange<Int>
-    let step: Int
-    let enabled: Bool
-    func makeCoordinator() -> Coordinator { Coordinator(value: $value, range: range) }
-    func makeNSView(context: Context) -> NSStepper {
-        let view = NSStepper()
-        view.target = context.coordinator
-        view.action = #selector(Coordinator.changed(_:))
-        view.autorepeat = false
-        view.valueWraps = false
-        view.controlSize = .small
-        return view
-    }
-    func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSStepper, context: Context) -> CGSize? {
-        nsView.intrinsicContentSize
-    }
-    func updateNSView(_ view: NSStepper, context: Context) {
-        view.controlSize = .small
-        context.coordinator.value = $value
-        context.coordinator.range = range
-        view.minValue = Double(range.lowerBound); view.maxValue = Double(range.upperBound)
-        view.increment = Double(step); view.integerValue = value; view.isEnabled = enabled
-        view.setAccessibilityLabel(title)
-    }
-    @MainActor final class Coordinator: NSObject {
-        var value: Binding<Int>
-        var range: ClosedRange<Int>
-        init(value: Binding<Int>, range: ClosedRange<Int>) { self.value = value; self.range = range }
-        @objc func changed(_ sender: NSStepper) {
-            guard let next = OnePlusStepperField.nativeValue(sender.doubleValue, in: range) else { return }
-            value.wrappedValue = next
-        }
     }
 }
 

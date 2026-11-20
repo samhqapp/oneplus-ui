@@ -124,6 +124,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
     @State private var anchor = OnePlusPopupAnchorReference()
     @FocusState private var focused: Bool
     @Environment(\.onePlusLinearControlLook) private var environmentLook
+    @Environment(\.onePlusControlState) private var sample
     @Environment(\.isEnabled) private var enabled
 
     public init(choices: [(Value, String)], selection: Binding<Value>, accessibilityLabel: String,
@@ -145,8 +146,9 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
     }
 
     @ViewBuilder private var trigger: some View {
+        // Every look draws the menu panel's select field; only the height and radius follow the row's look.
         let look = environmentLook ?? .quietRaised
-        let lit = enabled && (hover || expanded)
+        let lit = enabled && (hover || expanded || sample == .hover)
         switch style {
         case .field:
             HStack(spacing: 8) {
@@ -156,7 +158,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
             }
             .padding(.horizontal, 11)
             .frame(width: width, height: look.keys ? look.height : OnePlusLinearMetrics.appletField)
-            .linearFieldBezel(look, focused: focused)
+            .linearFieldBezel(.quietRaised, radius: look.radius, focused: focused)
             .overlay { if lit { RoundedRectangle(cornerRadius: look.radius).fill(OnePlusLinearColor.hover) } }
             .contentShape(Rectangle()).onePlusHover($hover)
         case .text:

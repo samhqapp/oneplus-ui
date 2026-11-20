@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.36
+
+- `OnePlusLinearSegmented` draws the menu panel look in every context: segments touching on a `fillTrack`
+  well with a flat `fillThumb` thumb. Pages keep their look's height and 13 pt labels.
+- `OnePlusLinearSelect` `.field` draws the panel's white field with a hairline in every look, and shows a
+  sampled hover.
+- New `OnePlusLinearStepper`: the value on the `fillTrack` well and a 16 pt `fillThumb` key with chevron up
+  and down halves, hover and press fills, and arrow keys. `OnePlusStepperField` uses it in every look; the
+  native `NSStepper` and the minus and plus columns are gone.
+
 ## 1.3.35
 
 - `.snug` segments size to their label plus 8 pt a side with no fixed width, so a long label such as
