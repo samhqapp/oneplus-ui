@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.34
+
+- Remove the unused `fanTile` fill; the Fan page now uses its own icon asset.
+
 ## 1.3.33
 
 - `OnePlusLinearSegmentSizing.snug`: segments keep the fixed width; a longer
