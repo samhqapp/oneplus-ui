@@ -110,7 +110,7 @@ private final class OnePlusColorPanelTarget: NSObject {
     @objc private func colorChanged(_ sender: NSColorPanel) { changed?(sender.color) }
 }
 
-/// A select at the applet look. `.field` is a 26 pt bezel with an up-down chevron (the Color Picker format);
+/// A select at the applet look. `.field` is a bezel at the row look's height (26 pt in a panel) with an up-down chevron (the Color Picker format);
 /// `.text` is a plain label with a down chevron for a tab row (the project filter). Both open `OnePlusPopupMenu`.
 public struct OnePlusLinearSelect<Value: Hashable>: View {
     public enum Style: Sendable { case field, text }
@@ -157,7 +157,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
                     .foregroundStyle(OnePlusLinearColor.appletSecondary)
             }
             .padding(.horizontal, 11)
-            .frame(width: width, height: look.keys ? look.height : OnePlusLinearMetrics.appletField)
+            .frame(width: width, height: environmentLook?.height ?? OnePlusLinearMetrics.appletField)
             .linearFieldBezel(.quietRaised, radius: look.radius, focused: focused)
             .overlay { if lit { RoundedRectangle(cornerRadius: look.radius).fill(OnePlusLinearColor.hover) } }
             .contentShape(Rectangle()).onePlusHover($hover)

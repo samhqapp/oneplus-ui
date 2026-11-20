@@ -1,7 +1,9 @@
 import SwiftUI
 
+/// A pull-down button that opens `OnePlusPopupMenu`. `.raised` draws the page's raised button
+/// (`OnePlusLinearButtonStyle(.raised)`) with a down chevron, for a settings row.
 public struct OnePlusMenuButton: View {
-    public enum Variant: Sendable { case neutral, ghost, borderedIcon }
+    public enum Variant: Sendable { case neutral, ghost, borderedIcon, raised }
 
     private let title: String
     private let systemImage: String
@@ -29,18 +31,7 @@ public struct OnePlusMenuButton: View {
     }
 
     public var body: some View {
-        Button(action: toggle) {
-            if variant == .borderedIcon {
-                Image(systemName: systemImage).accessibilityHidden(true)
-            } else {
-                OnePlusControlContentLayout(pointSize: OnePlusTextRole.control.size(for: density), iconIndex: 1) {
-                    Text(title)
-                    Image(systemName: "chevron.down").accessibilityHidden(true)
-                }
-            }
-        }
-        .buttonStyle(OnePlusButtonStyle(buttonVariant,
-                                       height: variant == .borderedIcon ? density.controlHeight : nil))
+        styled
         .environment(\.onePlusControlState, expanded ? .hover : .rest)
         .fixedSize()
         .focused($focused)
@@ -54,11 +45,27 @@ public struct OnePlusMenuButton: View {
         .accessibilityHint(expanded ? "Menu open" : "Opens menu")
     }
 
-    private var buttonVariant: OnePlusButtonStyle.Variant {
+    @ViewBuilder private var styled: some View {
         switch variant {
-        case .neutral: .neutral
-        case .ghost: .ghost
-        case .borderedIcon: .borderedIcon
+        case .raised:
+            Button(action: toggle) {
+                HStack(spacing: 6) {
+                    Text(title)
+                    Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold)).accessibilityHidden(true)
+                }
+            }
+            .buttonStyle(OnePlusLinearButtonStyle(.raised))
+        case .borderedIcon:
+            Button(action: toggle) { Image(systemName: systemImage).accessibilityHidden(true) }
+                .buttonStyle(OnePlusButtonStyle(.borderedIcon, height: density.controlHeight))
+        case .neutral, .ghost:
+            Button(action: toggle) {
+                OnePlusControlContentLayout(pointSize: OnePlusTextRole.control.size(for: density), iconIndex: 1) {
+                    Text(title)
+                    Image(systemName: "chevron.down").accessibilityHidden(true)
+                }
+            }
+            .buttonStyle(OnePlusButtonStyle(variant == .neutral ? .neutral : .ghost))
         }
     }
 

@@ -86,14 +86,17 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
     @Binding private var selection: Value
     private let label: String
     private let sizing: OnePlusLinearSegmentSizing
+    private let width: CGFloat?
     private let isChoiceEnabled: (Value) -> Bool
     @Namespace private var thumb
     @FocusState private var focusedSegment: Value?
     @Environment(\.onePlusLinearControlLook) private var look
+    /// `width` is a minimum for the whole control: segments share the extra room, so controls in one column line up.
     public init(choices: [(Value, String)], selection: Binding<Value>, accessibilityLabel: String,
-                sizing: OnePlusLinearSegmentSizing = .equal, isChoiceEnabled: @escaping (Value) -> Bool = { _ in true }) {
+                sizing: OnePlusLinearSegmentSizing = .equal, width: CGFloat? = nil,
+                isChoiceEnabled: @escaping (Value) -> Bool = { _ in true }) {
         self.choices = choices; _selection = selection; label = accessibilityLabel; self.sizing = sizing
-        self.isChoiceEnabled = isChoiceEnabled
+        self.width = width; self.isChoiceEnabled = isChoiceEnabled
     }
     public var body: some View {
         // Every look draws the menu panel's segmented control: segments touching on a `fillTrack` well, one flat
@@ -110,8 +113,9 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                         .offset(y: look == nil ? 0 : Self.opticalOffset(title))
                         .fixedSize(horizontal: sizing != .equal, vertical: false)
                         .padding(.horizontal, sizing == .fitted ? 10 : sizing == .snug ? Self.snugPadding : 0)
-                        .frame(width: sizing == .equal ? look?.segmentWidth ?? OnePlusLinearMetrics.segment.width : nil,
+                        .frame(width: sizing == .equal && width == nil ? look?.segmentWidth ?? OnePlusLinearMetrics.segment.width : nil,
                                height: well.innerHeight)
+                        .frame(maxWidth: width == nil ? nil : .infinity)
                         .contentShape(Rectangle())
                         .background {
                             // One thumb moves between segments, so Quiet motion slides it.
@@ -127,6 +131,8 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
         }
+        .frame(minWidth: width.map { $0 - 2 * OnePlusLinearWell.inset }, idealWidth: width.map { $0 - 2 * OnePlusLinearWell.inset })
+        .fixedSize(horizontal: width != nil, vertical: false)
         .linearMotion(OnePlusMotion.segment, value: selection)
         .padding(OnePlusLinearWell.inset)
         .background(OnePlusLinearColor.fillTrack, in: RoundedRectangle(cornerRadius: well.radius))
@@ -168,7 +174,8 @@ struct OnePlusLinearWell {
 
 /// The stepper, drawn like the menu panel's segmented control: the value sits on the `fillTrack` well and a
 /// 16 pt `fillThumb` key on the right holds a chevron up over a chevron down. Up and down arrows step while the
-/// key has keyboard focus; a text field in `content` handles its own arrows.
+/// key has keyboard focus; a text field in `content` handles its own arrows. It hugs `content`; give `content` a
+/// flexible frame to fill a column.
 public struct OnePlusLinearStepper<Content: View>: View {
     private let title: String
     private let canDecrement: Bool
@@ -189,7 +196,7 @@ public struct OnePlusLinearStepper<Content: View>: View {
     public var body: some View {
         let well = OnePlusLinearWell(look)
         HStack(spacing: 0) {
-            content.padding(.horizontal, 8).frame(maxWidth: .infinity, alignment: .trailing)
+            content.padding(.horizontal, 8)
             VStack(spacing: 0) {
                 arrow("chevron.up", "Increase \(title)", half: .top, enabled: canIncrement, action: increment)
                 arrow("chevron.down", "Decrease \(title)", half: .bottom, enabled: canDecrement, action: decrement)

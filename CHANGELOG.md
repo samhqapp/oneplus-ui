@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.37
+
+- New `OnePlusLinearDateField`: date, hour, and minute segments on the stepper well; the chevron key and the
+  arrow keys step the picked segment. It replaces the native `DatePicker`.
+- `OnePlusMenuButton` `.raised`: the page's raised button with a down chevron, opening `OnePlusPopupMenu`.
+- `OnePlusLinearSelect` takes the row look's height on a page, so it matches the 22 pt controls beside it.
+- `OnePlusLinearStepper` hugs its content; `OnePlusLinearSegmented` takes an optional `width` to fill a
+  control column.
+
 ## 1.3.36
 
 - `OnePlusLinearSegmented` draws the menu panel look in every context: segments touching on a `fillTrack`
