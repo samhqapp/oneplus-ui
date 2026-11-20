@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.41
+
+- `OnePlusLinearButtonStyle(.inline)`: a text action inside a caption line, such as the Fan chart's `Reset Curve`.
+  Caption type in `secondary` ink, `ink` on hover and press, no fill and no padding.
+
 ## 1.3.40
 
 - `OnePlusCheckboxStyle` draws its own 14 pt rounded square: the track well with a hairline when off, the accent
