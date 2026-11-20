@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.44
+
+- `OnePlusLinearColor.temperatureCool` (`#008CBF` Light, `#63D1FF` Dark): the cool end of a heat scale, such as
+  the Fan chart's temperature-colored line.
+- `OnePlusLinearButtonStyle(.inlineDestructive)`: the `.inline` caption action in coral `destructiveText`, for
+  a reset inside a hint line.
+
 ## 1.3.43
 
 - `OnePlusLinearTextField` and `OnePlusLinearColorWell` sit on the stepper's flat `fillTrack` well instead of the

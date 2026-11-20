@@ -125,7 +125,9 @@ public enum OnePlusLinearColor {
     public static let tertiary = color("tertiary", light: 0x9A9AA2, dark: 0x66666E)
     public static let accent = color("accent", light: 0xD94F45, dark: 0xEE5B50)
 
-    // CPU temperature steps (DESIGN.md "CPU temperature"). Normal temperatures use `panelMuted`.
+    // CPU temperature steps (DESIGN.md "CPU temperature"). Normal temperatures use `panelMuted`, except on a heat
+    // scale such as the Fan chart's line, which starts at `temperatureCool`.
+    public static let temperatureCool = color("temperatureCool", light: 0x008CBF, dark: 0x63D1FF)
     public static let temperatureWarm = color("temperatureWarm", light: 0xA67C00, dark: 0xF2C94C)
     public static let temperatureHot = color("temperatureHot", light: 0xCC610C, dark: 0xF59A4A)
     public static let temperatureVeryHot = color("temperatureVeryHot", light: 0xD03A2C, dark: 0xFF7466)
