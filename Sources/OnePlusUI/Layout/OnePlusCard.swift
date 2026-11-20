@@ -143,7 +143,7 @@ public struct OnePlusSettingRow<Control: View>: View {
                     Group {
                         if let reset {
                             Button(action: reset) { Image(systemName: "arrow.counterclockwise") }
-                                .buttonStyle(OnePlusButtonStyle(.icon, size: .small))
+                                .buttonStyle(OnePlusButtonStyle(.icon, size: .small)).focusEffectDisabled()
                                 .help("Reset \(label)").accessibilityLabel("Reset \(label)")
                         } else { Color.clear.accessibilityHidden(true) }
                     }.frame(width: 24, height: 24)
@@ -190,7 +190,9 @@ public struct OnePlusSectionTitle: View {
         HStack {
             Text(title).onePlusText(.sectionTitle).accessibilityAddTraits(.isHeader)
             Spacer()
-            if let actionTitle, let action { Button(actionTitle, action: action).buttonStyle(OnePlusButtonStyle(.link, size: .small)) }
+            if let actionTitle, let action {
+                Button(actionTitle, action: action).buttonStyle(OnePlusButtonStyle(.link, size: .small)).focusEffectDisabled()
+            }
         }
     }
 }

@@ -63,7 +63,7 @@ public struct OnePlusDeviceNavRow<Trailing: View>: View {
                 .accessibilityAddTraits(selected ? .isSelected : [])
                 .accessibilityIdentifier(identifier)
             trailing
-        }.onePlusRowHover(selected: selected, radius: OnePlusMetrics.navRowRadius)
+        }.focusEffectDisabled().onePlusRowHover(selected: selected, radius: OnePlusMetrics.navRowRadius)
     }
 }
 

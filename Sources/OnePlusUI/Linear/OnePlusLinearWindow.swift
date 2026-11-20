@@ -97,7 +97,7 @@ public struct OnePlusLinearNavRow: View {
             .frame(height: OnePlusLinearMetrics.navRow)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .buttonStyle(OnePlusLinearButtonStyle(selected: selected))
+        .buttonStyle(OnePlusLinearButtonStyle(selected: selected)).focusEffectDisabled()
         .help(title)
         .accessibilityLabel(title)
         .accessibilityValue(count.map(String.init) ?? "")

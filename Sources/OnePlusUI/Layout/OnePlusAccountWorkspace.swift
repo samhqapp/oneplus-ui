@@ -28,7 +28,7 @@ public struct OnePlusAccountNavRow<Icon: View>: View {
                     .opacity(isDefault ? 1 : 0).accessibilityHidden(true)
             }.padding(.horizontal, 10).frame(maxWidth: .infinity).frame(height: 44).contentShape(Rectangle())
         }
-        .buttonStyle(OnePlusInteractionStyle(selected: selected))
+        .buttonStyle(OnePlusInteractionStyle(selected: selected)).focusEffectDisabled()
         .help(title + " · " + subtitle + (isDefault ? " · Default" : ""))
         .accessibilityAddTraits(selected ? .isSelected : [])
         .accessibilityValue(isDefault ? "Default account" : "Saved account")

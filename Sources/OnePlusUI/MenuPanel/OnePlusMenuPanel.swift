@@ -464,7 +464,7 @@ public struct OnePlusMenuOpenApp: View {
     public init(action: @escaping () -> Void) { self.action = action }
     public var body: some View {
         Button("Open App", action: action).buttonStyle(OnePlusButtonStyle(.ghost, size: .small, minWidth: 70, horizontalPadding: 7))
-            .frame(width: 70, height: 24)
+            .focusEffectDisabled().frame(width: 70, height: 24)
     }
 }
 
@@ -497,7 +497,7 @@ public struct OnePlusMenuTile<Content: View>: View {
         Group {
             if let action { Button(action: action) { tile }.buttonStyle(OnePlusInteractionStyle(radius: 6)) }
             else { tile }
-        }.onePlusHover($hover)
+        }.focusEffectDisabled().onePlusHover($hover)
     }
     private var tile: some View {
         Group {
@@ -584,6 +584,7 @@ public struct OnePlusMenuSectionHeader: View {
                         .buttonStyle(OnePlusButtonStyle(.link, size: .small,
                                                         height: compactAction ? 13 : nil,
                                                         horizontalPadding: compactAction ? 0 : 10))
+                        .focusEffectDisabled()
                 }
             }.frame(minHeight: 13)
         }

@@ -191,7 +191,7 @@ public struct OnePlusLinearIconButton: View {
             }
             .frame(width: size, height: size)
         }
-        .buttonStyle(OnePlusLinearButtonStyle())
+        .buttonStyle(OnePlusLinearButtonStyle()).focusEffectDisabled()
         .help(busy.map { "\($0). \(help)" } ?? help)
         .accessibilityLabel(busy ?? help)
         .accessibilityValue(busy == nil ? "" : help)

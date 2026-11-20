@@ -60,7 +60,7 @@ public struct OnePlusLinearAppletSettingsButton: View {
                 .foregroundStyle(active ? OnePlusLinearColor.ink : OnePlusLinearColor.appletSecondary)
                 .frame(width: OnePlusLinearMetrics.appletButton, height: OnePlusLinearMetrics.appletButton)
         }
-        .buttonStyle(OnePlusLinearButtonStyle(selected: active))
+        .buttonStyle(OnePlusLinearButtonStyle(selected: active)).focusEffectDisabled()
         .keyboardShortcut(",")
         .help(label).accessibilityLabel(label)
     }
@@ -261,7 +261,7 @@ public struct OnePlusLinearAppletListRow<Leading: View>: View {
                                 .foregroundStyle(OnePlusLinearColor.appletMuted)
                                 .frame(width: OnePlusLinearMetrics.appletRowAction, height: OnePlusLinearMetrics.appletRowAction)
                         }
-                        .buttonStyle(OnePlusLinearButtonStyle())
+                        .buttonStyle(OnePlusLinearButtonStyle()).focusEffectDisabled()
                         .help(action.title).accessibilityLabel(action.title)
                     }
                 }

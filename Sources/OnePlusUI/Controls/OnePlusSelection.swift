@@ -17,7 +17,7 @@ public struct OnePlusSwitchStyle: ToggleStyle {
                     .frame(width: 29, height: 17)
                     .frame(height: 24)
             }
-            .buttonStyle(OnePlusInteractionStyle(radius: 10))
+            .buttonStyle(OnePlusInteractionStyle(radius: 10)).focusEffectDisabled()
             .accessibilityRepresentation {
                 Toggle(isOn: configuration.$isOn) { configuration.label }
             }

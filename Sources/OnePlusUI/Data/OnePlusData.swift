@@ -21,7 +21,7 @@ public struct OnePlusMetricTile<Chart: View>: View {
         Group {
             if let action { Button(action: action) { tile }.buttonStyle(OnePlusInteractionStyle(radius: 8)) }
             else { tile }
-        }.onePlusHover($hover)
+        }.focusEffectDisabled().onePlusHover($hover)
     }
     private var tile: some View {
         VStack(alignment: .leading, spacing: 8) {

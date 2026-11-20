@@ -133,7 +133,7 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
                     }
                     .linearSegmentSelected(!fill && on, radius: radius)
                 }
-                .buttonStyle(OnePlusLinearButtonStyle(radius: radius))
+                .buttonStyle(OnePlusLinearButtonStyle(radius: radius)).focusEffectDisabled()
                 .help(tab.title).accessibilityLabel(tab.title)
                 .accessibilityAddTraits(on ? .isSelected : [])
                 .modifier(OnePlusLinearOptionalIdentifier(value: tab.accessibilityIdentifier))
@@ -906,7 +906,7 @@ public struct OnePlusLinearActionBar: View {
         return colorScheme == .dark ? OnePlusLinearColor.actionKeyLabelWeight.dark : OnePlusLinearColor.actionKeyLabelWeight.light
     }
     public var body: some View {
-        if panelStyle == .fillSteps { filled } else { toolbar }
+        Group { if panelStyle == .fillSteps { filled } else { toolbar } }.focusEffectDisabled()
     }
 
     /// Fill steps: separate 32 pt buttons 4 pt apart, each a group-fill step with radius 8.

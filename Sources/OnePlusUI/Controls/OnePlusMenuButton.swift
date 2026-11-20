@@ -41,6 +41,7 @@ public struct OnePlusMenuButton: View {
         .onMoveCommand { direction in
             if direction == .down, !expanded { toggle() }
         }
+        .focusEffectDisabled()
         .help(title)
         .accessibilityLabel(title)
         .accessibilityValue(expanded ? "Expanded" : "Collapsed")

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.39
+
+- `OnePlusWindowContent` applies `onePlusFocusPolicy()`, so every scene window that uses it has no focus ring.
+- `OnePlusMenuButton`, the applet settings button and row actions, icon tabs, the action bar, icon buttons,
+  nav rows, menu tiles and actions, card reset and section actions, the switch, account and disk rows all set
+  `focusEffectDisabled()` themselves, so no system focus ring shows even outside a policy root.
+
 ## 1.3.38
 
 - `OnePlusLinearColor.accent` Light is `#D94F45`, matching DESIGN.md (was `#E0493E`).

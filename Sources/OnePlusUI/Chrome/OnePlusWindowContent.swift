@@ -19,6 +19,7 @@ public struct OnePlusWindowContent<Content: View>: View {
             }
         }
         .background(WindowContentReader(closedSize: $closedSize))
+        .onePlusFocusPolicy()
     }
 }
 
