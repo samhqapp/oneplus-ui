@@ -75,8 +75,8 @@ private struct OnePlusQuietSwitchStyle: ButtonStyle {
 }
 
 /// How segments take their width: `.equal` uses the fixed segment width; `.fitted` sizes each segment to its
-/// label plus 10 pt on each side ("Fast / Accurate / Custom"); `.snug` keeps the fixed width and widens only a
-/// segment whose label needs more, to the label plus 6 pt on each side (the panel Fan row's "Custom").
+/// label plus 10 pt on each side ("Fast / Accurate / Custom"); `.snug` sizes each segment to its label plus 8 pt
+/// on each side, the room "Auto" has in a fixed segment, so a longer label gets the same air (the panel Fan row).
 public enum OnePlusLinearSegmentSizing: Sendable { case equal, fitted, snug }
 
 /// A compact segmented control: 22 pt track, 40 x 18 segments, 11 pt labels.
@@ -115,10 +115,10 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                                            color: on ? OnePlusLinearColor.ink : look == nil ? OnePlusLinearColor.secondary : OnePlusLinearColor.appletSecondary)
                         .offset(y: look == nil ? 0 : Self.opticalOffset(title))
                         .fixedSize(horizontal: sizing != .equal, vertical: false)
-                        .padding(.horizontal, sizing == .fitted ? 10 : sizing == .snug ? 6 : 0)
+                        .padding(.horizontal, sizing == .fitted ? 10 : sizing == .snug ? Self.snugPadding : 0)
                         .frame(width: sizing == .equal ? look?.segmentWidth ?? OnePlusLinearMetrics.segment.width : nil,
                                height: look?.segmentHeight ?? (fill ? 20 : OnePlusLinearMetrics.segment.height))
-                        .frame(minWidth: sizing == .snug ? look?.segmentWidth ?? OnePlusLinearMetrics.segment.width : nil)
+                        .contentShape(Rectangle())
                         .background {
                             // One thumb moves between segments, so Quiet motion slides it.
                             if on { thumbShape(radius: radius).matchedGeometryEffect(id: "thumb", in: thumb) }
@@ -144,6 +144,9 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
             return .handled
         }
     }
+
+    /// `.snug` side padding: about what an 11 pt "Auto" gets in a 40 pt segment, so every label has the same room.
+    static var snugPadding: CGFloat { 8 }
 
     /// A label with no capitals or digits has no cap height, so its x-height sits 1.25 pt below the line box
     /// center at 13 pt; this lifts it onto the true center. Labels with capitals or digits are already centered.

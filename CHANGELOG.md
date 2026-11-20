@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.35
+
+- `.snug` segments size to their label plus 8 pt a side with no fixed width, so a long label such as
+  "Custom" gets the same room as "Auto". The whole segment is the hit target.
+
 ## 1.3.34
 
 - Remove the unused `fanTile` fill; the Fan page now uses its own icon asset.
