@@ -64,6 +64,10 @@ open class OnePlusNativeSwitchButton: NSButton {
     }
 
     open override func draw(_ dirtyRect: NSRect) {
+        if window?.firstResponder === self, OnePlusFocusPolicy.shared.showsFocus {
+            NSColor(OnePlusColor.raised).setFill()
+            NSBezierPath(roundedRect: bounds, xRadius: OnePlusMetrics.controlRadius, yRadius: OnePlusMetrics.controlRadius).fill()
+        }
         let track = NSRect(x: bounds.maxX - 29, y: bounds.midY - 8.5, width: 29, height: 17)
         let color = cell?.isHighlighted == true ? OnePlusColor.pressed
             : state == .on ? OnePlusColor.primaryFill : OnePlusColor.selection
@@ -85,11 +89,6 @@ open class OnePlusNativeSwitchButton: NSButton {
         (title as NSString).draw(in: NSRect(x: 0, y: bounds.midY - titleHeight / 2,
                                          width: max(0, track.minX - OnePlusMetrics.actionSpacing),
                                          height: titleHeight), withAttributes: attributes)
-        if window?.firstResponder === self, OnePlusFocusPolicy.shared.showsFocus {
-            NSColor(OnePlusColor.focus).setStroke()
-            NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1),
-                         xRadius: OnePlusMetrics.controlRadius, yRadius: OnePlusMetrics.controlRadius).stroke()
-        }
     }
 }
 
@@ -116,8 +115,7 @@ open class OnePlusNativeStepperField: NSTextField {
 
     open override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
-        let focused = currentEditor() != nil || window?.firstResponder === self
-        NSColor(focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : OnePlusColor.line).setStroke()
+        NSColor(OnePlusColor.line).setStroke()
         NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5),
                      xRadius: OnePlusMetrics.controlRadius, yRadius: OnePlusMetrics.controlRadius).stroke()
     }

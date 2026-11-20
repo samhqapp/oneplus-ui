@@ -58,7 +58,7 @@ private struct OnePlusQuietSwitchStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         ZStack(alignment: isOn ? .trailing : .leading) {
             if isOn {
-                Capsule().fill(OnePlusLinearColor.accent).overlay { OnePlusQuietFocusRing(shape: Capsule()) }
+                Capsule().fill(OnePlusLinearColor.accent).overlay { OnePlusQuietFocusFill(shape: Capsule()) }
             } else {
                 OnePlusQuietWell(shape: Capsule())
             }
@@ -125,7 +125,7 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                 }
                 .modifier(OnePlusLinearSegmentButton(quiet: look != nil, radius: radius))
                 // One focus line goes around the whole control, never around one segment.
-                .focused($focusedSegment, equals: value).focusEffectDisabled(look != nil)
+                .focused($focusedSegment, equals: value).focusEffectDisabled()
                 .disabled(!isChoiceEnabled(value))
                 .accessibilityAddTraits(on ? .isSelected : [])
             }

@@ -146,7 +146,8 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
         }
         .overlay {
             RoundedRectangle(cornerRadius: radius)
-                .strokeBorder(enabled && (focused || sample == .focus) && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : .clear, lineWidth: 1)
+                .fill(enabled && (focused || sample == .focus) && OnePlusFocusPolicy.shared.showsFocus ? OnePlusLinearColor.hover : .clear)
+                .allowsHitTesting(false)
         }
         .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
         .contentShape(RoundedRectangle(cornerRadius: radius))

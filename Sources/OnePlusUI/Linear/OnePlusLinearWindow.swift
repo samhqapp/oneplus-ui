@@ -237,7 +237,7 @@ private struct OnePlusLinearTextTab<Value: Hashable>: View {
             .onePlusHover($hover)
         }
         .buttonStyle(.plain)
-        .focusEffectDisabled(!OnePlusFocusPolicy.shared.showsFocus)
+        .focusEffectDisabled()
         .accessibilityLabel(tab.count.map { "\(tab.title), \($0)" } ?? tab.title)
         .accessibilityAddTraits(selected ? [.isSelected, .isButton] : .isButton)
     }
@@ -323,7 +323,7 @@ public struct OnePlusLinearToolRow: View {
     public var body: some View {
         ZStack {
             Button(action: open) { Color.clear.frame(maxWidth: .infinity, maxHeight: .infinity) }
-                .buttonStyle(.plain).focusEffectDisabled(!OnePlusFocusPolicy.shared.showsFocus)
+                .buttonStyle(.plain).focusEffectDisabled()
                 .accessibilityLabel("Open \(name)")
             HStack(spacing: OnePlusLinearMetrics.toolRowGap) {
                 icon.resizable().scaledToFit()
@@ -363,7 +363,7 @@ public struct OnePlusLinearToolRow: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain).focused($starFocused)
-            .focusEffectDisabled(!OnePlusFocusPolicy.shared.showsFocus)            .help(set ? "Remove from Favorites" : "Add to Favorites")
+            .focusEffectDisabled()            .help(set ? "Remove from Favorites" : "Add to Favorites")
             .accessibilityLabel("Favorite")
             .accessibilityValue(set ? "On" : "Off")
             .accessibilityAddTraits(.isToggle)

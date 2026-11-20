@@ -88,7 +88,7 @@ public struct OnePlusLinearColorWell: View {
                 .frame(width: look.well.width, height: look.well.height)
                 .background { OnePlusQuietWell.field(RoundedRectangle(cornerRadius: look.radius)) }
         }
-        .buttonStyle(.plain).focusEffectDisabled(!OnePlusFocusPolicy.shared.showsFocus)
+        .buttonStyle(.plain).focusEffectDisabled()
         .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
         .help(label).accessibilityLabel(label)
     }

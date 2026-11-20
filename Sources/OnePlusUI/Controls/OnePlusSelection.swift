@@ -174,7 +174,7 @@ public struct OnePlusMenuLabel: View {
         .frame(maxWidth: width == nil ? .infinity : nil)
         .background(enabled && ((focused && OnePlusFocusPolicy.shared.showsFocus) || hover || expanded) ? OnePlusColor.raisedHover : OnePlusColor.raised,
                     in: RoundedRectangle(cornerRadius: 6))
-        .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : OnePlusColor.line, lineWidth: 1) }
+        .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(OnePlusColor.line, lineWidth: 1) }
         .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity).onePlusHover($hover)
         .contentShape(Rectangle())
     }

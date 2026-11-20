@@ -68,7 +68,7 @@ extension View {
         let shape = RoundedRectangle(cornerRadius: radius ?? look.radius)
         return background { if look.keys { OnePlusKeyWell(shape: shape) } else { shape.fill(look.field) } }
             .overlay { shape.strokeBorder(look.keys ? .clear : look.fieldLine, lineWidth: 1) }
-            .overlay { OnePlusQuietFocusRing(shape: shape, focused: focused) }
+            .overlay { OnePlusQuietFocusFill(shape: shape, focused: focused) }
     }
 }
 
@@ -92,7 +92,7 @@ struct OnePlusQuietWell<S: InsettableShape>: View {
                     .overlay { shape.strokeBorder(line, lineWidth: 1 / max(scale, 1)) }
             }
         }
-        .overlay { OnePlusQuietFocusRing(shape: shape, focused: focused) }
+        .overlay { OnePlusQuietFocusFill(shape: shape, focused: focused) }
     }
 }
 
@@ -125,14 +125,14 @@ public struct OnePlusRaisedKey<S: InsettableShape>: View {
     }
 }
 
-/// The 1 pt focus line 2 pt outside a control, under the shared keyboard focus policy or a sampled `.focus` state.
-struct OnePlusQuietFocusRing<S: InsettableShape>: View {
+/// The subtle keyboard focus fill over a control (never a ring), under the shared focus policy or a sampled `.focus` state.
+struct OnePlusQuietFocusFill<S: InsettableShape>: View {
     let shape: S
     var focused = false
     @Environment(\.onePlusControlState) private var sample
     var body: some View {
         if sample == .focus || (focused && OnePlusFocusPolicy.shared.showsFocus) {
-            shape.inset(by: -2).strokeBorder(OnePlusColor.focus, lineWidth: 1)
+            shape.fill(OnePlusLinearColor.hover).allowsHitTesting(false)
         }
     }
 }

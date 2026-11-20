@@ -119,7 +119,7 @@ public struct OnePlusSecureField: View {
             .background(focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.fieldFocus : OnePlusColor.field,
                         in: RoundedRectangle(cornerRadius: OnePlusMetrics.controlRadius))
             .overlay { RoundedRectangle(cornerRadius: OnePlusMetrics.controlRadius)
-                .strokeBorder(focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : OnePlusColor.line, lineWidth: 1) }
+                .strokeBorder(OnePlusColor.line, lineWidth: 1) }
             .accessibilityLabel(title)
     }
 }

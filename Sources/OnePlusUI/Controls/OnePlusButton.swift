@@ -123,7 +123,6 @@ private struct OnePlusButtonBody<Label: View>: View {
     }
 
     private var border: Color {
-        if isFocused { return style.variant == .accentPrimary ? OnePlusColor.accentPrimaryInk : OnePlusColor.focus }
         switch style.variant {
         case .neutral, .borderedIcon: return OnePlusColor.line
         case .destructive: return isHovering ? OnePlusColor.danger : OnePlusColor.dangerLine
@@ -216,9 +215,7 @@ private struct OnePlusInteractionBody<Label: View>: View {
         label
             .tint(OnePlusColor.secondary)
             .background(enabled && pressed ? OnePlusColor.pressed : selected || (enabled && focused && OnePlusFocusPolicy.shared.showsFocus) ? OnePlusColor.selection : enabled && hover ? OnePlusColor.raised : .clear,
-                        in: RoundedRectangle(cornerRadius: radius))
-            .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(enabled && focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : .clear, lineWidth: 1) }
-            .opacity(enabled ? 1 : disabledOpacity)
+                        in: RoundedRectangle(cornerRadius: radius))            .opacity(enabled ? 1 : disabledOpacity)
             .contentShape(RoundedRectangle(cornerRadius: radius))
             .onePlusHover($hover)
     }

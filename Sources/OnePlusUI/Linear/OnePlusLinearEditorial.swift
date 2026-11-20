@@ -202,7 +202,7 @@ private struct OnePlusLinearLaunchTileBody<Label: View>: View {
                 OnePlusRaisedKey(shape: shape, lift: max(lift, 0))
                     .overlay { shape.fill(isPressed ? OnePlusLinearColor.pressed : hovering ? OnePlusLinearColor.hover : .clear) }
             }
-            .overlay { OnePlusQuietFocusRing(shape: shape, focused: enabled && focused) }
+            .overlay { OnePlusQuietFocusFill(shape: shape, focused: enabled && focused) }
             .offset(y: -lift)
             .scaleEffect(spring && isPressed ? OnePlusMotion.springTilePressScale : 1)
             .animation(spring ? (isPressed ? OnePlusMotion.springTilePress : OnePlusMotion.springTileRelease) : nil, value: isPressed)
@@ -387,7 +387,7 @@ public struct OnePlusLinearEditorialToolRow: View {
     public var body: some View {
         ZStack {
             Button(action: open) { Color.clear.frame(maxWidth: .infinity, maxHeight: .infinity) }
-                .buttonStyle(.plain).focusEffectDisabled(!OnePlusFocusPolicy.shared.showsFocus)
+                .buttonStyle(.plain).focusEffectDisabled()
                 .accessibilityLabel("Open \(name)")
             HStack(spacing: OnePlusLinearMetrics.toolRowGap) {
                 icon.resizable().scaledToFit()
@@ -440,7 +440,7 @@ public struct OnePlusLinearEditorialToolRow: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain).focused($starFocused)
-            .focusEffectDisabled(!OnePlusFocusPolicy.shared.showsFocus)
+            .focusEffectDisabled()
             .help(set ? "Remove from Favorites" : "Add to Favorites")
             .accessibilityLabel("Favorite").accessibilityValue(set ? "On" : "Off").accessibilityAddTraits(.isToggle)
         } else {

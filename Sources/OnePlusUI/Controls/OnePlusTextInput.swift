@@ -42,7 +42,7 @@ public struct OnePlusTextField: View {
                 .alignmentGuide(.firstTextBaseline) { $0.height / 2 + capHeight / 2 }
                 .background((focused && OnePlusFocusPolicy.shared.showsFocus) || (enabled && hover) ? OnePlusColor.fieldFocus : OnePlusColor.field,
                             in: RoundedRectangle(cornerRadius: 6))
-                .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(error != nil ? OnePlusColor.dangerLine : focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : OnePlusColor.line, lineWidth: 1) }
+                .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(error != nil ? OnePlusColor.dangerLine : OnePlusColor.line, lineWidth: 1) }
                 .onePlusHover($hover)
                 .accessibilityLabel(title).accessibilityHint(error ?? "")
             if let error, !groupedErrors { Text(error).onePlusText(.caption).foregroundStyle(OnePlusColor.danger) }
@@ -134,7 +134,7 @@ public struct OnePlusStepperField: View {
             }
             .frame(height: controlHeight ?? density.controlHeight)
             .background(focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.fieldFocus : OnePlusColor.field, in: RoundedRectangle(cornerRadius: 6))
-            .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(error != nil ? OnePlusColor.dangerLine : focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : OnePlusColor.line, lineWidth: 1) }
+            .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(error != nil ? OnePlusColor.dangerLine : OnePlusColor.line, lineWidth: 1) }
             if let error, !groupedErrors { Text(error).onePlusText(.caption).foregroundStyle(OnePlusColor.danger) }
         }
         .preference(key: OnePlusFieldErrorPreference.self, value: groupedErrors ? error.map { ["\(title): \($0)"] } ?? [] : [])
@@ -306,7 +306,7 @@ final class OnePlusEditorBezel: NSView {
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
     override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); needsDisplay = true }
     override func draw(_ dirtyRect: NSRect) {
-        NSColor(focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : OnePlusColor.line).setStroke()
+        NSColor(OnePlusColor.line).setStroke()
         let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 5.5, yRadius: 5.5)
         path.lineWidth = 1
         path.stroke()

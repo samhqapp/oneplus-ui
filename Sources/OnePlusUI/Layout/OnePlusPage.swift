@@ -202,16 +202,12 @@ private struct OnePlusTabButtonBody<Label: View>: View {
         label.onePlusText(.tab, color: selected || hovering ? OnePlusColor.ink : OnePlusColor.secondary)
             .background {
                 RoundedRectangle(cornerRadius: OnePlusMetrics.navRowRadius)
-                    .fill(pressing ? OnePlusColor.pressed : hovering ? OnePlusColor.raised : .clear)
+                    .fill(pressing ? OnePlusColor.pressed
+                          : hovering || (enabled && focused && OnePlusFocusPolicy.shared.showsFocus) ? OnePlusColor.raised : .clear)
                     .padding(.horizontal, -8).padding(.vertical, -4)
                     .allowsHitTesting(false)
             }
             .frame(height: 36)
-            .overlay {
-                if enabled && focused && OnePlusFocusPolicy.shared.showsFocus {
-                    RoundedRectangle(cornerRadius: OnePlusMetrics.navRowRadius).strokeBorder(OnePlusColor.focus, lineWidth: 1)
-                }
-            }
             .contentShape(Rectangle()).opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
             .onePlusHover($hover)
     }

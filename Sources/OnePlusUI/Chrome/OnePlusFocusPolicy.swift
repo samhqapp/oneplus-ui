@@ -131,10 +131,8 @@ public final class OnePlusFocusPolicy {
         window.makeFirstResponder(window)
     }
 
-    /// Text inputs sit inside a OnePlus bezel that draws the whole-field focus line; the native ring would outline only the inner text area.
-    static func ringType(for view: NSView) -> NSFocusRingType {
-        shared.showsFocus && !isTextInput(view) ? .default : .none
-    }
+    /// No AppKit focus ring, ever; keyboard focus shows only a control style's own fill.
+    static func ringType(for view: NSView) -> NSFocusRingType { .none }
 
     private static func isTextInput(_ responder: NSResponder?) -> Bool {
         if let field = responder as? NSTextField { return field.isEditable || field.isSelectable }
@@ -184,8 +182,10 @@ extension NSWindow {
 }
 
 public extension View {
+    /// The root modifier for every scene, panel, popover, and sheet: no system focus ring, ever. Keyboard focus shows
+    /// only a control style's own fill.
     func onePlusFocusPolicy() -> some View {
-        focusEffectDisabled(!OnePlusFocusPolicy.shared.showsFocus)
+        focusEffectDisabled()
             .background(OnePlusFocusReader())
     }
 }

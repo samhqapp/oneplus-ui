@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.32
+
+- No focus rings, ever. `onePlusFocusPolicy()` always applies
+  `focusEffectDisabled()` and is the root modifier for every scene, panel,
+  popover, and sheet. AppKit views under the policy get `focusRingType = .none`.
+- Keyboard focus shows only a style's own subtle fill: buttons, tabs, linear
+  controls, quiet keys, switches, fields, and selects lose their focus stroke.
+
 ## 1.3.31
 
 - Add `OnePlusLinearToolPages`: `OnePlusLinearSpace` and

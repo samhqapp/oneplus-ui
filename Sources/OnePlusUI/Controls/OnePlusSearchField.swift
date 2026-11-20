@@ -226,8 +226,8 @@ class OnePlusSearchView: NSView, NSSearchFieldDelegate {
             let showFocus = focused && OnePlusFocusPolicy.shared.showsFocus
             let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 6, yRadius: 6)
             (applet?.field ?? NSColor(OnePlusLinearColor.field)).setFill(); path.fill()
-            if hovered && field.isEnabled && !focused { NSColor(OnePlusLinearColor.hover).setFill(); path.fill() }
-            (showFocus ? NSColor(OnePlusColor.focus) : applet?.line ?? NSColor(OnePlusLinearColor.line)).setStroke()
+            if showFocus || (hovered && field.isEnabled && !focused) { NSColor(OnePlusLinearColor.hover).setFill(); path.fill() }
+            (applet?.line ?? NSColor(OnePlusLinearColor.line)).setStroke()
             path.lineWidth = 1; path.stroke()
             if !hint.isHidden {
                 let chip = NSBezierPath(roundedRect: hintChip.insetBy(dx: 0.5, dy: 0.5), xRadius: 4, yRadius: 4)
@@ -239,7 +239,7 @@ class OnePlusSearchView: NSView, NSSearchFieldDelegate {
         let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 6, yRadius: 6)
         NSColor(focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.fieldFocus : hovered && field.isEnabled ? OnePlusColor.raised : OnePlusColor.field).setFill()
         path.fill()
-        NSColor(focused && OnePlusFocusPolicy.shared.showsFocus ? OnePlusColor.focus : OnePlusColor.line).setStroke()
+        NSColor(OnePlusColor.line).setStroke()
         path.lineWidth = 1
         path.stroke()
     }

@@ -34,7 +34,7 @@ public struct OnePlusRetainedPage<Revision: Equatable, Content: View>: NSViewRep
             .environment(\.onePlusIsVisible, isSelected && environment.onePlusIsVisible)
             .environment(\.colorScheme, environment.colorScheme)
             .environment(\.isEnabled, environment.isEnabled)
-            .onePlusNeutralControls())
+            .onePlusNeutralControls().focusEffectDisabled())
         let host = context.coordinator.host ?? NSHostingView(rootView: root)
         host.sizingOptions = []
         host.safeAreaRegions = []
