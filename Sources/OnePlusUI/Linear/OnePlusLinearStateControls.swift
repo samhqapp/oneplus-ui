@@ -75,8 +75,9 @@ private struct OnePlusQuietSwitchStyle: ButtonStyle {
 }
 
 /// How segments take their width: `.equal` uses the fixed segment width; `.fitted` sizes each segment to its
-/// label plus 10 pt on each side ("Fast / Accurate / Custom").
-public enum OnePlusLinearSegmentSizing: Sendable { case equal, fitted }
+/// label plus 10 pt on each side ("Fast / Accurate / Custom"); `.snug` keeps the fixed width and widens only a
+/// segment whose label needs more, to the label plus 6 pt on each side (the panel Fan row's "Custom").
+public enum OnePlusLinearSegmentSizing: Sendable { case equal, fitted, snug }
 
 /// A compact segmented control: 22 pt track, 40 x 18 segments, 11 pt labels.
 /// A choice for which `isChoiceEnabled` returns false is dimmed and takes no click, hover, or arrow-key selection.
@@ -113,10 +114,11 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                                            weight: on ? .medium : .regular,
                                            color: on ? OnePlusLinearColor.ink : look == nil ? OnePlusLinearColor.secondary : OnePlusLinearColor.appletSecondary)
                         .offset(y: look == nil ? 0 : Self.opticalOffset(title))
-                        .fixedSize(horizontal: sizing == .fitted, vertical: false)
-                        .padding(.horizontal, sizing == .fitted ? 10 : 0)
-                        .frame(width: sizing == .fitted ? nil : look?.segmentWidth ?? OnePlusLinearMetrics.segment.width,
+                        .fixedSize(horizontal: sizing != .equal, vertical: false)
+                        .padding(.horizontal, sizing == .fitted ? 10 : sizing == .snug ? 6 : 0)
+                        .frame(width: sizing == .equal ? look?.segmentWidth ?? OnePlusLinearMetrics.segment.width : nil,
                                height: look?.segmentHeight ?? (fill ? 20 : OnePlusLinearMetrics.segment.height))
+                        .frame(minWidth: sizing == .snug ? look?.segmentWidth ?? OnePlusLinearMetrics.segment.width : nil)
                         .background {
                             // One thumb moves between segments, so Quiet motion slides it.
                             if on { thumbShape(radius: radius).matchedGeometryEffect(id: "thumb", in: thumb) }

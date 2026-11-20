@@ -122,6 +122,14 @@ public enum OnePlusLinearColor {
     public static let tertiary = color("tertiary", light: 0x9A9AA2, dark: 0x66666E)
     public static let accent = color("accent", light: 0xE0493E, dark: 0xEE5B50)
 
+    // CPU temperature steps (DESIGN.md "CPU temperature"). Normal temperatures use `panelMuted`.
+    public static let temperatureWarm = color("temperatureWarm", light: 0xA67C00, dark: 0xF2C94C)
+    public static let temperatureHot = color("temperatureHot", light: 0xCC610C, dark: 0xF59A4A)
+    public static let temperatureVeryHot = color("temperatureVeryHot", light: 0xD03A2C, dark: 0xFF7466)
+    public static let temperatureCritical = color("temperatureCritical", light: 0x9A1717, dark: 0xFF3B30)
+    /// The Fan page header tile: a white glyph on this fill, so the tile stands out in Light and Dark.
+    public static let fanTile = color("fanTile", light: 0x2F7FD8, dark: 0x3A82D6)
+
     // Controls
     public static let switchOff = color("switchOff", light: 0x000000, lightAlpha: 0.14, dark: 0xFFFFFF, darkAlpha: 0.14)
     public static let switchOn = color("switchOn", light: 0x1C1D22, dark: 0xE6E6E8)

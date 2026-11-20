@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.33
+
+- `OnePlusLinearSegmentSizing.snug`: segments keep the fixed width; a longer
+  label widens only its own segment, to the label plus 6 pt a side.
+- CPU temperature tokens `temperatureWarm`, `temperatureHot`,
+  `temperatureVeryHot`, `temperatureCritical`, and the `fanTile` fill.
+
 ## 1.3.32
 
 - No focus rings, ever. `onePlusFocusPolicy()` always applies
