@@ -52,6 +52,22 @@ final class OnePlusContrastTests: XCTestCase {
         }
     }
 
+    func testPortmanPortInksKeepAAOnBothBadgeWellEnds() throws {
+        for name in [NSAppearance.Name.aqua, .darkAqua] {
+            try XCTUnwrap(NSAppearance(named: name)).performAsCurrentDrawingAppearance {
+                var minimum = Double.infinity
+                for ink in OnePlusColor.portmanSeries {
+                    for well in [OnePlusLinearColor.badgeWellTop, OnePlusLinearColor.badgeWellBottom] {
+                        let ratio = contrast(NSColor(ink), NSColor(well))
+                        minimum = min(minimum, ratio)
+                        XCTAssertGreaterThanOrEqual(ratio, 4.5, "\(name) \(ink) on \(well)")
+                    }
+                }
+                print("Badge well minimum \(name): \(minimum)")
+            }
+        }
+    }
+
     private func contrast(_ first: NSColor, _ second: NSColor) -> Double {
         func luminance(_ color: NSColor) -> Double {
             let rgb = color.usingColorSpace(.sRGB)!

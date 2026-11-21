@@ -156,9 +156,9 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(OnePlusLinearColor.appletSecondary)
             }
-            .padding(.horizontal, 11)
+            .padding(.horizontal, look.fieldInset ?? 11)
             .frame(width: width, height: environmentLook?.height ?? OnePlusLinearMetrics.appletField)
-            .linearFieldBezel(.quietRaised, radius: look.radius, focused: focused)
+            .linearFieldBezel(look.keys ? look : .quietRaised, radius: look.radius, focused: focused)
             .overlay { if lit { RoundedRectangle(cornerRadius: look.radius).fill(OnePlusLinearColor.hover) } }
             .contentShape(Rectangle()).onePlusHover($hover)
         case .text:
@@ -222,8 +222,11 @@ public struct OnePlusLinearTextField: View {
             .textFieldStyle(.plain).linearText().focusEffectDisabled()
             .focused($focused).onSubmit(onSubmit)
             .onAppear { if autofocus { focused = true } }
-            .padding(.horizontal, 8).frame(height: look.height)
-            .background { OnePlusQuietWell.field(shape, focused: focused) }
+            .padding(.horizontal, look.fieldInset ?? 8).frame(height: look.height)
+            .background {
+                if look.keys { OnePlusKeyWell(shape: shape).overlay { OnePlusQuietFocusFill(shape: shape, focused: focused) } }
+                else { OnePlusQuietWell.field(shape, focused: focused) }
+            }
             .overlay { if error != nil { shape.strokeBorder(OnePlusColor.dangerLine, lineWidth: 1) } }
             .help(error ?? "")
             .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)

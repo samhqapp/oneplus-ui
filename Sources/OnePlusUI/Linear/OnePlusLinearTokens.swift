@@ -74,6 +74,13 @@ public enum OnePlusLinearColor {
     public static let softKeyTrackShade = color("softKeyTrackShade", light: 0x000000, lightAlpha: 0.2, dark: 0x000000, darkAlpha: 0.9)
     /// The track's inner shade: radius and y offset per appearance.
     public static let softKeyTrackShadeGeometry = (light: (radius: 2.0, y: 1.0), dark: (radius: 2.5, y: 1.5))
+    /// Badge wells (Portman port badge "Sunken well", owner pick 2026-11-21): a lighter, shallower soft-key track,
+    /// so every Portman port ink keeps 4.5:1 on both gradient ends. It reuses the track's edge gradient.
+    public static let badgeWellTop = color("badgeWellTop", light: 0xEBEBEE, dark: 0x111113)
+    public static let badgeWellBottom = color("badgeWellBottom", light: 0xF0F0F3, dark: 0x161618)
+    public static let badgeWellShade = color("badgeWellShade", light: 0x000000, lightAlpha: 0.12, dark: 0x000000, darkAlpha: 0.6)
+    /// An inset tile inside a group, such as a Portman host's stat tile.
+    public static let insetTile = color("insetTile", light: 0xF4F4F6, dark: 0x27272B)
     public static let softKeyTop = color("softKeyTop", light: 0xFFFFFF, dark: 0x313136)
     public static let softKeyBottom = color("softKeyBottom", light: 0xEEEEF1, dark: 0x28282C)
     public static let softKeyEdgeTop = color("softKeyEdgeTop", light: 0xFFFFFF, dark: 0xFFFFFF, darkAlpha: 0.08)
@@ -267,6 +274,27 @@ public enum OnePlusLinearMetrics {
     public static let tallTile: CGFloat = 146
     public static let shortTile: CGFloat = 56
     public static let chart: CGFloat = 30
+    /// The inset stat tile (Portman host card): tile height, chart height, radius, and padding.
+    public static let insetTile: CGFloat = 66
+    public static let insetTileChart: CGFloat = 26
+    public static let insetTileRadius: CGFloat = 8
+    public static let insetTilePadding = CGSize(width: 8, height: 7)
+    /// A badge (a port number in a sunken well): height, side padding, and radius.
+    public static let badge: CGFloat = 18
+    public static let badgePadding: CGFloat = 5
+    public static let badgeRadius: CGFloat = 5
+    /// A host icon: the outlined 16 pt box with a 10 pt glyph and a 7 pt status dot on a 1.5 pt ring.
+    public static let hostIcon: CGFloat = 16
+    public static let hostIconRadius: CGFloat = 4
+    public static let hostIconGlyph: CGFloat = 10
+    public static let hostIconDot: CGFloat = 7
+    public static let hostIconDotRing: CGFloat = 1.5
+    public static let hostIconDotOutset: CGFloat = 3
+    /// A tree card's guide line: its x from the card edge and the tick to each child row.
+    public static let guideLine: CGFloat = 18
+    public static let guideTick: CGFloat = 10
+    public static let treeChildInset: CGFloat = 34
+    public static let treeChildRow: CGFloat = 32
     public static let tallChart: CGFloat = 68
     /// Instrument bento: value size, the newest-point dot radius, and the left-edge fade width of a chart.
     public static let instrumentValue: CGFloat = 26

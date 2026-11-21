@@ -31,6 +31,9 @@ public struct OnePlusLinearControlLook: Sendable, Equatable {
     /// "Raised keys" (owner pick 2026-11-19): fields, tracks, and selects are sunken key wells, segment thumbs and
     /// buttons are raised keys, all 28 pt. Switches and sliders keep the quiet look.
     public var keys = false
+    /// The text inset of a field and a select, which the select's chevron mirrors on the right. Nil keeps the
+    /// quiet field's 8 pt and the quiet select's 11 pt.
+    public var fieldInset: CGFloat?
 
     public static let quietRaised = OnePlusLinearControlLook(
         field: OnePlusLinearColor.quietField, fieldLine: OnePlusLinearColor.quietFieldLine,
@@ -50,7 +53,7 @@ public struct OnePlusLinearControlLook: Sendable, Equatable {
     public static let raisedKeys: OnePlusLinearControlLook = {
         var look = quietRaised
         look.height = 28; look.radius = 7; look.segmentWidth = 40; look.segmentRadius = 5
-        look.stepperButton = 24; look.well = CGSize(width: 44, height: 28); look.wellInset = 4; look.keys = true
+        look.stepperButton = 24; look.well = CGSize(width: 44, height: 28); look.wellInset = 4; look.keys = true; look.fieldInset = 9
         return look
     }()
 
@@ -106,6 +109,55 @@ struct OnePlusKeyWell<S: InsettableShape>: View {
             .shadow(.inner(color: OnePlusLinearColor.softKeyTrackShade, radius: shade.radius / 2, y: shade.y / 2)))
             .overlay { shape.strokeBorder(LinearGradient(colors: [OnePlusLinearColor.softKeyTrackEdgeTop, OnePlusLinearColor.softKeyTrackEdgeBottom],
                                                          startPoint: .top, endPoint: .bottom), lineWidth: 1) }
+    }
+}
+
+/// A badge well: a lighter, shallower key well (`badgeWell*` tokens) with the track's lit bottom lip.
+public struct OnePlusBadgeWell<S: InsettableShape>: View {
+    let shape: S
+    public init(shape: S) { self.shape = shape }
+    public var body: some View {
+        shape.fill(LinearGradient(colors: [OnePlusLinearColor.badgeWellTop, OnePlusLinearColor.badgeWellBottom], startPoint: .top, endPoint: .bottom)
+            .shadow(.inner(color: OnePlusLinearColor.badgeWellShade, radius: 1, y: 0.75)))
+            .overlay { shape.strokeBorder(LinearGradient(colors: [OnePlusLinearColor.softKeyTrackEdgeTop, OnePlusLinearColor.softKeyTrackEdgeBottom],
+                                                         startPoint: .top, endPoint: .bottom), lineWidth: 1) }
+    }
+}
+
+/// A badge: short tabular text in a sunken badge well, such as a Portman port number in its port color.
+public struct OnePlusLinearBadge: View {
+    private let text: String
+    private let color: Color
+    public init(_ text: String, color: Color) { self.text = text; self.color = color }
+    public var body: some View {
+        Text(text).linearText(OnePlusLinearMetrics.caption, weight: .semibold, color: color).monospacedDigit().lineLimit(1)
+            .padding(.horizontal, OnePlusLinearMetrics.badgePadding).frame(height: OnePlusLinearMetrics.badge)
+            .background { OnePlusBadgeWell(shape: RoundedRectangle(cornerRadius: OnePlusLinearMetrics.badgeRadius)) }
+    }
+}
+
+/// A host icon: a glyph in an outlined 16 pt box with a status dot on its corner (green online, gray otherwise)
+/// ringed in the group fill. `online == nil` hides the dot.
+public struct OnePlusLinearHostIcon: View {
+    private let systemImage: String
+    private let online: Bool?
+    public init(systemImage: String = "network", online: Bool?) { self.systemImage = systemImage; self.online = online }
+    public var body: some View {
+        let shape = RoundedRectangle(cornerRadius: OnePlusLinearMetrics.hostIconRadius)
+        let dot = OnePlusLinearMetrics.hostIconDot, ring = OnePlusLinearMetrics.hostIconDotRing
+        Image(systemName: systemImage).font(.system(size: OnePlusLinearMetrics.hostIconGlyph))
+            .foregroundStyle(OnePlusLinearColor.secondary)
+            .frame(width: OnePlusLinearMetrics.hostIcon, height: OnePlusLinearMetrics.hostIcon)
+            .overlay { shape.strokeBorder(OnePlusLinearColor.iconOutline, lineWidth: 1) }
+            .overlay(alignment: .bottomTrailing) {
+                if let online {
+                    Circle().fill(online ? OnePlusLinearColor.success : OnePlusLinearColor.tertiary)
+                        .frame(width: dot, height: dot)
+                        .padding(ring).background(OnePlusLinearColor.fillGroup, in: Circle())
+                        .offset(x: OnePlusLinearMetrics.hostIconDotOutset + ring, y: OnePlusLinearMetrics.hostIconDotOutset + ring)
+                }
+            }
+            .accessibilityHidden(true)
     }
 }
 

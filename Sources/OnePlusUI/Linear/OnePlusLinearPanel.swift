@@ -408,6 +408,58 @@ public struct OnePlusLinearTile<Content: View>: View {
     }
 }
 
+/// A small stat tile inside a group (Portman "Chart tiles", owner pick 2026-11-21): a caption label row with a
+/// muted meta, a 16 pt value in the data color with an 11 pt unit, and an area chart that runs edge to edge
+/// along the bottom with its left edge faded.
+public struct OnePlusLinearInsetTile: View {
+    private let title: String
+    private let systemImage: String
+    private let meta: String
+    private let value: String
+    private let unit: String
+    private let color: Color
+    private let chart: OnePlusLinearChart
+    public init(_ title: String, systemImage: String, meta: String = "", value: String, unit: String = "",
+                color: Color, chart: OnePlusLinearChart) {
+        self.title = title; self.systemImage = systemImage; self.meta = meta; self.value = value; self.unit = unit
+        self.color = color; self.chart = chart
+    }
+    public var body: some View {
+        let padding = OnePlusLinearMetrics.insetTilePadding
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 4) {
+                Image(systemName: systemImage).font(.system(size: OnePlusLinearMetrics.caption - 1))
+                    .foregroundStyle(OnePlusLinearColor.secondary).accessibilityHidden(true)
+                Text(title).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.secondary)
+                Spacer(minLength: 4)
+                Text(meta).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted)
+            }
+            .lineLimit(1)
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(value).linearText(16, weight: .semibold, color: color).monospacedDigit()
+                Text(unit).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.secondary)
+            }
+            .lineLimit(1)
+        }
+        .padding(.horizontal, padding.width).padding(.top, padding.height)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(alignment: .bottom) {
+            OnePlusLinearChartView(chart: chart, instrument: false).frame(height: chart.height)
+                .mask {
+                    HStack(spacing: 0) {
+                        LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing)
+                            .frame(width: OnePlusLinearMetrics.chartEdgeFade)
+                        Color.black
+                    }
+                }
+        }
+        .frame(height: OnePlusLinearMetrics.insetTile)
+        .background(OnePlusLinearColor.insetTile)
+        .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearMetrics.insetTileRadius))
+        .accessibilityElement(children: .combine)
+    }
+}
+
 /// The tile's 16 pt label row: 14 pt glyph in the data color, 13 pt label, trailing content.
 public struct OnePlusLinearTileLabel<Trailing: View>: View {
     private let title: String
