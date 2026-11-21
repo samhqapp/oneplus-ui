@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.45
+
+- `OnePlusLinearIconTrack`: panel bar actions (Settings, Open App) as 26 pt icon buttons in the same sunken
+  track as `OnePlusLinearIconTabs`.
+
 ## 1.3.44
 
 - `OnePlusLinearColor.temperatureCool` (`#008CBF` Light, `#63D1FF` Dark): the cool end of a heat scale, such as

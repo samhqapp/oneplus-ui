@@ -157,6 +157,17 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
     }
 }
 
+/// Panel bar actions (Settings, Open App) in the same track as `OnePlusLinearIconTabs`, 2 pt apart.
+/// Put `OnePlusLinearIconButton`s sized `OnePlusLinearMetrics.iconTab` inside.
+public struct OnePlusLinearIconTrack<Content: View>: View {
+    private let content: Content
+    @Environment(\.onePlusLinearPanelStyle) private var style
+    public init(@ViewBuilder content: () -> Content) { self.content = content() }
+    public var body: some View {
+        HStack(spacing: 2) { content }.modifier(OnePlusLinearTabTrack(soft: style == .fillSteps))
+    }
+}
+
 private struct OnePlusLinearTabTrack: ViewModifier {
     let soft: Bool
     @Environment(\.colorScheme) private var colorScheme
