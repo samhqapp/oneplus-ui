@@ -430,9 +430,10 @@ public struct OnePlusLinearInsetTile: View {
             HStack(spacing: 4) {
                 Image(systemName: systemImage).font(.system(size: OnePlusLinearMetrics.caption - 1))
                     .foregroundStyle(OnePlusLinearColor.secondary).accessibilityHidden(true)
-                Text(title).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.secondary)
+                Text(title).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.secondary).fixedSize()
                 Spacer(minLength: 4)
                 Text(meta).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.panelMuted)
+                    .minimumScaleFactor(OnePlusLinearMetrics.insetTileMetaScale)
             }
             .lineLimit(1)
             HStack(alignment: .firstTextBaseline, spacing: 2) {

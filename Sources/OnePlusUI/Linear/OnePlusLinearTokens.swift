@@ -279,6 +279,8 @@ public enum OnePlusLinearMetrics {
     public static let insetTileChart: CGFloat = 26
     public static let insetTileRadius: CGFloat = 8
     public static let insetTilePadding = CGSize(width: 8, height: 7)
+    /// A long tile reading such as "↑ 289 KB/s" shrinks this far before it truncates.
+    public static let insetTileMetaScale: CGFloat = 0.8
     /// A badge (a port number in a sunken well): height, side padding, and radius.
     public static let badge: CGFloat = 18
     public static let badgePadding: CGFloat = 5
