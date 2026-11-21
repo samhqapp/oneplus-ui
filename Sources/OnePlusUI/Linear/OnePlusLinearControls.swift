@@ -198,9 +198,11 @@ public struct OnePlusLinearIconButton: View {
                 if busy != nil {
                     ProgressView().controlSize(.small).scaleEffect(glyph / 16)
                 } else {
+                    let optical = Self.optical[systemImage] ?? (shrink: 0, dx: 0, dy: 0)
                     Image(systemName: systemImage)
-                        .font(.system(size: glyph, weight: .regular))
+                        .font(.system(size: glyph - optical.shrink, weight: .regular))
                         .foregroundStyle(OnePlusLinearColor.secondary)
+                        .offset(x: optical.dx, y: optical.dy)
                 }
             }
             .frame(width: size, height: size)
@@ -210,6 +212,12 @@ public struct OnePlusLinearIconButton: View {
         .accessibilityLabel(busy ?? help)
         .accessibilityValue(busy == nil ? "" : help)
     }
+
+    /// Optical corrections, measured on 4x renders: the diagonal arrow spans the gear's width at the same point
+    /// size and its head pulls its ink up and right, so it draws smaller and moves back toward the cell center.
+    private static let optical: [String: (shrink: CGFloat, dx: CGFloat, dy: CGFloat)] = [
+        "arrow.up.right": (shrink: 2, dx: -0.5, dy: 0.5),
+    ]
 }
 
 /// A rounded group with hairline separators between its rows.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.46
+
+- `OnePlusLinearIconButton`: `arrow.up.right` draws 2 pt smaller and 0.5 pt down-left, so it matches the gear's
+  optical size and its ink sits within 0.5 pt of the cell center.
+
 ## 1.3.45
 
 - `OnePlusLinearIconTrack`: panel bar actions (Settings, Open App) as 26 pt icon buttons in the same sunken
