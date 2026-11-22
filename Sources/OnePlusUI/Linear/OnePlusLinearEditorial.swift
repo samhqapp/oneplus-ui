@@ -179,8 +179,7 @@ private struct OnePlusLinearLaunchTileStyle: ButtonStyle {
     }
 }
 
-/// The raised key with paint-only hover and press. Under Soft spring it also rises 2 pt on hover and sinks and
-/// scales to 98% while pressed, on springs.
+/// The raised key with paint-only hover and press, in every motion style: nothing moves or scales.
 private struct OnePlusLinearLaunchTileBody<Label: View>: View {
     @Environment(\.isEnabled) private var enabled
     @Environment(\.isFocused) private var focused
@@ -192,22 +191,16 @@ private struct OnePlusLinearLaunchTileBody<Label: View>: View {
     let pressed: Bool
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: OnePlusLinearEditorialMetrics.launchTileRadius)
-        let spring = motion == .spring && !reduceMotion
         let hovering = enabled && (hover || sample == .hover)
         let isPressed = enabled && (pressed || sample == .pressed)
-        let lift = spring ? (hovering ? OnePlusMotion.springTileLift : 0) - (isPressed ? OnePlusMotion.keyPress : 0) : 0
         label.padding(OnePlusLinearEditorialMetrics.launchTilePadding)
             .frame(width: OnePlusLinearEditorialMetrics.launchTile.width, height: OnePlusLinearEditorialMetrics.launchTile.height)
             .background {
-                OnePlusRaisedKey(shape: shape, lift: max(lift, 0))
+                OnePlusRaisedKey(shape: shape)
                     .overlay { shape.fill(isPressed ? OnePlusLinearColor.pressed : hovering ? OnePlusLinearColor.hover : .clear) }
             }
             .overlay { OnePlusQuietFocusFill(shape: shape, focused: enabled && focused) }
-            .offset(y: -lift)
-            .scaleEffect(spring && isPressed ? OnePlusMotion.springTilePressScale : 1)
-            .animation(spring ? (isPressed ? OnePlusMotion.springTilePress : OnePlusMotion.springTileRelease) : nil, value: isPressed)
-            .animation(spring ? (hovering ? OnePlusMotion.springTileHoverIn : OnePlusMotion.springTileHoverOut)
-                       : OnePlusMotion.resolved(hovering ? OnePlusMotion.hoverIn : OnePlusMotion.hoverOut, style: motion, reduceMotion: reduceMotion),
+            .animation(OnePlusMotion.resolved(hovering ? OnePlusMotion.hoverIn : OnePlusMotion.hoverOut, style: motion, reduceMotion: reduceMotion),
                        value: hovering)
             .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
             .contentShape(shape)
@@ -408,7 +401,6 @@ public struct OnePlusLinearEditorialToolRow: View {
                 star
                 Image(systemName: "chevron.right").font(.system(size: 10, weight: .medium))
                     .foregroundStyle(OnePlusLinearColor.tertiary).allowsHitTesting(false).accessibilityHidden(true)
-                    .offset(x: motion == .spring && hovering ? OnePlusMotion.springChevronNudge : 0)
             }
             .padding(.horizontal, OnePlusLinearEditorialMetrics.toolRowInset)
         }

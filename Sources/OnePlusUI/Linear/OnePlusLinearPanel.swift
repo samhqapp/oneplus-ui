@@ -363,7 +363,6 @@ public struct OnePlusLinearTile<Content: View>: View {
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.onePlusControlState) private var sample
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hover = false
     public init(height: CGFloat? = nil, chart: OnePlusLinearChart? = nil, usage: OnePlusLinearUsage? = nil,
                 tint: Color? = nil, @ViewBuilder content: () -> Content) {
@@ -382,9 +381,9 @@ public struct OnePlusLinearTile<Content: View>: View {
             .frame(height: height ?? panelStyle.tile)
         Group {
             if panelStyle == .fillSteps {
-                let lifted = hover || sample == .hover
+                let hovered = hover || sample == .hover
                 let rest = colorScheme == .dark ? OnePlusLinearColor.fillTileWashOpacity.dark : OnePlusLinearColor.fillTileWashOpacity.light
-                let wash = rest * (lifted ? OnePlusMotion.tileWashBoost : 1)
+                let wash = rest * (hovered ? OnePlusMotion.tileWashBoost : 1)
                 tile.background {
                     if let tint {
                         LinearGradient(colors: [tint.opacity(wash), tint.opacity(0)], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.75))
@@ -392,8 +391,6 @@ public struct OnePlusLinearTile<Content: View>: View {
                 }
                 .background(OnePlusLinearColor.fillGroup)
                 .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius))
-                // The shared shadow layer reads this anchor, so the tile and its unchanged shadow rise together.
-                .offset(y: lifted && !reduceMotion ? -OnePlusMotion.tileLift : 0)
                 .anchorPreference(key: OnePlusLinearTileFrames.self, value: .bounds) { [$0] }
                 .onePlusHover($hover, timing: (OnePlusMotion.tileHoverIn, OnePlusMotion.tileHoverOut))
             } else if style == .instrument {
@@ -1012,7 +1009,7 @@ public struct OnePlusLinearActionBar: View {
     }
 }
 
-/// The Home action key (Fill steps): a raised radius 8 key that rises 1 pt on hover and sits down while pressed.
+/// The Home action key (Fill steps): a raised radius 8 key. Hover and press change only fill, shadow, and rim.
 /// The action bar sizes it; a row key (`Grant`, `Retry`) uses `.compact`: 24 pt tall, 10 pt label padding.
 public struct OnePlusLinearKeyButtonStyle: ButtonStyle {
     private let compact: Bool
@@ -1042,11 +1039,10 @@ private struct OnePlusLinearFillStepButtonStyle: ButtonStyle {
         @State private var hover = false
         @Environment(\.onePlusControlState) private var sample
         @Environment(\.isEnabled) private var enabled
-        @Environment(\.accessibilityReduceMotion) private var reduceMotion
         var body: some View {
             let pressed = enabled && (isPressed || sample == .pressed)
             let hovered = enabled && (hover || sample == .hover)
-            let shift = reduceMotion ? 0 : pressed ? OnePlusMotion.keyPress : hovered ? -OnePlusMotion.keyLift : 0
+            let lit = hovered && !pressed
             let shape = RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.tileRadius)
             let fill = pressed ? LinearGradient(colors: [OnePlusLinearColor.fillButtonPressed], startPoint: .top, endPoint: .bottom)
                 : hovered && onGroup ? LinearGradient(colors: [OnePlusLinearColor.softButtonHover], startPoint: .top, endPoint: .bottom)
@@ -1058,9 +1054,10 @@ private struct OnePlusLinearFillStepButtonStyle: ButtonStyle {
                     shape.fill(fill)
                         .overlay { shape.strokeBorder(OnePlusLinearTabTrack.vertical(OnePlusLinearColor.actionKeyEdgeTop,
                                                                                      OnePlusLinearColor.actionKeyEdgeBottom), lineWidth: 1) }
-                        .shadow(color: OnePlusLinearColor.actionKeyShadow, radius: 1.5, y: 1)
+                        .overlay { shape.strokeBorder(lit ? OnePlusLinearColor.actionKeyHoverRim : .clear, lineWidth: 1) }
+                        .shadow(color: lit ? OnePlusLinearColor.actionKeyHoverShadow : OnePlusLinearColor.actionKeyShadow,
+                                radius: lit ? 3 : 1.5, y: 1)
                 }
-                .offset(y: shift)
                 .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
                 .contentShape(Rectangle())
                 .onePlusHover($hover, timing: (OnePlusMotion.keyHover, OnePlusMotion.keyHover))

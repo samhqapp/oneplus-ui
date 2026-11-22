@@ -27,6 +27,9 @@ public struct OnePlusLinearButtonStyle: ButtonStyle {
         /// A reset inside a caption line (the Fan chart's `Reset Curve`): `.inline` geometry and caption type in
         /// coral `destructiveText`, `destructivePressedText` on press.
         case inlineDestructive
+        /// A segment on a `fillTrack` well: no fill at rest, a clear `fillSegmentHover` step on hover (darker in
+        /// Light, lighter in Dark, so it never melts into the well), `fillSegmentPressed` while pressed.
+        case segment
     }
     let kind: Kind
     let radius: CGFloat
@@ -84,6 +87,9 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
         case .resetBlock:
             guard enabled else { return OnePlusLinearColor.fillGroup }
             return isPressed ? OnePlusLinearColor.softButtonPressed : isHovered ? OnePlusLinearColor.softButtonHover : OnePlusLinearColor.fillGroup
+        case .segment:
+            guard enabled else { return .clear }
+            return isPressed ? OnePlusLinearColor.fillSegmentPressed : isHovered ? OnePlusLinearColor.fillSegmentHover : .clear
         case .plain, .raised, .ghost:
             guard enabled else { return .clear }
             if isPressed { return OnePlusLinearColor.pressed }
@@ -150,7 +156,7 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                 label.linearText(OnePlusLinearMetrics.caption,
                                  color: enabled && isPressed ? OnePlusLinearColor.destructivePressedText : OnePlusLinearColor.destructiveText)
                     .fixedSize()
-            case .plain:
+            case .plain, .segment:
                 label
             }
         }

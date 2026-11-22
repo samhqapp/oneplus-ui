@@ -58,6 +58,10 @@ public enum OnePlusLinearColor {
     public static let fillThumb = color("fillThumb", light: 0xFFFFFF, dark: 0x48484E)
     public static let fillButtonHover = color("fillButtonHover", light: 0xE4E4E8, dark: 0x2C2C30)
     public static let fillButtonPressed = color("fillButtonPressed", light: 0xDADADF, dark: 0x34343A)
+    /// A segment on the `fillTrack` well under the pointer: a clear step (about 1.2:1 Light, 1.3:1 Dark against the
+    /// well), darker in Light and lighter in Dark; pressed is one step back toward the well.
+    public static let fillSegmentHover = color("fillSegmentHover", light: 0xD6D6DB, dark: 0x3C3C42)
+    public static let fillSegmentPressed = color("fillSegmentPressed", light: 0xCDCDD2, dark: 0x343439)
     /// Bento "Floating tiles with wash" (owner pick 2026-11-19): one soft drop and a contact shade under all tiles.
     public static let fillTileShadow = color("fillTileShadow", light: 0x000000, lightAlpha: 0.08, dark: 0x000000, darkAlpha: 0.5)
     public static let fillTileContact = color("fillTileContact", light: 0x000000, lightAlpha: 0.06, dark: 0x000000, darkAlpha: 0.35)
@@ -114,6 +118,9 @@ public enum OnePlusLinearColor {
     public static let actionKeyEdgeTop = color("actionKeyEdgeTop", light: 0x000000, lightAlpha: 0.12, dark: 0xFFFFFF, darkAlpha: 0)
     public static let actionKeyEdgeBottom = color("actionKeyEdgeBottom", light: 0x000000, lightAlpha: 0.12, dark: 0x000000, darkAlpha: 0)
     public static let actionKeyShadow = color("actionKeyShadow", light: 0x000000, lightAlpha: 0, dark: 0x000000, darkAlpha: 0)
+    /// Hover never moves a key. Light shows a soft drop; Dark, where a drop does not show, a faint light rim.
+    public static let actionKeyHoverShadow = color("actionKeyHoverShadow", light: 0x000000, lightAlpha: 0.12, dark: 0x000000, darkAlpha: 0)
+    public static let actionKeyHoverRim = color("actionKeyHoverRim", light: 0xFFFFFF, lightAlpha: 0, dark: 0xFFFFFF, darkAlpha: 0.10)
     public static let actionKeyLabelWeight = (light: Font.Weight.regular, dark: Font.Weight.medium)
 
     // Lines
@@ -316,6 +323,8 @@ public enum OnePlusLinearMetrics {
     /// Fits `1,023.7 MB`, the widest memory string, at the 12 pt process text.
     public static let memoryColumn: CGFloat = 68
     public static let rowGap: CGFloat = 8
+    /// A status glyph beside a row's control (the Fan row thermometer): 10 pt regular, `rowGap` before the control.
+    public static let rowStatusGlyph: CGFloat = 10
     public static let segment = CGSize(width: 40, height: 18)
     public static let actionBar: CGFloat = 28
     public static let actionDivider: CGFloat = 14

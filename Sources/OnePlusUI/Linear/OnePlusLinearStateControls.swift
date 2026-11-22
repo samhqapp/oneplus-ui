@@ -125,7 +125,7 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                             }
                         }
                 }
-                .buttonStyle(OnePlusLinearButtonStyle(radius: well.innerRadius))
+                .buttonStyle(OnePlusLinearButtonStyle(.segment, radius: well.innerRadius))
                 .focused($focusedSegment, equals: value).focusEffectDisabled()
                 .disabled(!isChoiceEnabled(value))
                 .accessibilityAddTraits(on ? .isSelected : [])

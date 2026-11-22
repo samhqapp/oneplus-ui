@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.49
+
+- Nothing moves on hover or press: the metric tile, panel action keys, main window launch tile, and tool row
+  chevron no longer lift, sink, scale, or nudge. Tile hover fades only its wash (180 / 240 ms); keys get a soft
+  drop in Light (`actionKeyHoverShadow`) and a faint rim in Dark (`actionKeyHoverRim`). Removed `tileLift`,
+  `keyLift`, `keyPress`, `springChevronNudge`, and the `springTile*` tokens.
+- `OnePlusLinearButtonStyle(.segment)` with `fillSegmentHover` (`#D6D6DB` / `#3C3C42`) and `fillSegmentPressed`:
+  segmented hover now stands off the well (1.22:1 Light, 1.31:1 Dark, was 1.08 / 1.10).
+- `OnePlusLinearMetrics.rowStatusGlyph` (10 pt): a status glyph beside a row's control.
+
 ## 1.3.46
 
 - `OnePlusLinearIconButton`: `arrow.up.right` draws 2 pt smaller and 0.5 pt down-left, so it matches the gear's

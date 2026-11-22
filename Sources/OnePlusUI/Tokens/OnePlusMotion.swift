@@ -42,33 +42,22 @@ public enum OnePlusMotion {
     public static let chartScale: TimeInterval = 0.4
     /// Reduce Motion: a changed number crossfades instead of rolling.
     public static let numberCrossfade: TimeInterval = 0.15
-    /// Metric tile hover: the tile rises 1 pt and its color wash gets 1.8 times stronger. The shadow never changes.
-    public static let tileHoverIn: TimeInterval = 0.16
+    /// Metric tile hover: only the color wash fades to 1.8 times stronger (ease-out); the tile never moves.
+    public static let tileHoverIn: TimeInterval = 0.18
     public static let tileHoverOut: TimeInterval = 0.24
-    public static let tileLift: CGFloat = 1
     public static let tileWashBoost: Double = 1.8
     /// Panel row hover fill.
     public static let panelRowHoverIn: TimeInterval = 0.09
     public static let panelRowHoverOut: TimeInterval = 0.2
-    /// Panel action key: rises 1 pt on hover with a 120 ms fill fade, moves 0.5 pt down while pressed. Same shadow.
+    /// Panel action key: a 120 ms fill, shadow, and rim fade on hover. Nothing moves.
     public static let keyHover: TimeInterval = 0.12
-    public static let keyLift: CGFloat = 1
-    public static let keyPress: CGFloat = 0.5
 
     // Main window "Soft spring" (owner pick 2026-11-19). Native snap still applies everywhere else.
-    /// Tool row hover fill: in 120 ms, out 220 ms; the chevron moves 2 pt right.
+    /// Tool row hover fill: in 120 ms, out 220 ms.
     public static let springRowHover: (TimeInterval, TimeInterval) = (0.12, 0.22)
-    public static let springChevronNudge: CGFloat = 2
     /// Page switch: the old page fades out moving 6 pt up, the new one fades in from 6 pt below, 200 ms ease-out.
     public static let springPage: TimeInterval = 0.2
     public static let springPageOffset: CGFloat = 6
-    /// Launch tile: rises 2 pt on hover and settles; a press sinks it 0.5 pt and scales it to 98%.
-    public static let springTileLift: CGFloat = 2
-    public static let springTileHoverIn = Animation.spring(response: 0.35, dampingFraction: 0.75)
-    public static let springTileHoverOut = Animation.spring(response: 0.35, dampingFraction: 0.9)
-    public static let springTilePress = Animation.spring(response: 0.18, dampingFraction: 0.8)
-    public static let springTileRelease = Animation.spring(response: 0.25, dampingFraction: 0.7)
-    public static let springTilePressScale: CGFloat = 0.98
     /// Switch knob: a soft spring with a small overshoot.
     public static let springSwitch = Animation.spring(response: 0.3, dampingFraction: 0.72)
     /// The panel row mark (`onePlusLinearRowMark`): in 0.3 s after the panel opens, over 0.2 s, held 1.2 s,
