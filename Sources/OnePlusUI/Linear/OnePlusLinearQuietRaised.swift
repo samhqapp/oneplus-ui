@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// The one style point for the v15 applet controls (switch, slider, segmented control, stepper field, color well,
-/// search, select, and text field). `.quietRaised` is the owner's pick (2026-11-16): quiet sunken tracks, one solid
+/// search, select, and text field). `.quietRaised` is the shipped look: quiet sunken tracks, one solid
 /// knob with one soft shadow, and coral only for an "on" state. Reference: the showcase `ControlStyleOptions.swift`.
 /// The applet, the editorial body, and the pane toolbar set it. When no look is set (menu panel), the switch and
 /// segmented control keep their panel look.
@@ -28,7 +28,7 @@ public struct OnePlusLinearControlLook: Sendable, Equatable {
     public var stepperValueWidth: CGFloat
     public var well: CGSize
     public var wellInset: CGFloat
-    /// "Raised keys" (owner pick 2026-11-19): fields, tracks, and selects are sunken key wells, segment thumbs and
+    /// "Raised keys": fields, tracks, and selects are sunken key wells, segment thumbs and
     /// buttons are raised keys, all 28 pt. Switches and sliders keep the quiet look.
     public var keys = false
     /// The text inset of a field and a select, which the select's chevron mirrors on the right. Nil keeps the

@@ -32,7 +32,7 @@ public enum OnePlusMotion {
     /// Instrument chart ticker: the line scrolls left one step per 1 s sample interval at one constant speed.
     public static let chartTick: TimeInterval = 1
 
-    // Combined menu panel ("Live instrument", owner picks 2026-11-19). Native snap still applies everywhere else.
+    // Combined menu panel ("Live instrument"). Native snap still applies everywhere else.
     /// First Home open after launch: numbers count up from 0 and usage bars grow, ease-out.
     public static let panelReveal: TimeInterval = 0.6
     /// First Home open after launch: each chart line draws in left to right, ease-out, the next chart 30 ms later.
@@ -52,7 +52,7 @@ public enum OnePlusMotion {
     /// Panel action key: a 120 ms fill, shadow, and rim fade on hover. Nothing moves.
     public static let keyHover: TimeInterval = 0.12
 
-    // Main window "Soft spring" (owner pick 2026-11-19). Native snap still applies everywhere else.
+    // Main window "Soft spring". Native snap still applies everywhere else.
     /// Tool row hover fill: in 120 ms, out 220 ms.
     public static let springRowHover: (TimeInterval, TimeInterval) = (0.12, 0.22)
     /// Page switch: the old page fades out moving 6 pt up, the new one fades in from 6 pt below, 200 ms ease-out.

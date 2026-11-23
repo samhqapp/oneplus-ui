@@ -4,7 +4,7 @@ import XCTest
 @testable import OnePlusUI
 @testable import OnePlusUIShowcase
 
-/// Round 2 main window options (owner, 2026-11-18), Light and Dark at 2x, with a manifest for the decision page.
+/// Round 2 main window options, Light and Dark at 2x, with a manifest for the decision page.
 /// Each panel is the shipped editorial page (monochrome sidebar, editorial body, inline settings, How to use
 /// footer, toolbar Enabled switch); only the option under test changes.
 @MainActor

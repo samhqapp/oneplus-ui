@@ -4,7 +4,7 @@ import XCTest
 @testable import OnePlusUI
 @testable import OnePlusUIShowcase
 
-/// Round 1 main window options (owner, 2026-11-18), Light and Dark at 2x, with a manifest for the decision page.
+/// Round 1 main window options, Light and Dark at 2x, with a manifest for the decision page.
 /// Every panel is composed from the real OnePlusLinear parts the app uses; only the option under test changes.
 @MainActor
 final class MainWindowOptionsRenderTests: XCTestCase {

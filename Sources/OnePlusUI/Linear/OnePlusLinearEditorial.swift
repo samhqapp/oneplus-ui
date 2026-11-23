@@ -34,7 +34,7 @@ public enum OnePlusLinearEditorialMetrics {
     public static let titleTracking: CGFloat = -0.6
     public static let titleGap: CGFloat = 4
     public static let disabledIconOpacity: Double = 0.45
-    /// The tool page header (owner pick "Icon beside the title", 2026-11-23): a 48 pt icon 16 pt left of the title
+    /// The tool page header ("Icon beside the title"): a 48 pt icon 16 pt left of the title
     /// and a description of at most 2 lines, top-aligned with the Open tile 20 pt to the right.
     public static let headerTileIcon: CGFloat = 48
     public static let headerDetailLines = 2
@@ -140,7 +140,7 @@ public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
     }
 }
 
-/// The "Key tile" of the tool page header (owner pick 2026-11-19): a large raised key with "Open" and an arrow on
+/// The "Key tile" of the tool page header: a large raised key with "Open" and an arrow on
 /// top, then the tool's global shortcut as key caps over its action name. With no shortcut, the tool name sits at
 /// the bottom in 20 pt semibold.
 public struct OnePlusLinearLaunchTile: View {

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// How many rows a panel list keeps room for, so the panel height holds steady while rows come and go
-/// (owner, 2026-11-19). The list reserves at least `minimum` rows and grows at once when rows are added. It shrinks
+/// The list reserves at least `minimum` rows and grows at once when rows are added. It shrinks
 /// only when the count drops at least 2 below the reserved rows, then to the new count, never below `minimum`.
 public struct OnePlusSteadyRows: Equatable, Sendable {
     public static let minimum = 3

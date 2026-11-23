@@ -48,7 +48,7 @@ public struct OnePlusLinearChecklistKey: Sendable, Hashable {
     public init(_ keys: [String], _ text: String) { self.keys = keys; self.text = text }
 }
 
-/// The "Checklist" How to use card (owner pick 2026-11-19): one radius 12 group, the steps as 40 pt rows with an
+/// The "Checklist" How to use card: one radius 12 group, the steps as 40 pt rows with an
 /// accent glyph, then the shortcuts as 36 pt rows with a keyboard glyph and the key caps trailing, then notes as
 /// rows with an info glyph. Rows after the first have a `lineSoft` hairline from the text edge.
 public struct OnePlusLinearChecklist: View {

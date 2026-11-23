@@ -4,7 +4,7 @@ import XCTest
 @testable import OnePlusUI
 @testable import OnePlusUIShowcase
 
-/// Round 4 shipped tool pages (owner picks 2026-11-19): the "Launch tile" header and the bordered reset block,
+/// Round 4 shipped tool pages: the "Launch tile" header and the bordered reset block,
 /// Ruler, Color Picker, and Kwake, Light and Dark at 2x. The page mirrors MacPowerToys `ToolAboutView`.
 @MainActor
 final class MainWindowRound4RenderTests: XCTestCase {

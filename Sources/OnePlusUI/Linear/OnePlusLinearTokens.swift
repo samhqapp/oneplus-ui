@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// DESIGN.md v15 ("Linear style"). Values come from the owner-approved mockups in
+/// DESIGN.md v15 ("Linear style"). Values come from the mockups in
 /// `macpowertoys/docs/design/v15/`. Dark text roles are raised where the mockup missed the APCA minimums.
 public enum OnePlusLinearColor {
     /// A dynamic sRGB color with its own alpha per appearance. Increase Contrast strengthens translucent lines.
@@ -49,7 +49,7 @@ public enum OnePlusLinearColor {
     public static let buttonDrop = color("buttonDrop", light: 0x000000, lightAlpha: 0.06, dark: 0x000000, darkAlpha: 0)
     public static let buttonHalo = color("buttonHalo", light: 0x000000, lightAlpha: 0, dark: 0x000000, darkAlpha: 0.5)
 
-    // Menu panel "Fill steps" (owner pick 2026-11-19): no lines; parts separate by a step in fill and by spacing.
+    // Menu panel "Fill steps": no lines; parts separate by a step in fill and by spacing.
     public static let fillShell = color("fillShell", light: 0xF0F0F2, dark: 0x151517)
     /// Tiles, lists, and action buttons.
     public static let fillGroup = color("fillGroup", light: 0xFFFFFF, dark: 0x1F1F22)
@@ -62,13 +62,13 @@ public enum OnePlusLinearColor {
     /// well), darker in Light and lighter in Dark; pressed is one step back toward the well.
     public static let fillSegmentHover = color("fillSegmentHover", light: 0xD6D6DB, dark: 0x3C3C42)
     public static let fillSegmentPressed = color("fillSegmentPressed", light: 0xCDCDD2, dark: 0x343439)
-    /// Bento "Floating tiles with wash" (owner pick 2026-11-19): one soft drop and a contact shade under all tiles.
+    /// Bento "Floating tiles with wash": one soft drop and a contact shade under all tiles.
     public static let fillTileShadow = color("fillTileShadow", light: 0x000000, lightAlpha: 0.08, dark: 0x000000, darkAlpha: 0.5)
     public static let fillTileContact = color("fillTileContact", light: 0x000000, lightAlpha: 0.06, dark: 0x000000, darkAlpha: 0.35)
     /// The data-color wash at a tile's top: tint at this opacity, fading to clear at 75% of the tile height.
     public static let fillTileWashOpacity = (light: 0.09, dark: 0.16)
 
-    // Panel tabs "Soft keys" (owner pick 2026-11-19): a sunken track and a raised key for the selected tab.
+    // Panel tabs "Soft keys": a sunken track and a raised key for the selected tab.
     // Top and Bottom are the vertical gradient ends; Edge is the 1 pt border gradient.
     // Dark (round 8, "Quieter key, fainter dividers"): a deep track with a lit bottom lip and a quieter key.
     public static let softKeyTrackTop = color("softKeyTrackTop", light: 0xDADADE, dark: 0x050506)
@@ -78,7 +78,7 @@ public enum OnePlusLinearColor {
     public static let softKeyTrackShade = color("softKeyTrackShade", light: 0x000000, lightAlpha: 0.2, dark: 0x000000, darkAlpha: 0.9)
     /// The track's inner shade: radius and y offset per appearance.
     public static let softKeyTrackShadeGeometry = (light: (radius: 2.0, y: 1.0), dark: (radius: 2.5, y: 1.5))
-    /// Badge wells (Portman port badge "Sunken well", owner pick 2026-11-21): a lighter, shallower soft-key track,
+    /// Badge wells (Portman port badge "Sunken well"): a lighter, shallower soft-key track,
     /// so every Portman port ink keeps 4.5:1 on both gradient ends. It reuses the track's edge gradient.
     public static let badgeWellTop = color("badgeWellTop", light: 0xEBEBEE, dark: 0x111113)
     public static let badgeWellBottom = color("badgeWellBottom", light: 0xF0F0F3, dark: 0x161618)
@@ -114,7 +114,7 @@ public enum OnePlusLinearColor {
     public static let actionKeyBottom = color("actionKeyBottom", light: 0xEEEEF1, dark: 0x1F1F22)
     public static let actionKeyHoverTop = color("actionKeyHoverTop", light: 0xF7F7F9, dark: 0x2C2C30)
     public static let actionKeyHoverBottom = color("actionKeyHoverBottom", light: 0xE6E6EA, dark: 0x2C2C30)
-    /// Light keys: one even hairline edge and no shadow (owner pick "Hairline edge", 2026-11-19).
+    /// Light keys: one even hairline edge and no shadow.
     public static let actionKeyEdgeTop = color("actionKeyEdgeTop", light: 0x000000, lightAlpha: 0.12, dark: 0xFFFFFF, darkAlpha: 0)
     public static let actionKeyEdgeBottom = color("actionKeyEdgeBottom", light: 0x000000, lightAlpha: 0.12, dark: 0x000000, darkAlpha: 0)
     public static let actionKeyShadow = color("actionKeyShadow", light: 0x000000, lightAlpha: 0, dark: 0x000000, darkAlpha: 0)

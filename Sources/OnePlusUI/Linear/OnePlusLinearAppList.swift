@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The "Apps by Sam" parts (owner picks, rounds 3-5, 2026-11-19): the featured banner with the Paid key, two cover
+/// The "Apps by Sam" parts: the featured banner with the Paid key, two cover
 /// cards side by side with the cover edge to edge across the top, then open 64 pt rows. Every app has the App Store
 /// style GET or OPEN capsule.
 public enum OnePlusLinearAppListMetrics {

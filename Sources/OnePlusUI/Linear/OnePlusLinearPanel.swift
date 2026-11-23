@@ -1,8 +1,8 @@
 import AppKit
 import SwiftUI
 
-/// How the panel draws its surfaces. `lines`: hairline rings, dividers, and a bar line. `fillSteps` (owner pick
-/// 2026-11-19): no lines anywhere; tiles, groups, rows, buttons, the bar, and segments separate only by a step
+/// How the panel draws its surfaces. `lines`: hairline rings, dividers, and a bar line. `fillSteps`:
+/// no lines anywhere; tiles, groups, rows, buttons, the bar, and segments separate only by a step
 /// in fill (`OnePlusLinearColor.fill*`) and by spacing. The panel sets it for everything inside.
 public enum OnePlusLinearPanelStyle: Sendable {
     case lines, fillSteps
@@ -405,7 +405,7 @@ public struct OnePlusLinearTile<Content: View>: View {
     }
 }
 
-/// A small stat tile inside a group (Portman "Chart tiles", owner pick 2026-11-21): a caption label row with a
+/// A small stat tile inside a group (Portman "Chart tiles"): a caption label row with a
 /// muted meta, a 16 pt value in the data color with an 11 pt unit, and an area chart that runs edge to edge
 /// along the bottom with its left edge faded.
 public struct OnePlusLinearInsetTile: View {

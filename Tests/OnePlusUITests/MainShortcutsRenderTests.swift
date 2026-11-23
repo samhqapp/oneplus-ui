@@ -3,7 +3,7 @@ import SwiftUI
 import XCTest
 @testable import OnePlusUI
 
-/// Shipped All tools rows (owner picks 2026-11-19): the shortcut key chip right-aligned against the fixed star
+/// Shipped All tools rows: the shortcut key chip right-aligned against the fixed star
 /// column, the radius 8 hover fill wider than the row, and hairlines that fade at both ends. The page mirrors
 /// MacPowerToys `AllToolsGridView`; Portman is hovered. Light and Dark, 820 x 660 at 2x.
 @MainActor
