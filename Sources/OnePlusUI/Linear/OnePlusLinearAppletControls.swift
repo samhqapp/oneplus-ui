@@ -119,6 +119,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
     private let label: String
     private let style: Style
     private let width: CGFloat?
+    private let placeholder: String
     @State private var expanded = false
     @State private var hover = false
     @State private var anchor = OnePlusPopupAnchorReference()
@@ -127,12 +128,14 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.isEnabled) private var enabled
 
+    /// `placeholder` shows while `selection` matches no choice; the menu then lists only the real choices, none checked.
     public init(choices: [(Value, String)], selection: Binding<Value>, accessibilityLabel: String,
-                style: Style = .field, width: CGFloat? = nil) {
+                style: Style = .field, width: CGFloat? = nil, placeholder: String = "Select") {
         self.choices = choices; _selection = selection; label = accessibilityLabel; self.style = style; self.width = width
+        self.placeholder = placeholder
     }
 
-    private var title: String { choices.first { $0.0 == selection }?.1 ?? "Select" }
+    private var title: String { choices.first { $0.0 == selection }?.1 ?? placeholder }
 
     public var body: some View {
         Button(action: toggle) { trigger }

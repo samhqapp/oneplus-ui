@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.4
+
+- `OnePlusLinearSelect` takes a `placeholder`, shown while the selection matches no choice. A pick-to-fill select
+  (such as Portman's Hosts) lists only real choices, with no fake checked first item.
+
 ## 1.4.3
 
 - `OnePlusLinearToolHeader` also top-aligns the icon with the title block, so the icon's top edge is level with
