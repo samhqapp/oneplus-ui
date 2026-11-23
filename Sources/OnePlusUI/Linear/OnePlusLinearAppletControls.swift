@@ -156,6 +156,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(OnePlusLinearColor.appletSecondary)
             }
+            .offset(y: look.keys ? -OnePlusLinearMetrics.keyWellContentLift : 0)
             .padding(.horizontal, look.fieldInset ?? 11)
             .frame(width: width, height: environmentLook?.height ?? OnePlusLinearMetrics.appletField)
             .linearFieldBezel(look.keys ? look : .quietRaised, radius: look.radius, focused: focused)
@@ -219,6 +220,7 @@ public struct OnePlusLinearTextField: View {
         let look = environmentLook ?? .quietRaised
         let shape = RoundedRectangle(cornerRadius: look.radius)
         OnePlusControlContentLayout(pointSize: OnePlusLinearMetrics.body, iconIndex: nil) { input }
+            .offset(y: look.keys ? -OnePlusLinearMetrics.keyWellContentLift : 0)
             .textFieldStyle(.plain).linearText().focusEffectDisabled()
             .focused($focused).onSubmit(onSubmit)
             .onAppear { if autofocus { focused = true } }

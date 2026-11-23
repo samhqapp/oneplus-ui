@@ -225,6 +225,8 @@ public enum OnePlusLinearMetrics {
     public static let sectionCaption: CGFloat = 11.5
     public static let tileValue: CGFloat = 22
     public static let tileValueLine: CGFloat = 26
+    /// A key well's 1 pt lit bottom lip reads as outside the hole, so its text and glyphs center 0.5 pt higher.
+    public static let keyWellContentLift: CGFloat = 0.5
 
     // Main window
     public static let sidebarWidth: CGFloat = 215

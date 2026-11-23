@@ -8,6 +8,7 @@ import XCTest
 @MainActor
 final class OnePlusLinearFieldInsetTests: XCTestCase {
     private let size = CGSize(width: 160, height: OnePlusLinearControlLook.raisedKeys.height)
+    private var opticalCenter: CGFloat { size.height / 2 - OnePlusLinearMetrics.keyWellContentLift }
 
     func testRaisedKeysFieldAndSelectCenterTextWithEqualInsets() throws {
         for appearance in [NSAppearance.Name.aqua, .darkAqua] {
@@ -16,13 +17,13 @@ final class OnePlusLinearFieldInsetTests: XCTestCase {
                                                          accessibilityLabel: "Select"), appearance, "select")
             let inset = try XCTUnwrap(OnePlusLinearControlLook.raisedKeys.fieldInset)
             for (name, ink) in [("field", field), ("select", select)] {
-                XCTAssertEqual(ink.textCenter, size.height / 2, accuracy: 0.5, "\(name) \(appearance) text center")
+                XCTAssertEqual(ink.textCenter, opticalCenter, accuracy: 0.5, "\(name) \(appearance) text center")
                 // The H stem sits about 1 pt inside its advance box.
                 XCTAssertEqual(ink.left, inset + 1, accuracy: 0.75, "\(name) \(appearance) left inset")
             }
             let right = try XCTUnwrap(select.right)
             XCTAssertEqual(right, select.left, accuracy: 0.75, "select \(appearance) chevron inset matches the text inset")
-            XCTAssertEqual(try XCTUnwrap(select.glyphCenter), size.height / 2, accuracy: 0.5, "select \(appearance) chevron center")
+            XCTAssertEqual(try XCTUnwrap(select.glyphCenter), opticalCenter, accuracy: 0.5, "select \(appearance) chevron center")
         }
     }
 
