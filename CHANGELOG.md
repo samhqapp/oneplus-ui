@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.8
+
+- `OnePlusAboutColorField` puts its Check for Updates, Website, and Licenses buttons at the bottom, just above the
+  copyright line, like the footer links of the other About windows. `windowButtonsTop` becomes `windowButtonsBottom`.
+
 ## 1.4.7
 
 - `OnePlusCheckboxStyle` disabled and on draws the neutral well with a gray check, not the accent at low opacity

@@ -206,6 +206,7 @@ public struct OnePlusAboutColorField: View {
             Text(info.tagline).aboutText(M.control, color: C.secondary).multilineTextAlignment(.center)
                 .padding(.horizontal, M.gutter).padding(.top, A.taglineTop + 1)
             OnePlusAboutUpdateLine(info: info, update: update).padding(.top, A.versionTop + 2)
+            Spacer(minLength: 0)
             HStack(spacing: M.rowGap) {
                 if let check = update.check {
                     Button("Check for Updates", action: check).buttonStyle(OnePlusLinearButtonStyle(.raised))
@@ -218,8 +219,7 @@ public struct OnePlusAboutColorField: View {
                     Button("Licenses") { OnePlusAbout.open(license.url) }.buttonStyle(OnePlusLinearButtonStyle(.ghost))
                 }
             }
-            .padding(.top, A.windowButtonsTop)
-            Spacer(minLength: 0)
+            .padding(.bottom, A.windowButtonsBottom)
             Text(info.copyright).aboutText(M.caption, color: C.muted).padding(.bottom, A.footerBottom)
         }
         .frame(width: Self.size.width, height: Self.size.height)

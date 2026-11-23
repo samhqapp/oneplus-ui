@@ -349,7 +349,7 @@ Values are `OnePlusAboutMetrics`.
 | `OnePlusAboutInfo(tagline:website:releaseNotes:support:license:credits:)` | Name, version, build, and icon from the bundle; two tints from the icon. |
 | `OnePlusAboutUpdate(_:check:)` | Update state (`.current`, `.available`, ...) and the app's own check action. |
 | `OnePlusAboutSettingsSection(info:update:) { app sections }` | Centered hero, Links, Credits, the Animation switch, copyright. |
-| `OnePlusAboutColorField(info:update:)` | Free app window, 380 x 480: color field, breathing glow, update line, links. |
+| `OnePlusAboutColorField(info:update:)` | Free app window, 380 x 480: color field, breathing glow, update line, buttons at the bottom. |
 | `OnePlusAboutProLicense(info:update:rows:manage:)` | Paid app window, 420 x 560: activity line and the license card. |
 | `OnePlusAboutCompare(info:freeName:rows:upgrade:)` | Free app with a paid sibling, 440 x 580: compare table and Buy now. |
 | `OnePlusAboutWindow.show(size:) { view }` | One fixed, close-only window with an autosaved position. |

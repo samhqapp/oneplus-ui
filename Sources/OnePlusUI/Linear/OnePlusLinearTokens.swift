@@ -430,7 +430,7 @@ public enum OnePlusAboutMetrics {
     public static let windowIconShadow = Shadow(opacity: 0.25, radius: 14, y: 7)
     public static let noShadow = Shadow(opacity: 0, radius: 0, y: 0)
     public static let windowTitle: CGFloat = 21
-    public static let windowButtonsTop: CGFloat = 20
+    public static let windowButtonsBottom: CGFloat = 14
     public static let footerBottom: CGFloat = 18
     public static let footerGap: CGFloat = 6
     public static let updateGlyphGap: CGFloat = 5
