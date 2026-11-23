@@ -35,7 +35,7 @@ public enum OnePlusLinearEditorialMetrics {
     public static let titleGap: CGFloat = 4
     public static let disabledIconOpacity: Double = 0.45
     /// The tool page header (owner pick "Icon beside the title", 2026-11-23): a 48 pt icon 16 pt left of the title
-    /// and a description of at most 2 lines, centered on the Open tile 20 pt to the right.
+    /// and a description of at most 2 lines, top-aligned with the Open tile 20 pt to the right.
     public static let headerTileIcon: CGFloat = 48
     public static let headerDetailLines = 2
     public static let headerTileGap: CGFloat = 20
@@ -118,7 +118,7 @@ public struct OnePlusLinearPageTitle: View {
 }
 
 /// The editorial tool page header, "Icon beside the title": the 48 pt icon, then the large title over a description
-/// of at most 2 lines, all centered on the trailing actions (an `OnePlusLinearLaunchTile`, or nothing).
+/// of at most 2 lines, all top-aligned with the trailing actions (an `OnePlusLinearLaunchTile`, or nothing).
 public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
     private let title: String
     private let detail: String
@@ -128,7 +128,7 @@ public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
         self.title = title; self.detail = detail; self.icon = icon(); self.actions = actions()
     }
     public var body: some View {
-        HStack(alignment: .center, spacing: OnePlusLinearEditorialMetrics.headerTileGap) {
+        HStack(alignment: .top, spacing: OnePlusLinearEditorialMetrics.headerTileGap) {
             HStack(alignment: .center, spacing: OnePlusLinearEditorialMetrics.headerGap) {
                 icon.frame(width: OnePlusLinearEditorialMetrics.headerTileIcon, height: OnePlusLinearEditorialMetrics.headerTileIcon)
                     .accessibilityHidden(true)
