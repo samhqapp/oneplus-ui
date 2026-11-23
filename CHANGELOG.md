@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.5
+
+- `OnePlusSheetWidth.panel` (340 pt) fits a sheet inside the 356 pt menu panel; `.small` (420 pt) spilled past
+  its sides.
+
 ## 1.4.4
 
 - `OnePlusLinearSelect` takes a `placeholder`, shown while the selection matches no choice. A pick-to-fill select

@@ -68,7 +68,8 @@ public extension OnePlusBanner where Action == EmptyView {
     init(_ message: String, tone: Tone = .information) { self.init(message, tone: tone, action: { EmptyView() }) }
 }
 
-public enum OnePlusSheetWidth: CGFloat, Sendable { case small = 420, medium = 560, large = 700 }
+/// `.panel` fits a sheet inside the 356 pt menu panel.
+public enum OnePlusSheetWidth: CGFloat, Sendable { case panel = 340, small = 420, medium = 560, large = 700 }
 
 /// Present inside SwiftUI's native `.sheet` modifier.
 public struct OnePlusSheet<Body: View, Footer: View>: View {
