@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.3
+
+- `OnePlusLinearToolHeader` also top-aligns the icon with the title block, so the icon's top edge is level with
+  the tile's top edge even when the description wraps to 2 lines.
+
 ## 1.4.2
 
 - `OnePlusLinearToolHeader` top-aligns the icon, title, and description block with the trailing tile: the

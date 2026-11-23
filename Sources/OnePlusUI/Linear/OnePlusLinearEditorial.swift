@@ -129,7 +129,7 @@ public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
     }
     public var body: some View {
         HStack(alignment: .top, spacing: OnePlusLinearEditorialMetrics.headerTileGap) {
-            HStack(alignment: .center, spacing: OnePlusLinearEditorialMetrics.headerGap) {
+            HStack(alignment: .top, spacing: OnePlusLinearEditorialMetrics.headerGap) {
                 icon.frame(width: OnePlusLinearEditorialMetrics.headerTileIcon, height: OnePlusLinearEditorialMetrics.headerTileIcon)
                     .accessibilityHidden(true)
                 OnePlusLinearPageTitle(title, subtitle: detail, subtitleLines: OnePlusLinearEditorialMetrics.headerDetailLines)
