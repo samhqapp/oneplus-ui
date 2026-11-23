@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.0
+
+- About surfaces for every samhq app (DESIGN.md "About", tokens `OnePlusAboutMetrics`):
+  `OnePlusAboutSettingsSection` (Settings > About centered hero with Links, Credits, and the About window Animation
+  switch), `OnePlusAboutColorField` (free app window, a color field and breathing glow taken from the icon),
+  `OnePlusAboutProLicense` (paid app license card), `OnePlusAboutCompare` (free vs paid table with Buy now), and
+  `OnePlusAboutWindow.show(size:content:)` (one fixed, close-only window with an autosaved position).
+- `OnePlusAboutInfo` reads name, version, build, and icon from the bundle. The glow breathes only while
+  `OnePlusAbout.animationKey` is on, Reduce Motion is off, and the window is active.
+
 ## 1.3.49
 
 - Nothing moves on hover or press: the metric tile, panel action keys, main window launch tile, and tool row

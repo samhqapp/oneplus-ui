@@ -406,3 +406,77 @@ extension View {
             .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(OnePlusLinearColor.lineSoft, lineWidth: 1) }
     }
 }
+
+/// About surfaces (DESIGN.md "About"): Settings > About hero, and the free, Pro, and Classic About windows.
+public enum OnePlusAboutMetrics {
+    public struct Shadow: Sendable { public let opacity: Double; public let radius: CGFloat; public let y: CGFloat }
+
+    public static let freeWindow = CGSize(width: 380, height: 480)
+    public static let proWindow = CGSize(width: 420, height: 560)
+    public static let classicWindow = CGSize(width: 440, height: 580)
+
+    public static let heroTop: CGFloat = 10
+    public static let heroIcon: CGFloat = 84
+    public static let heroIconShadow = Shadow(opacity: 0.18, radius: 8, y: 4)
+    public static let heroTitle: CGFloat = 20
+    public static let heroTitleTop: CGFloat = 10
+    public static let taglineTop: CGFloat = 3
+    public static let versionTop: CGFloat = 6
+    public static let buttonsTop: CGFloat = 14
+    public static let linkArrow: CGFloat = 9
+    public static let linkArrowGap: CGFloat = 4
+
+    public static let windowIcon: CGFloat = 104
+    public static let windowIconShadow = Shadow(opacity: 0.25, radius: 14, y: 7)
+    public static let noShadow = Shadow(opacity: 0, radius: 0, y: 0)
+    public static let windowTitle: CGFloat = 21
+    public static let windowButtonsTop: CGFloat = 20
+    public static let footerBottom: CGFloat = 18
+    public static let footerGap: CGFloat = 6
+    public static let updateGlyphGap: CGFloat = 5
+
+    /// The color field: a blurred copy of the icon plus two icon tints, faded out toward the name.
+    public static let fieldHeight: CGFloat = 230
+    public static let fieldBlurIcon: CGFloat = 460
+    public static let fieldBlur: CGFloat = 60
+    public static let fieldIconOpacity = (light: 0.3, dark: 0.45)
+    public static let fieldTintOpacity = (first: 0.4, second: 0.3)
+    public static let fieldTintRadius = (first: CGFloat(260), second: CGFloat(240))
+    /// The glow breathes between these tint opacities, `glowBreath` seconds each way.
+    public static let glow: CGFloat = 200
+    public static let glowOpacity = (min: 0.35, max: 0.55)
+    public static let glowBreath: Double = 2.4
+
+    public static let proHeader: CGFloat = 180
+    public static let proHeaderTop: CGFloat = 26
+    public static let proIcon: CGFloat = 96
+    public static let proTitle: CGFloat = 22
+    public static let activityHeight: CGFloat = 140
+    public static let activityOffset: CGFloat = 16
+    public static let activityPeriod: CGFloat = 420
+    public static let activityPhase: CGFloat = 0.2
+    public static let activityFill: Double = 0.22
+    public static let activityStroke: CGFloat = 1.6
+
+    public static let groupRadius: CGFloat = 10
+    public static let cardInset: CGFloat = 28
+    public static let cardTop: CGFloat = 22
+    public static let cardPadding: CGFloat = 14
+    public static let cardHeader: CGFloat = 46
+    public static let cardRow: CGFloat = 32
+    public static let cardGlyphGap: CGFloat = 10
+    public static let sealGlyph: CGFloat = 20
+
+    public static let classicHeaderTop: CGFloat = 46
+    public static let classicHeaderGap: CGFloat = 14
+    public static let classicIcon: CGFloat = 64
+    public static let classicTitle: CGFloat = 19
+    public static let compareHeadTop: CGFloat = 22
+    public static let compareTop: CGFloat = 6
+    public static let compareRow: CGFloat = 36
+    public static let compareColumn: CGFloat = 56
+    public static let compareNoteTop: CGFloat = 12
+    public static let upgradeIcon: CGFloat = 34
+    public static let footer: CGFloat = 68
+    public static let footerPadding: CGFloat = 20
+}

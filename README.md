@@ -339,6 +339,21 @@ AppKit hosts (the Ruler windows) use the same dynamic tokens:
   rise. Nothing moves on hover or press, nothing staggers, and numbers change
   at once. Every move can be interrupted and ends in the rest layout.
 
+## About surfaces
+
+Settings > About and the About window for every samhq app (DESIGN.md "About").
+Values are `OnePlusAboutMetrics`.
+
+| Part | Use |
+|---|---|
+| `OnePlusAboutInfo(tagline:website:releaseNotes:support:license:credits:)` | Name, version, build, and icon from the bundle; two tints from the icon. |
+| `OnePlusAboutUpdate(_:check:)` | Update state (`.current`, `.available`, ...) and the app's own check action. |
+| `OnePlusAboutSettingsSection(info:update:) { app sections }` | Centered hero, Links, Credits, the Animation switch, copyright. |
+| `OnePlusAboutColorField(info:update:)` | Free app window, 380 x 480: color field, breathing glow, update line, links. |
+| `OnePlusAboutProLicense(info:update:rows:manage:)` | Paid app window, 420 x 560: activity line and the license card. |
+| `OnePlusAboutCompare(info:freeName:rows:upgrade:)` | Free app with a paid sibling, 440 x 580: compare table and Buy now. |
+| `OnePlusAboutWindow.show(size:) { view }` | One fixed, close-only window with an autosaved position. |
+
 ## Add a variant
 
 1. Read the corresponding `DESIGN.md` recipe and check the existing component.
@@ -349,7 +364,8 @@ AppKit hosts (the Ruler windows) use the same dynamic tokens:
 6. Add a small test when the variant introduces logic or geometry calculations.
 
 Textures decode once. Chart patterns and title paths are cached. No component
-uses an idle animation loop. A temporary task or observer must end when its
+uses an idle animation loop; the About glow breathes only while its window is
+active and the Animation switch is on. A temporary task or observer must end when its
 owner disappears. Native menus, sheets, text editing, and Full Keyboard Access
 keep their platform behavior. Data loading, empty, and error states belong to
 the containing card, not every leaf control.
