@@ -83,7 +83,7 @@ public struct OnePlusNativeTable: NSViewRepresentable {
             column.resizingMask = index == 0 ? .autoresizingMask : []
             column.headerCell = OnePlusTableHeaderCell(
                 textCell: item.title,
-                leadingInset: (index == 0 ? max(OnePlusTable.primaryIconInset, item.leadingInset) + 25 : item.leadingInset) - 2 + item.headerLabelInset,
+                leadingInset: index == 0 ? max(OnePlusTable.primaryIconInset, item.leadingInset) : item.leadingInset - 2,
                 trailingInset: item.trailingInset - 2,
                 alignment: item.alignment,
                 palette: palette

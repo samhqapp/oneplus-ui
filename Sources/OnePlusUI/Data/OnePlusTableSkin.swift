@@ -100,7 +100,7 @@ private struct OnePlusTableConfigurator: NSViewRepresentable {
                 case .right: .trailing
                 default: .leading
                 }
-                let leading = model.map { $0.leadingInset + $0.headerLabelInset } ?? (index == 0 ? 16 : 12)
+                let leading = model.map { $0.leadingInset } ?? (index == 0 ? 16 : 12)
                 let trailing = model?.trailingInset ?? 12
                 let resolvedAlignment = model?.alignment ?? (column.headerCell as? OnePlusTableHeaderCell)?.columnAlignment ?? alignment
                 let header = column.headerCell as? OnePlusTableHeaderCell

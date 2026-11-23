@@ -167,17 +167,14 @@ public struct OnePlusGridColumn: Identifiable, Sendable {
     public let textColor: Color?
     public let leadingInset: CGFloat
     public let trailingInset: CGFloat
-    public let headerLabelInset: CGFloat
     public var trailing: Bool { alignment == .trailing }
     public init(_ title: String, width: CGFloat, trailing: Bool = false, textRole: OnePlusTextRole? = nil, textColor: Color? = nil,
-                leadingInset: CGFloat = OnePlusTable.cellInset, trailingInset: CGFloat = OnePlusTable.cellInset,
-                headerLabelInset: CGFloat = 0) {
+                leadingInset: CGFloat = OnePlusTable.cellInset, trailingInset: CGFloat = OnePlusTable.cellInset) {
         self.init(title, width: width, alignment: trailing ? .trailing : .leading, textRole: textRole,
-                  textColor: textColor, leadingInset: leadingInset, trailingInset: trailingInset, headerLabelInset: headerLabelInset)
+                  textColor: textColor, leadingInset: leadingInset, trailingInset: trailingInset)
     }
     public init(_ title: String, width: CGFloat, alignment: Alignment, textRole: OnePlusTextRole? = nil, textColor: Color? = nil,
-                leadingInset: CGFloat = OnePlusTable.cellInset, trailingInset: CGFloat = OnePlusTable.cellInset,
-                headerLabelInset: CGFloat = 0) {
+                leadingInset: CGFloat = OnePlusTable.cellInset, trailingInset: CGFloat = OnePlusTable.cellInset) {
         self.title = title
         self.width = width.isFinite ? max(0, width) : 0
         self.alignment = alignment
@@ -185,7 +182,6 @@ public struct OnePlusGridColumn: Identifiable, Sendable {
         self.textColor = textColor
         self.leadingInset = leadingInset.isFinite ? max(0, leadingInset) : OnePlusTable.cellInset
         self.trailingInset = trailingInset.isFinite ? max(0, trailingInset) : OnePlusTable.cellInset
-        self.headerLabelInset = headerLabelInset.isFinite ? max(0, headerLabelInset) : 0
     }
 }
 

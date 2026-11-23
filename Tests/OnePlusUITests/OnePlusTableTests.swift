@@ -355,13 +355,13 @@ final class OnePlusTableTests: XCTestCase {
         for appearance in [NSAppearance.Name.darkAqua, .aqua] {
             let columns: [OnePlusGridColumn] = [
                 .init("Time", width: 116, textRole: .mono, leadingInset: 16),
-                .init("Level", width: 84, headerLabelInset: 19),
+                .init("Level", width: 84),
                 .init("Size", width: 100, alignment: .trailing, textRole: .mono)
             ]
             let markers = [NSView(), NSView(), NSView()]
             let host = NSHostingView(rootView: Table([OnePlusTableItem(id: "1", cells: [], symbol: "doc")]) {
                 TableColumn("Time") { _ in TableCellMarker(view: markers[0]).onePlusTableCell(columns[0], position: .first) }.width(116)
-                TableColumn("Level") { _ in TableCellMarker(view: markers[1]).padding(.leading, 19).onePlusTableCell(columns[1]) }.width(84)
+                TableColumn("Level") { _ in TableCellMarker(view: markers[1]).onePlusTableCell(columns[1]) }.width(84)
                 TableColumn("Size") { _ in TableCellMarker(view: markers[2]).onePlusTableCell(columns[2], position: .last) }.width(100)
             }.onePlusNativeTable(columns: columns))
             let window = NSWindow(contentRect: NSRect(x: -10000, y: -10000, width: 300, height: 160),
@@ -456,8 +456,9 @@ final class OnePlusTableTests: XCTestCase {
             let textFrame = text.convert(try XCTUnwrap(text.cell).drawingRect(forBounds: text.bounds), to: table)
             let headerBounds = try XCTUnwrap(table.headerView).headerRect(ofColumn: index)
             let headerFrame = header.labelRect(for: headerBounds)
+            let leadingEdge = index == 0 ? try XCTUnwrap(cell.imageView).convert(try XCTUnwrap(cell.imageView).bounds, to: table).minX : textFrame.minX
             switch columns[index].alignment {
-            case .leading: XCTAssertEqual(headerFrame.minX, textFrame.minX, accuracy: 0.5)
+            case .leading: XCTAssertEqual(headerFrame.minX, leadingEdge, accuracy: 0.5)
             case .center: XCTAssertEqual(headerFrame.midX, textFrame.midX, accuracy: 0.5)
             case .trailing: XCTAssertEqual(headerFrame.maxX, textFrame.maxX, accuracy: 0.5)
             }

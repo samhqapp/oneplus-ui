@@ -52,7 +52,7 @@ public struct OnePlusMenuButton: View {
         switch variant {
         case .raised:
             Button(action: toggle) {
-                HStack(spacing: 6) {
+                OnePlusControlContentLayout(pointSize: OnePlusLinearMetrics.body, iconIndex: 1) {
                     Text(title)
                     Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold)).accessibilityHidden(true)
                 }

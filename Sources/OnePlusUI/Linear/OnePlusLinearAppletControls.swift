@@ -151,7 +151,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
         let lit = enabled && (hover || expanded || sample == .hover)
         switch style {
         case .field:
-            HStack(spacing: 8) {
+            OnePlusControlContentLayout(pointSize: OnePlusLinearMetrics.body, spacing: 8, iconIndex: 1) {
                 Text(title).linearText().lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(OnePlusLinearColor.appletSecondary)
@@ -162,7 +162,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
             .overlay { if lit { RoundedRectangle(cornerRadius: look.radius).fill(OnePlusLinearColor.hover) } }
             .contentShape(Rectangle()).onePlusHover($hover)
         case .text:
-            HStack(spacing: 5) {
+            OnePlusControlContentLayout(pointSize: OnePlusLinearMetrics.body, spacing: 5, iconIndex: 1) {
                 Text(title).linearText(color: lit ? OnePlusLinearColor.ink : OnePlusLinearColor.appletSecondary).lineLimit(1)
                 Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(lit ? OnePlusLinearColor.ink : OnePlusLinearColor.appletSecondary)
@@ -218,7 +218,7 @@ public struct OnePlusLinearTextField: View {
     public var body: some View {
         let look = environmentLook ?? .quietRaised
         let shape = RoundedRectangle(cornerRadius: look.radius)
-        input
+        OnePlusControlContentLayout(pointSize: OnePlusLinearMetrics.body, iconIndex: nil) { input }
             .textFieldStyle(.plain).linearText().focusEffectDisabled()
             .focused($focused).onSubmit(onSubmit)
             .onAppear { if autofocus { focused = true } }

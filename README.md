@@ -140,8 +140,8 @@ For SwiftUI `Table`, share `OnePlusGridColumn` values between
 `.onePlusTableCell(column, position: .first)` and
 `.onePlusNativeTable(columns: columns)`. Use `.last` for the final cell;
 middle cells use the default position. The model sets alignment, insets,
-`textRole`, and optional `textColor`. `headerLabelInset` reserves a glyph
-lane before a label. Keep Time at `.mono`; path columns can use `.mono`
+`textRole`, and optional `textColor`. A header starts at its cells' leading
+edge, also when the cells start with a glyph. Keep Time at `.mono`; path columns can use `.mono`
 with `textColor: OnePlusColor.ink` for primary identity text.
 
 ## Component catalog
