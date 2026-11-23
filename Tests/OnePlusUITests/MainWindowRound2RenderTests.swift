@@ -92,7 +92,7 @@ enum R2Header { case toolbar, underTitle, actionRow, keep }
 
 /// The shipped monochrome sidebar: template glyphs from the app's assets, gray at rest and ink when selected.
 enum R2Glyphs {
-    private static let folder = "/Volumes/External1TB/dev/personal/powertoys/powertoys/Assets.xcassets"
+    private static let folder = "/Volumes/External1TB/dev/organization/samhq/macpowertoys/powertoys/Assets.xcassets"
     private static let names = ["Kwake": "Kwake", "Mac Tweaks": "MacTweaks", "Event Viewer": "EventViewer",
                                 "Input Devices": "InputDevices", "Ruler": "Ruler", "Portman": "Portman",
                                 "Color Picker": "ColorPicker", "Text Extractor": "TextExtractor", "RSync UI": "RSync",

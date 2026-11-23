@@ -47,7 +47,7 @@ private struct MSTool: Identifiable {
     ]
 
     static func glyph(_ name: String) -> Image {
-        let path = "/Volumes/External1TB/dev/personal/powertoys/powertoys/Assets.xcassets/SidebarGlyph\(name).imageset/glyph.svg"
+        let path = "/Volumes/External1TB/dev/organization/samhq/macpowertoys/powertoys/Assets.xcassets/SidebarGlyph\(name).imageset/glyph.svg"
         let image = NSImage(contentsOfFile: path) ?? NSImage()
         image.isTemplate = true
         return Image(nsImage: image)

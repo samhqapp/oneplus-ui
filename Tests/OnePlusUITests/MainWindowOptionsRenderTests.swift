@@ -157,7 +157,7 @@ struct MWTool: Identifiable {
 
 @MainActor
 enum MWIcons {
-    private static let folder = "/Volumes/External1TB/dev/personal/powertoys/powertoys/Assets.xcassets"
+    private static let folder = "/Volumes/External1TB/dev/organization/samhq/macpowertoys/powertoys/Assets.xcassets"
     private static var cache: [String: Image] = [:]
     static func icon(_ asset: String) -> Image {
         if let cached = cache[asset] { return cached }

@@ -107,7 +107,7 @@ private struct R3Facts {
 /// The two most saturated, clearly different colors of a tool icon, for the hero tint.
 @MainActor
 enum R3IconColors {
-    private static let folder = "/Volumes/External1TB/dev/personal/powertoys/powertoys/Assets.xcassets"
+    private static let folder = "/Volumes/External1TB/dev/organization/samhq/macpowertoys/powertoys/Assets.xcassets"
     static func colors(_ asset: String) -> (Color, Color) {
         let fallback = (Color.gray, Color.gray)
         var image: NSImage?

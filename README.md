@@ -10,13 +10,13 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/surajmandalcell/macpowertoys/main/docs/screenshots/macpowertoys-launcher.png" width="100%" alt="The MacPowerToys launcher built with OnePlusUI: sidebar, page header, tabs, and tool cards">
+  <img src="https://raw.githubusercontent.com/samhqapp/macpowertoys/main/docs/screenshots/macpowertoys-launcher.png" width="100%" alt="The MacPowerToys launcher built with OnePlusUI: sidebar, page header, tabs, and tool cards">
 </p>
 
 ## Install
 
 ```swift
-.package(url: "https://github.com/surajmandalcell/oneplus-ui.git", exact: "1.0.2")
+.package(url: "https://github.com/samhqapp/oneplus-ui.git", exact: "1.0.2")
 ```
 
 Add `OnePlusUI` to your target's dependencies, then `import OnePlusUI`. Run
@@ -25,7 +25,7 @@ Add `OnePlusUI` to your target's dependencies, then `import OnePlusUI`. Run
 ## About
 
 OnePlusUI implements
-[DESIGN.md v14](https://github.com/surajmandalcell/macpowertoys/blob/main/DESIGN.md): fixed canvases, dynamic colors, two densities,
+[DESIGN.md v14](https://github.com/samhqapp/macpowertoys/blob/main/DESIGN.md): fixed canvases, dynamic colors, two densities,
 native controls, and static texture.
 
 Views never restyle a component locally. Add a named variant to this package

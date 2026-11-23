@@ -192,7 +192,7 @@ final class OnePlusLinearTests: XCTestCase {
 
     /// Writes the full main pane and the full panel for side-by-side review with the reference renders.
     func testRenderFullMainWindowAndPanel() throws {
-        let icons = "/Volumes/External1TB/dev/personal/powertoys/powertoys/Assets.xcassets"
+        let icons = "/Volumes/External1TB/dev/organization/samhq/macpowertoys/powertoys/Assets.xcassets"
         if FileManager.default.fileExists(atPath: icons) { setenv("ONEPLUS_SHOWCASE_ICONS", icons, 1) }
         try FileManager.default.createDirectory(atPath: Self.output, withIntermediateDirectories: true)
         for appearance in Self.appearances {
