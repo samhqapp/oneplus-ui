@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.7
+
+- `OnePlusCheckboxStyle` disabled and on draws the neutral well with a gray check, not the accent at low opacity
+  (which read as a red warning tint). Disabled and off still dims.
+
 ## 1.4.6
 
 - `OnePlusLinearList(maxHeight:)` scrolls its rows inside the group, so the group's ring stays whole on all four

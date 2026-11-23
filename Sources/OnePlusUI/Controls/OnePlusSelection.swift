@@ -255,7 +255,8 @@ public struct OnePlusCheckboxStyle: ToggleStyle {
 }
 
 /// A 14 pt rounded square: the track well with a hairline when off, the accent with a white check when on.
-/// Hover shades it one `pressed` step, press two steps, like the stepper key.
+/// Hover shades it one `pressed` step, press two steps, like the stepper key. Disabled and on, it is the neutral
+/// well with a gray check (a fixed "already done" state), never the accent faded toward a warning tint.
 private struct OnePlusCheckboxBox: View {
     static let size: CGFloat = 14
     static let radius: CGFloat = 4
@@ -270,17 +271,19 @@ private struct OnePlusCheckboxBox: View {
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Self.radius)
-        shape.fill(isOn ? OnePlusLinearColor.accent : OnePlusLinearColor.fillTrack)
-            .overlay { if state != .rest { shape.fill(OnePlusLinearColor.pressed) } }
-            .overlay { if state == .pressed { shape.fill(OnePlusLinearColor.pressed) } }
+        let accent = isOn && enabled
+        shape.fill(accent ? OnePlusLinearColor.accent : OnePlusLinearColor.fillTrack)
+            .overlay { if enabled, state != .rest { shape.fill(OnePlusLinearColor.pressed) } }
+            .overlay { if enabled, state == .pressed { shape.fill(OnePlusLinearColor.pressed) } }
             .overlay { shape.strokeBorder(OnePlusLinearColor.line, lineWidth: 1) }
             .overlay {
                 if isOn {
-                    Image(systemName: "checkmark").font(.system(size: Self.check, weight: .bold)).foregroundStyle(Color.white)
+                    Image(systemName: "checkmark").font(.system(size: Self.check, weight: .bold))
+                        .foregroundStyle(accent ? Color.white : OnePlusLinearColor.appletSecondary)
                 }
             }
             .frame(width: Self.size, height: Self.size)
-            .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+            .opacity(enabled || isOn ? 1 : OnePlusMetrics.disabledOpacity)
     }
 }
 
