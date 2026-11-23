@@ -228,20 +228,22 @@ public struct OnePlusLinearIconButton: View {
 
 /// A rounded group with hairline separators between its rows.
 /// `.window` is the main window tool list; `.panel` is a menu-panel card. Under the editorial page a `.window`
-/// list is the main window's inset group.
+/// list is the main window's inset group. With `maxHeight` the rows scroll inside the group, so its edge stays whole.
 public struct OnePlusLinearList<Content: View>: View {
     public enum Style: Sendable { case window, panel }
     private let style: Style
+    private let maxHeight: CGFloat?
     private let content: Content
-    public init(style: Style = .window, @ViewBuilder content: () -> Content) { self.style = style; self.content = content() }
+    public init(style: Style = .window, maxHeight: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+        self.style = style; self.maxHeight = maxHeight; self.content = content()
+    }
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     @Environment(\.onePlusLinearEditorial) private var editorial
     public var body: some View {
         if style == .window, editorial {
             OnePlusLinearInsetGroup(content: content)
         } else if style == .panel, panelStyle == .fillSteps {
-            VStack(spacing: 0) { content }
-                .padding(.vertical, OnePlusLinearPanelStyle.listPadding)
+            scrolling(VStack(spacing: 0) { content }.padding(.vertical, OnePlusLinearPanelStyle.listPadding))
                 .background(OnePlusLinearColor.fillGroup)
                 .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearPanelStyle.groupRadius))
         } else {
@@ -249,9 +251,17 @@ public struct OnePlusLinearList<Content: View>: View {
         }
     }
 
+    @ViewBuilder private func scrolling(_ rows: some View) -> some View {
+        if let maxHeight {
+            ScrollView { rows }.onePlusScrollIndicators(axes: .vertical).frame(maxHeight: maxHeight)
+        } else {
+            rows
+        }
+    }
+
     private var lined: some View {
         let radius = style == .window ? OnePlusLinearMetrics.listRadius : OnePlusLinearMetrics.tileRadius
-        return VStack(spacing: 0) {
+        return scrolling(VStack(spacing: 0) {
             Group(subviews: content) { rows in
                 ForEach(rows) { row in
                     row.overlay(alignment: .top) {
@@ -259,7 +269,7 @@ public struct OnePlusLinearList<Content: View>: View {
                     }
                 }
             }
-        }
+        })
         .background(style == .window ? Color.clear : OnePlusLinearColor.panelTile)
         .clipShape(RoundedRectangle(cornerRadius: radius))
         .linearOuterRing(OnePlusLinearColor.line, radius: radius)

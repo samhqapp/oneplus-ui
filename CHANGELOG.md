@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.6
+
+- `OnePlusLinearList(maxHeight:)` scrolls its rows inside the group, so the group's ring stays whole on all four
+  sides. A list wrapped in an outside `ScrollView` lost its right and bottom ring to the clip.
+
 ## 1.4.5
 
 - `OnePlusSheetWidth.panel` (340 pt) fits a sheet inside the 356 pt menu panel; `.small` (420 pt) spilled past
