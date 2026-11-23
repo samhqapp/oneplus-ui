@@ -409,9 +409,13 @@ extension View {
 
 /// About surfaces (DESIGN.md "About"): Settings > About hero, and the free, Pro, and Classic About windows.
 public enum OnePlusAboutMetrics {
-    public struct Shadow: Sendable { public let opacity: Double; public let radius: CGFloat; public let y: CGFloat }
+    public struct Shadow: Sendable {
+        public let opacity: Double; public let radius: CGFloat; public let y: CGFloat
+        /// Light mode opacity when it differs: a dark shadow on a light window reads too heavy.
+        public var lightOpacity: Double? = nil
+    }
 
-    public static let freeWindow = CGSize(width: 380, height: 480)
+    public static let freeWindow = CGSize(width: 380, height: 410)
     public static let proWindow = CGSize(width: 420, height: 560)
     public static let classicWindow = CGSize(width: 440, height: 580)
 
@@ -427,10 +431,10 @@ public enum OnePlusAboutMetrics {
     public static let linkArrowGap: CGFloat = 4
 
     public static let windowIcon: CGFloat = 104
-    public static let windowIconShadow = Shadow(opacity: 0.25, radius: 14, y: 7)
+    public static let windowIconShadow = Shadow(opacity: 0.25, radius: 14, y: 7, lightOpacity: 0.15)
     public static let noShadow = Shadow(opacity: 0, radius: 0, y: 0)
     public static let windowTitle: CGFloat = 21
-    public static let windowButtonsBottom: CGFloat = 14
+    public static let windowButtonTop: CGFloat = 20
     public static let footerBottom: CGFloat = 18
     public static let footerGap: CGFloat = 6
     public static let updateGlyphGap: CGFloat = 5

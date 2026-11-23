@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.9
+
+- `OnePlusAboutColorField` is 380 x 410: one raised Check for Updates button 20 pt under the version line (none when
+  the app has no updater), and the quiet `Website · Licenses · ©` text-link footer of the Pro window.
+  `windowButtonsBottom` becomes `windowButtonTop`.
+- `windowIconShadow` is lighter in Light mode (opacity 0.15, Dark stays 0.25) through the new `Shadow.lightOpacity`.
+
 ## 1.4.8
 
 - `OnePlusAboutColorField` puts its Check for Updates, Website, and Licenses buttons at the bottom, just above the

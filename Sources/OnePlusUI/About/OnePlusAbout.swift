@@ -206,21 +206,12 @@ public struct OnePlusAboutColorField: View {
             Text(info.tagline).aboutText(M.control, color: C.secondary).multilineTextAlignment(.center)
                 .padding(.horizontal, M.gutter).padding(.top, A.taglineTop + 1)
             OnePlusAboutUpdateLine(info: info, update: update).padding(.top, A.versionTop + 2)
-            Spacer(minLength: 0)
-            HStack(spacing: M.rowGap) {
-                if let check = update.check {
-                    Button("Check for Updates", action: check).buttonStyle(OnePlusLinearButtonStyle(.raised))
-                        .disabled(update.state == .checking)
-                }
-                if let website = info.website {
-                    Button("Website") { OnePlusAbout.open(website.url) }.buttonStyle(OnePlusLinearButtonStyle(.ghost))
-                }
-                if let license = info.license {
-                    Button("Licenses") { OnePlusAbout.open(license.url) }.buttonStyle(OnePlusLinearButtonStyle(.ghost))
-                }
+            if let check = update.check {
+                Button("Check for Updates", action: check).buttonStyle(OnePlusLinearButtonStyle(.raised))
+                    .disabled(update.state == .checking).padding(.top, A.windowButtonTop)
             }
-            .padding(.bottom, A.windowButtonsBottom)
-            Text(info.copyright).aboutText(M.caption, color: C.muted).padding(.bottom, A.footerBottom)
+            Spacer(minLength: 0)
+            OnePlusAboutFooterLinks(info: info).padding(.bottom, A.footerBottom)
         }
         .frame(width: Self.size.width, height: Self.size.height)
         .background(C.window)
@@ -306,14 +297,16 @@ struct OnePlusAboutIcon: View {
     let image: NSImage
     let size: CGFloat
     let shadow: OnePlusAboutMetrics.Shadow
+    @Environment(\.colorScheme) private var scheme
     init(_ image: NSImage, size: CGFloat, shadow: OnePlusAboutMetrics.Shadow = A.heroIconShadow) {
         self.image = image; self.size = size; self.shadow = shadow
     }
     var body: some View {
         Image(nsImage: image).resizable().interpolation(.high).frame(width: size, height: size)
-            .shadow(color: .black.opacity(shadow.opacity), radius: shadow.radius, y: shadow.y)
+            .shadow(color: .black.opacity(shadowOpacity), radius: shadow.radius, y: shadow.y)
             .accessibilityHidden(true)
     }
+    private var shadowOpacity: Double { scheme == .light ? shadow.lightOpacity ?? shadow.opacity : shadow.opacity }
 }
 
 extension View {
