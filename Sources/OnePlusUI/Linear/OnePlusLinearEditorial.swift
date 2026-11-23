@@ -34,9 +34,10 @@ public enum OnePlusLinearEditorialMetrics {
     public static let titleTracking: CGFloat = -0.6
     public static let titleGap: CGFloat = 4
     public static let disabledIconOpacity: Double = 0.45
-    /// The "Launch tile" header: a 48 pt icon above the title, and the large soft Open tile on the right.
+    /// The tool page header (owner pick "Icon beside the title", 2026-11-23): a 48 pt icon 16 pt left of the title
+    /// and a description of at most 2 lines, centered on the Open tile 20 pt to the right.
     public static let headerTileIcon: CGFloat = 48
-    public static let headerIconGap: CGFloat = 10
+    public static let headerDetailLines = 2
     public static let headerTileGap: CGFloat = 20
     public static let launchTile = CGSize(width: 176, height: 108)
     public static let launchTileRadius: CGFloat = 12
@@ -99,21 +100,25 @@ public extension OnePlusLinearEditorialBody where Footer == EmptyView {
 public struct OnePlusLinearPageTitle: View {
     private let title: String
     private let subtitle: String?
-    public init(_ title: String, subtitle: String? = nil) { self.title = title; self.subtitle = subtitle }
+    private let subtitleLines: Int?
+    public init(_ title: String, subtitle: String? = nil, subtitleLines: Int? = nil) {
+        self.title = title; self.subtitle = subtitle; self.subtitleLines = subtitleLines
+    }
     public var body: some View {
         VStack(alignment: .leading, spacing: OnePlusLinearEditorialMetrics.titleGap) {
             Text(title).font(.system(size: OnePlusLinearEditorialMetrics.title, weight: .semibold))
                 .tracking(OnePlusLinearEditorialMetrics.titleTracking).foregroundStyle(OnePlusLinearColor.ink)
                 .accessibilityAddTraits(.isHeader)
             if let subtitle {
-                Text(subtitle).linearText(color: OnePlusLinearColor.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(subtitle).linearText(color: OnePlusLinearColor.secondary).lineLimit(subtitleLines).truncationMode(.tail)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 }
 
-/// The editorial tool page header, "Launch tile": the 48 pt icon above the large title and description on the
-/// left, and the trailing actions (an `OnePlusLinearLaunchTile`, or nothing) on the right.
+/// The editorial tool page header, "Icon beside the title": the 48 pt icon, then the large title over a description
+/// of at most 2 lines, all centered on the trailing actions (an `OnePlusLinearLaunchTile`, or nothing).
 public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
     private let title: String
     private let detail: String
@@ -124,10 +129,10 @@ public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
     }
     public var body: some View {
         HStack(alignment: .center, spacing: OnePlusLinearEditorialMetrics.headerTileGap) {
-            VStack(alignment: .leading, spacing: OnePlusLinearEditorialMetrics.headerIconGap) {
+            HStack(alignment: .center, spacing: OnePlusLinearEditorialMetrics.headerGap) {
                 icon.frame(width: OnePlusLinearEditorialMetrics.headerTileIcon, height: OnePlusLinearEditorialMetrics.headerTileIcon)
                     .accessibilityHidden(true)
-                OnePlusLinearPageTitle(title, subtitle: detail)
+                OnePlusLinearPageTitle(title, subtitle: detail, subtitleLines: OnePlusLinearEditorialMetrics.headerDetailLines)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             actions

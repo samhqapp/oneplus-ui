@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.1
+
+- `OnePlusLinearToolHeader` now puts the 48 pt icon beside the title (16 pt gap) instead of above it. The icon,
+  title, and description sit as one block, centered on the trailing tile. The description has at most 2 lines
+  (`headerDetailLines`), with tail truncation as a last-resort guard. Removed `headerIconGap`.
+- `OnePlusLinearPageTitle(_:subtitle:subtitleLines:)` takes an optional line limit for the subtitle.
+
 ## 1.4.0
 
 - About surfaces for every samhq app (DESIGN.md "About", tokens `OnePlusAboutMetrics`):
