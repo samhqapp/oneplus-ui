@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.10
+
+- `OnePlusLinearSheet` at `.panel` width uses 12 pt side and bottom insets instead of the 24 pt window gutter.
+
 ## 1.4.9
 
 - `OnePlusAboutColorField` is 380 x 410: one raised Check for Updates button 20 pt under the version line (none when

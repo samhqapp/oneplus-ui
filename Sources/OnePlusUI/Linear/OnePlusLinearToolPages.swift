@@ -69,6 +69,10 @@ public struct OnePlusLinearSheet<Body: View, Footer: View>: View {
         self.title = title; self.width = width.rawValue; self.close = close
         self.content = content(); self.footer = footer()
     }
+    /// A panel-width sheet sits inside a 356 pt menu panel, so it takes the tight 12 pt inset, not the window gutter.
+    private var isPanel: Bool { width == OnePlusSheetWidth.panel.rawValue }
+    private var gutter: CGFloat { isPanel ? OnePlusLinearSpace.group : OnePlusLinearMetrics.gutter }
+    private var bottom: CGFloat { isPanel ? OnePlusLinearSpace.group : OnePlusLinearEditorialMetrics.bottom }
     public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: OnePlusLinearMetrics.appletActionGap) {
@@ -80,15 +84,15 @@ public struct OnePlusLinearSheet<Body: View, Footer: View>: View {
                         .keyboardShortcut(.cancelAction)
                 }
             }
-            .padding(.horizontal, OnePlusLinearMetrics.gutter)
+            .padding(.horizontal, gutter)
             .frame(height: OnePlusLinearMetrics.appletTitlebar)
-            content.padding(.horizontal, OnePlusLinearMetrics.gutter)
-                .padding(.bottom, OnePlusLinearEditorialMetrics.bottom)
+            content.padding(.horizontal, gutter)
+                .padding(.bottom, bottom)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if Footer.self != EmptyView.self {
                 HStack(spacing: OnePlusLinearMetrics.appletActionGap) { Spacer(); footer }
-                    .padding(.horizontal, OnePlusLinearMetrics.gutter)
-                    .padding(.bottom, OnePlusLinearEditorialMetrics.bottom)
+                    .padding(.horizontal, gutter)
+                    .padding(.bottom, bottom)
             }
         }
         .frame(width: width).background(OnePlusLinearColor.window)
