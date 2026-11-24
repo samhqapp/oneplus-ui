@@ -2,7 +2,7 @@
 
 <p align="center">
   Dark, quiet, native SwiftUI components for macOS tools.<br>
-  The window, page, card, control, and menu bar panel kit behind MacPowerToys and NetToys.
+  The window, page, card, control, and menu bar panel kit behind MacPowerToys and Sam's Network Utilities.
 </p>
 
 <p align="center">
