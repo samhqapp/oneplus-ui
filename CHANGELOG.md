@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.0
+
+- `OnePlusPopupMenu` (every `OnePlusSelect`, `OnePlusLinearSelect`, `OnePlusMenuButton`, and
+  `OnePlusActionMenu`) takes the owner's "Picked row stays filled" look: no checkmark column; the picked row
+  keeps a soft fill with medium text, the hover is a fainter fill, and both glide between rows on a 0.28 s
+  spring. A pick glides the fill to the new row for 0.14 s before the menu closes (instant under Reduce
+  Motion). Panel radius 10, 0.5 pt inset ring, 26 pt rows, 6 pt row radius.
+- Menus with more than 10 items show a search field on top. Typed keys filter the list (sections stay with
+  their matches), Delete removes a character, and the panel shrinks to the matches.
+- No public API change. Removed internal `OnePlusPopupMetrics.checkColumn`.
+
 ## 1.4.11
 
 - `OnePlusLinearTreeCardPlaceholder`: a loading stand-in shaped like a tree card (40 pt header over 32 pt child

@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 
 public enum OnePlusPopupMenuRole: Sendable {
     case standard
@@ -59,6 +60,26 @@ enum OnePlusPopupKey: Equatable {
     case select
     case escape
     case type(String)
+    case backspace
+}
+
+/// The search variant's filter: items whose title contains the query, each under its section title when
+/// it has one. Separators drop out while a query is typed.
+func onePlusPopupFilter(_ entries: [OnePlusPopupMenuEntry], query: String) -> [OnePlusPopupMenuEntry] {
+    guard !query.isEmpty else { return entries }
+    var result: [OnePlusPopupMenuEntry] = []
+    var pendingSection: OnePlusPopupMenuEntry?
+    for entry in entries {
+        switch entry {
+        case .section: pendingSection = entry
+        case .separatorItem: pendingSection = nil
+        case let .item(item):
+            guard item.title.range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) != nil else { continue }
+            if let section = pendingSection { result.append(section); pendingSection = nil }
+            result.append(entry)
+        }
+    }
+    return result
 }
 
 struct OnePlusPopupNavigationState {
@@ -105,6 +126,8 @@ struct OnePlusPopupNavigationState {
             return .closeAndRestoreFocus
         case let .type(characters):
             return typeSelect(characters, entries: entries, time: time)
+        case .backspace:
+            return .none
         }
     }
 
@@ -171,22 +194,35 @@ enum OnePlusPopupPlacement {
     }
 }
 
+/// "Picked row stays filled" (owner, 2026-11-25): no check column; the picked row keeps a soft fill and the
+/// hover is a fainter fill that glides between rows. Menus with more than `searchThreshold` items get a search
+/// field on top.
 enum OnePlusPopupMetrics {
     static let padding: CGFloat = 5
-    static let radius: CGFloat = 7
-    static let itemRadius: CGFloat = 4
+    static let radius: CGFloat = 10
+    static let itemRadius: CGFloat = 6
     static let itemPadding: CGFloat = 9
-    static let itemHeight: CGFloat = 28
+    static let itemHeight: CGFloat = 26
     static let compactItemHeight: CGFloat = 24
     static let triggerGap: CGFloat = 4
-    static let checkColumn: CGFloat = 14
     static let symbolColumn: CGFloat = 16
     static let columnGap: CGFloat = 6
     static let sectionHeight: CGFloat = 20
-    static let separatorHeight: CGFloat = 9
+    static let separatorHeight: CGFloat = 11
     static let maxVisibleItems = 12
+    static let searchThreshold = 10
+    static let searchHeight: CGFloat = 28
+    static let searchGap: CGFloat = 4
     static let minimumContentWidth: CGFloat = 80
     static let typeSelectReset: TimeInterval = 0.7
+    /// The glide of the hover and picked fills (the dark options page's 0.28 s spring).
+    static let glide = Animation.spring(response: 0.28, dampingFraction: 0.86)
+    /// How long the picked fill glides to a new pick before the menu closes.
+    static let pickDelay: TimeInterval = 0.14
+
+    static func searchable(_ entries: [OnePlusPopupMenuEntry]) -> Bool {
+        entries.compactMap(\.item).count > searchThreshold
+    }
 
     static func itemHeight(for density: OnePlusDensity) -> CGFloat {
         density == .compact ? compactItemHeight : itemHeight

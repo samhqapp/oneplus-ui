@@ -116,8 +116,8 @@ final class OnePlusButtonAlignmentTests: XCTestCase {
                 try assertCenters(OnePlusPopupItemView(item: item, session: session).onePlusDensity(density),
                                   height: OnePlusPopupMetrics.itemHeight(for: density),
                                   context: "popup \(density) \(symbol ?? "text")",
-                                  components: symbol == nil && !selected ? ["label"] : ["label", "glyph"],
-                                  monochrome: true, leadingGlyph: symbol != nil || selected)
+                                  components: symbol == nil ? ["label"] : ["label", "glyph"],
+                                  monochrome: true, leadingGlyph: symbol != nil)
             }
         }
     }

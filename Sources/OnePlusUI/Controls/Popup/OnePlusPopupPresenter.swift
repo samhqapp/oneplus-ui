@@ -98,21 +98,21 @@ final class OnePlusPopupPresenter {
         let host = NSHostingView(rootView: OnePlusPopupMenuView(session: session).onePlusFocusPolicy())
         let visibleFrame = (window.screen ?? NSScreen.main)?.visibleFrame ?? window.frame
         let triggerFrame = window.convertToScreen(anchor.convert(anchor.bounds, to: nil))
-        let font = NSFont.systemFont(ofSize: OnePlusTextRole.control.size(for: density))
+        // Medium weight: the picked row's title is medium, so it never truncates.
+        let font = NSFont.systemFont(ofSize: OnePlusTextRole.control.size(for: density), weight: .medium)
         let longestTitle = entries.compactMap(\.item).map(\.title).max { lhs, rhs in
             (lhs as NSString).size(withAttributes: [.font: font]).width
                 < (rhs as NSString).size(withAttributes: [.font: font]).width
         } ?? ""
         let titleWidth = ceil((longestTitle as NSString).size(withAttributes: [.font: font]).width)
-        let hasSelection = entries.contains { $0.item?.isSelected == true }
         let hasSymbols = entries.contains { $0.item?.systemImage != nil }
-        let columns = (hasSelection ? OnePlusPopupMetrics.checkColumn + OnePlusPopupMetrics.columnGap : 0)
-            + (hasSymbols ? OnePlusPopupMetrics.symbolColumn + OnePlusPopupMetrics.columnGap : 0)
+        let columns = hasSymbols ? OnePlusPopupMetrics.symbolColumn + OnePlusPopupMetrics.columnGap : 0
         let naturalWidth = OnePlusPopupMetrics.padding * 2 + OnePlusPopupMetrics.itemPadding * 2
             + columns + titleWidth
         let width = min(visibleFrame.width, max(triggerFrame.width, OnePlusPopupMetrics.minimumContentWidth, naturalWidth))
-        let fullHeight = OnePlusPopupMetrics.contentHeight(entries: entries, density: density)
-        let height = min(fullHeight, OnePlusPopupMetrics.maximumHeight(density: density), visibleFrame.height)
+        let search = OnePlusPopupMetrics.searchable(entries) ? OnePlusPopupMetrics.searchHeight + OnePlusPopupMetrics.searchGap : 0
+        let fullHeight = OnePlusPopupMetrics.contentHeight(entries: entries, density: density) + search
+        let height = min(fullHeight, OnePlusPopupMetrics.maximumHeight(density: density) + search, visibleFrame.height)
         host.frame = NSRect(origin: .zero, size: NSSize(width: width, height: height))
 
         let panel = OnePlusPopupPanel(contentRect: NSRect(origin: .zero, size: host.frame.size),
@@ -136,6 +136,18 @@ final class OnePlusPopupPresenter {
         self.panel = panel
         self.session = session
         self.onClose = onClose
+        // Search shrinks the panel to its matches and keeps the edge next to the trigger in place.
+        let below = panel.frame.maxY <= triggerFrame.minY
+        session.queryChanged = { [weak panel, weak session] in
+            guard let panel, let session else { return }
+            let rows = max(OnePlusPopupMetrics.contentHeight(entries: session.entries, density: density),
+                           OnePlusPopupMetrics.padding * 2 + OnePlusPopupMetrics.itemHeight(for: density))
+            var frame = panel.frame
+            let fitted = min(rows + search, height)
+            if below { frame.origin.y = frame.maxY - fitted }
+            frame.size.height = fitted
+            panel.setFrame(frame, display: true)
+        }
         installMonitors(window: window, panel: panel)
         panel.orderFront(nil)
     }
@@ -219,10 +231,13 @@ final class OnePlusPopupPresenter {
         case 125: return modifiers.contains(.shift) ? nil : .down
         case 36, 76: return modifiers.contains(.shift) ? nil : .select
         case 53: return modifiers.contains(.shift) ? nil : .escape
+        case 51: return .backspace
         default:
+            // Letters, digits, and the punctuation of host names and paths (".", "-", ":", "/") for search.
+            let typable = CharacterSet.alphanumerics.union(.punctuationCharacters).union(.symbols)
             guard let characters = event.charactersIgnoringModifiers,
                   characters.count == 1,
-                  characters.unicodeScalars.first.map(CharacterSet.alphanumerics.contains) == true else { return nil }
+                  characters.unicodeScalars.first.map(typable.contains) == true else { return nil }
             return .type(characters)
         }
     }
