@@ -102,8 +102,9 @@ enum OnePlusPopupColor {
     private static func white(_ alpha: CGFloat) -> NSColor { NSColor(white: 1, alpha: alpha) }
     private static func black(_ alpha: CGFloat) -> NSColor { NSColor(white: 0, alpha: alpha) }
 
-    static let background = color(dark: NSColor(srgbRed: 22 / 255, green: 22 / 255, blue: 25 / 255, alpha: 0.96),
-                                  light: white(0.97))
+    /// Fully opaque: nothing behind a menu or popover shows through (owner, 2026-11-25).
+    static let background = color(dark: NSColor(srgbRed: 22 / 255, green: 22 / 255, blue: 25 / 255, alpha: 1),
+                                  light: NSColor(srgbRed: 0xF7 / 255, green: 0xF7 / 255, blue: 0xF7 / 255, alpha: 1))
     static let ring = color(dark: white(0.10), light: black(0.12))
     static let ink = color(dark: white(0.93), light: NSColor(srgbRed: 0x1D / 255, green: 0x1D / 255, blue: 0x1F / 255, alpha: 1))
     static let pickedInk = color(dark: .white, light: NSColor(srgbRed: 0x1D / 255, green: 0x1D / 255, blue: 0x1F / 255, alpha: 1))

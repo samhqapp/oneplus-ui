@@ -175,7 +175,7 @@ private struct OnePlusSettingHelp: View {
         .buttonStyle(OnePlusInteractionStyle()).focused($focused)
         .opacity(hovering || (focused && OnePlusFocusPolicy.shared.showsFocus) ? 1 : 0)
         .help(explanation).accessibilityLabel("Help for \(label)").accessibilityHint(explanation)
-        .popover(isPresented: $presented) { Text(explanation).onePlusText(.row).padding(16).frame(maxWidth: 320).onePlusFocusPolicy() }
+        .popover(isPresented: $presented) { Text(explanation).onePlusText(.row).padding(16).frame(maxWidth: 320).onePlusFocusPolicy().onePlusOpaquePopover() }
     }
 }
 

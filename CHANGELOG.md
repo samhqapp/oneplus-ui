@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.1
+
+- Popups are fully opaque (owner, 2026-11-25): `OnePlusPopupColor.background` drops its transparency, so
+  every `OnePlusPopupMenu` panel is solid in Light and Dark.
+- New `View.onePlusOpaquePopover()`: put it on the content of a SwiftUI `.popover` and the popover, arrow
+  included, gets the same solid fill instead of the see-through system material. The `OnePlusCard` help
+  popover uses it.
+
 ## 1.5.0
 
 - `OnePlusPopupMenu` (every `OnePlusSelect`, `OnePlusLinearSelect`, `OnePlusMenuButton`, and
