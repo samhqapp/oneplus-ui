@@ -51,6 +51,14 @@ public enum OnePlusMotion {
     public static let panelRowHoverOut: TimeInterval = 0.2
     /// Panel action key: a 120 ms fill, shadow, and rim fade on hover. Nothing moves.
     public static let keyHover: TimeInterval = 0.12
+    /// List to detail push (`onePlusPush`): the new page is in its final layout at once and slides 16 pt in from
+    /// the side it comes from while it fades in, 200 ms ease-out. Reduce Motion: instant.
+    public static let push: TimeInterval = 0.2
+    public static let pushOffset: CGFloat = 16
+    /// Loading placeholder (`OnePlusLinearTreeCardPlaceholder`): one sheen sweep every 1.4 s; it crossfades to the
+    /// real content in 150 ms. Reduce Motion: no sweep, a static placeholder.
+    public static let sheenSweep: TimeInterval = 1.4
+    public static let placeholderFade: TimeInterval = 0.15
 
     // Main window "Soft spring". Native snap still applies everywhere else.
     /// Tool row hover fill: in 120 ms, out 220 ms.

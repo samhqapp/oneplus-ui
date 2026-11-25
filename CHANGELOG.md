@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.11
+
+- `OnePlusLinearTreeCardPlaceholder`: a loading stand-in shaped like a tree card (40 pt header over 32 pt child
+  rows) with a light sheen sweep every 1.4 s; Reduce Motion shows it still. New `placeholderSheen` color.
+- `onePlusPush(trigger:from:)`: a 200 ms list to detail push. The new page is in its final layout at once and
+  slides 16 pt in from the side it comes from while it fades in. Reduce Motion makes it instant.
+- Motion tokens `push`, `pushOffset`, `sheenSweep`, and `placeholderFade`.
+
 ## 1.4.10
 
 - `OnePlusLinearSheet` at `.panel` width uses 12 pt side and bottom insets instead of the 24 pt window gutter.

@@ -128,6 +128,8 @@ public enum OnePlusLinearColor {
     public static let lineSoft = color("lineSoft", light: 0x000000, lightAlpha: 0.06, dark: 0xFFFFFF, darkAlpha: 0.055)
     public static let lineStrong = color("lineStrong", light: 0x000000, lightAlpha: 0.14, dark: 0xFFFFFF, darkAlpha: 0.12)
     public static let barTrack = color("barTrack", light: 0x000000, lightAlpha: 0.075, dark: 0xFFFFFF, darkAlpha: 0.085)
+    /// The light band that sweeps over loading placeholder bars.
+    public static let placeholderSheen = color("placeholderSheen", light: 0xFFFFFF, lightAlpha: 0.75, dark: 0xFFFFFF, darkAlpha: 0.08)
     public static let iconOutline = color("iconOutline", light: 0x000000, lightAlpha: 0.1, dark: 0xFFFFFF, darkAlpha: 0.1)
 
     // Text (APCA: labels Lc 60, captions Lc 45 on every v15 surface)
