@@ -86,10 +86,13 @@ struct OnePlusQuietWell<S: InsettableShape>: View {
     var keyable = false
     @Environment(\.displayScale) private var scale
     @Environment(\.onePlusLinearControlLook) private var look
+    @Environment(\.colorScheme) private var colorScheme
     var body: some View {
         Group {
             if keyable, look?.keys == true {
                 OnePlusKeyWell(shape: shape)
+            } else if look?.keys == true, colorScheme == .light {
+                OnePlusFlatFace(shape: shape, fill: fill)
             } else {
                 shape.fill(fill.shadow(.inner(color: OnePlusLinearColor.quietTrackShade, radius: 1, y: 0.5)))
                     .overlay { shape.strokeBorder(line, lineWidth: 1 / max(scale, 1)) }
@@ -99,16 +102,31 @@ struct OnePlusQuietWell<S: InsettableShape>: View {
     }
 }
 
-/// The sunken key well of the panel soft-key tab track: a dark-to-light fill, a shaded top, and a gradient edge.
+/// A main-window control face in Light: a flat fill and one 1 pt `flatLine`, no gradient, edge, or shadow.
+struct OnePlusFlatFace<S: InsettableShape>: View {
+    let shape: S
+    let fill: Color
+    var line: Color = OnePlusLinearColor.flatLine
+    var body: some View {
+        shape.fill(fill).overlay { shape.strokeBorder(line, lineWidth: 1) }
+    }
+}
+
+/// The sunken key well of a main-window field, select, or segment track. Dark: the panel soft-key tab track's
+/// dark-to-light fill, shaded top, and gradient edge. Light: the flat `flatWell` face.
 struct OnePlusKeyWell<S: InsettableShape>: View {
     let shape: S
     @Environment(\.colorScheme) private var colorScheme
     var body: some View {
-        let shade = colorScheme == .dark ? OnePlusLinearColor.softKeyTrackShadeGeometry.dark : OnePlusLinearColor.softKeyTrackShadeGeometry.light
-        shape.fill(LinearGradient(colors: [OnePlusLinearColor.softKeyTrackTop, OnePlusLinearColor.softKeyTrackBottom], startPoint: .top, endPoint: .bottom)
-            .shadow(.inner(color: OnePlusLinearColor.softKeyTrackShade, radius: shade.radius / 2, y: shade.y / 2)))
-            .overlay { shape.strokeBorder(LinearGradient(colors: [OnePlusLinearColor.softKeyTrackEdgeTop, OnePlusLinearColor.softKeyTrackEdgeBottom],
-                                                         startPoint: .top, endPoint: .bottom), lineWidth: 1) }
+        if colorScheme == .light {
+            OnePlusFlatFace(shape: shape, fill: OnePlusLinearColor.flatWell)
+        } else {
+            let shade = OnePlusLinearColor.softKeyTrackShadeGeometry.dark
+            shape.fill(LinearGradient(colors: [OnePlusLinearColor.softKeyTrackTop, OnePlusLinearColor.softKeyTrackBottom], startPoint: .top, endPoint: .bottom)
+                .shadow(.inner(color: OnePlusLinearColor.softKeyTrackShade, radius: shade.radius / 2, y: shade.y / 2)))
+                .overlay { shape.strokeBorder(LinearGradient(colors: [OnePlusLinearColor.softKeyTrackEdgeTop, OnePlusLinearColor.softKeyTrackEdgeBottom],
+                                                             startPoint: .top, endPoint: .bottom), lineWidth: 1) }
+        }
     }
 }
 
@@ -163,11 +181,13 @@ public struct OnePlusLinearHostIcon: View {
 
 /// A raised key: the panel soft-key gradient (or the ink key), a lit top edge, and a short drop. `lift` raises it.
 /// `button` draws a text button: in Dark it has no lit edge and no drop, like the menu panel's row keys.
+/// In Light every key but the ink key is the flat face: `flatKey` for a button, `flatThumb` for a thumb.
 public struct OnePlusRaisedKey<S: InsettableShape>: View {
     let shape: S
     var ink = false
     var lift: CGFloat = 0
     var button = false
+    @Environment(\.colorScheme) private var colorScheme
     public init(shape: S, ink: Bool = false, lift: CGFloat = 0, button: Bool = false) {
         self.shape = shape; self.ink = ink; self.lift = lift; self.button = button
     }
@@ -178,11 +198,15 @@ public struct OnePlusRaisedKey<S: InsettableShape>: View {
         ink ? OnePlusLinearColor.openKeyShadow : button ? OnePlusLinearColor.buttonKeyShadow : OnePlusLinearColor.softKeyShadow
     }
     public var body: some View {
-        shape.fill(LinearGradient(colors: ink ? [OnePlusLinearColor.openKeyTop, OnePlusLinearColor.openKeyBottom]
-                                              : [OnePlusLinearColor.softKeyTop, OnePlusLinearColor.softKeyBottom], startPoint: .top, endPoint: .bottom))
-            .overlay { shape.strokeBorder(LinearGradient(colors: [edgeTop, ink ? OnePlusLinearColor.openKeyEdgeBottom : OnePlusLinearColor.softKeyEdgeBottom],
-                                                         startPoint: .top, endPoint: .bottom), lineWidth: 1) }
-            .shadow(color: drop, radius: 1.5 + lift, y: 1 + lift)
+        if colorScheme == .light, !ink {
+            OnePlusFlatFace(shape: shape, fill: button ? OnePlusLinearColor.flatKey : OnePlusLinearColor.flatThumb)
+        } else {
+            shape.fill(LinearGradient(colors: ink ? [OnePlusLinearColor.openKeyTop, OnePlusLinearColor.openKeyBottom]
+                                                  : [OnePlusLinearColor.softKeyTop, OnePlusLinearColor.softKeyBottom], startPoint: .top, endPoint: .bottom))
+                .overlay { shape.strokeBorder(LinearGradient(colors: [edgeTop, ink ? OnePlusLinearColor.openKeyEdgeBottom : OnePlusLinearColor.softKeyEdgeBottom],
+                                                             startPoint: .top, endPoint: .bottom), lineWidth: 1) }
+                .shadow(color: drop, radius: 1.5 + lift, y: 1 + lift)
+        }
     }
 }
 
@@ -199,9 +223,23 @@ struct OnePlusQuietFocusFill<S: InsettableShape>: View {
 }
 
 extension OnePlusQuietWell {
-    /// A text field or color well: the stepper's flat `fillTrack` well, so every field on a page has one fill.
+    /// A text field or color well: the stepper's well, so every field on a page has one fill.
     static func field(_ shape: S, focused: Bool = false) -> some View {
-        shape.fill(OnePlusLinearColor.fillTrack).overlay { OnePlusQuietFocusFill(shape: shape, focused: focused) }
+        OnePlusFieldWell(shape: shape).overlay { OnePlusQuietFocusFill(shape: shape, focused: focused) }
+    }
+}
+
+/// The flat `fillTrack` well of a field and the stepper; the flat `flatWell` face in Light under `.raisedKeys`.
+struct OnePlusFieldWell<S: InsettableShape>: View {
+    let shape: S
+    @Environment(\.onePlusLinearControlLook) private var look
+    @Environment(\.colorScheme) private var colorScheme
+    var body: some View {
+        if look?.keys == true, colorScheme == .light {
+            OnePlusFlatFace(shape: shape, fill: OnePlusLinearColor.flatWell)
+        } else {
+            shape.fill(OnePlusLinearColor.fillTrack)
+        }
     }
 }
 
@@ -218,10 +256,13 @@ struct OnePlusQuietCap<S: InsettableShape>: View {
     @Environment(\.displayScale) private var scale
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.onePlusLinearControlLook) private var look
+    @Environment(\.colorScheme) private var colorScheme
     var body: some View {
         if keyable, look?.keys == true {
             OnePlusRaisedKey(shape: shape)
                 .overlay { shape.fill(pressed || sample == .pressed ? OnePlusLinearColor.openKeyPressed : .clear) }
+        } else if look?.keys == true, colorScheme == .light {
+            OnePlusFlatFace(shape: shape, fill: pressed || sample == .pressed ? pressedFill : fill)
         } else {
             shape.fill(pressed || sample == .pressed ? pressedFill : fill)
                 .overlay { shape.strokeBorder(line, lineWidth: 1 / max(scale, 1)) }

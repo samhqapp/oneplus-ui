@@ -91,7 +91,7 @@ public struct OnePlusLinearPanelFooter<Leading: View, Trailing: View>: View {
         .frame(maxWidth: .infinity)
         .background(style == .lines ? OnePlusLinearColor.panelFooter : .clear)
         .overlay(alignment: edge == .bottom ? .top : .bottom) {
-            if style == .lines { OnePlusLinearColor.line.frame(height: 1) }
+            if style == .lines { OnePlusLinearColor.panelLine.frame(height: 1) }
         }
     }
 }
@@ -271,7 +271,7 @@ public struct OnePlusLinearBento<Leading: View, Trailing: View>: View {
                 .overlay { OnePlusLinearColor.lineSoft.frame(width: 1) }
                 .background(OnePlusLinearColor.panelTile)
                 .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearMetrics.tileRadius))
-                .linearOuterRing(OnePlusLinearColor.line, radius: OnePlusLinearMetrics.tileRadius)
+                .linearOuterRing(OnePlusLinearColor.panelLine, radius: OnePlusLinearMetrics.tileRadius)
         } else if panelStyle == .fillSteps {
             // "Floating tiles": one shadow under all tile shapes, drawn behind every tile, so no tile darkens a neighbor.
             columns.backgroundPreferenceValue(OnePlusLinearTileFrames.self) { anchors in
@@ -398,7 +398,7 @@ public struct OnePlusLinearTile<Content: View>: View {
             } else {
                 tile.background(OnePlusLinearColor.panelTile)
                     .clipShape(RoundedRectangle(cornerRadius: OnePlusLinearMetrics.tileRadius))
-                    .linearOuterRing(OnePlusLinearColor.line, radius: OnePlusLinearMetrics.tileRadius)
+                    .linearOuterRing(OnePlusLinearColor.panelLine, radius: OnePlusLinearMetrics.tileRadius)
             }
         }
         .accessibilityElement(children: .combine)

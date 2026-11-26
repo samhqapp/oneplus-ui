@@ -185,7 +185,7 @@ public struct OnePlusAboutCompare: View {
             HStack {
                 Spacer(minLength: 0)
                 Text(freeName).aboutText(M.caption, weight: .medium, color: C.muted).frame(width: A.compareColumn)
-                Text(upgrade.shortName).aboutText(M.caption, weight: .semibold, color: C.cpuText).frame(width: A.compareColumn)
+                Text(upgrade.shortName).aboutText(M.caption, weight: .semibold, color: C.upgradeText).frame(width: A.compareColumn)
             }
             .padding(.horizontal, M.gutter + A.cardPadding).padding(.top, A.compareHeadTop)
             table.padding(.horizontal, M.gutter).padding(.top, A.compareTop)
@@ -217,7 +217,7 @@ public struct OnePlusAboutCompare: View {
 
     private func mark(_ yes: Bool, paid: Bool) -> some View {
         Image(systemName: yes ? "checkmark" : "minus").font(.system(size: M.caption, weight: .bold))
-            .foregroundStyle(yes ? (paid ? C.cpuText : C.secondary) : C.tertiary)
+            .foregroundStyle(yes ? (paid ? C.upgradeText : C.secondary) : C.tertiary)
     }
 
     private var footer: some View {

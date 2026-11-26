@@ -125,6 +125,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
     @State private var anchor = OnePlusPopupAnchorReference()
     @FocusState private var focused: Bool
     @Environment(\.onePlusLinearControlLook) private var environmentLook
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.isEnabled) private var enabled
 
@@ -159,7 +160,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(OnePlusLinearColor.appletSecondary)
             }
-            .offset(y: look.keys ? -OnePlusLinearMetrics.keyWellContentLift : 0)
+            .offset(y: look.keys && colorScheme == .dark ? -OnePlusLinearMetrics.keyWellContentLift : 0)
             .padding(.horizontal, look.fieldInset ?? 11)
             .frame(width: width, height: environmentLook?.height ?? OnePlusLinearMetrics.appletField)
             .linearFieldBezel(look.keys ? look : .quietRaised, radius: look.radius, focused: focused)
@@ -202,6 +203,7 @@ public struct OnePlusLinearTextField: View {
     @FocusState private var focused: Bool
     @Environment(\.onePlusLinearControlLook) private var environmentLook
     @Environment(\.isEnabled) private var enabled
+    @Environment(\.colorScheme) private var colorScheme
 
     /// `secure` hides the typed text, for passwords. `autofocus` puts the cursor in the field when it appears.
     public init(_ title: String, text: Binding<String>, error: String? = nil, secure: Bool = false,
@@ -223,7 +225,7 @@ public struct OnePlusLinearTextField: View {
         let look = environmentLook ?? .quietRaised
         let shape = RoundedRectangle(cornerRadius: look.radius)
         OnePlusControlContentLayout(pointSize: OnePlusLinearMetrics.body, iconIndex: nil) { input }
-            .offset(y: look.keys ? -OnePlusLinearMetrics.keyWellContentLift : 0)
+            .offset(y: look.keys && colorScheme == .dark ? -OnePlusLinearMetrics.keyWellContentLift : 0)
             .textFieldStyle(.plain).linearText().focusEffectDisabled()
             .focused($focused).onSubmit(onSubmit)
             .onAppear { if autofocus { focused = true } }

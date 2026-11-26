@@ -55,6 +55,7 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
     @Environment(\.onePlusControlState) private var sample
     @Environment(\.onePlusLinearPanelStyle) private var panelStyle
     @Environment(\.onePlusLinearControlLook) private var look
+    @Environment(\.colorScheme) private var colorScheme
     @State private var hover = false
     let label: Label
     let pressed: Bool
@@ -169,11 +170,18 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                     .fixedSize()
                     .padding(.horizontal, OnePlusLinearMetrics.pushButtonPadding).frame(height: OnePlusLinearMetrics.pushButton)
                     .background {
-                        shape.fill(prominent ? OnePlusLinearColor.pushProminent : OnePlusLinearColor.pushButton)
-                            .overlay { shape.strokeBorder(prominent ? OnePlusLinearColor.pushProminentLine : OnePlusLinearColor.pushButtonLine,
-                                                          lineWidth: OnePlusLinearMetrics.pushButtonLine) }
-                            .shadow(color: OnePlusLinearColor.pushButtonShadow, radius: 0.5, y: 0.5)
-                            .overlay { shape.fill(enabled && isPressed ? OnePlusLinearColor.pressed : .clear) }
+                        Group {
+                            if look?.keys == true, colorScheme == .light {
+                                OnePlusFlatFace(shape: shape, fill: prominent ? OnePlusLinearColor.pushProminent : OnePlusLinearColor.pushButton,
+                                                line: prominent ? .clear : OnePlusLinearColor.flatLine)
+                            } else {
+                                shape.fill(prominent ? OnePlusLinearColor.pushProminent : OnePlusLinearColor.pushButton)
+                                    .overlay { shape.strokeBorder(prominent ? OnePlusLinearColor.pushProminentLine : OnePlusLinearColor.pushButtonLine,
+                                                                  lineWidth: OnePlusLinearMetrics.pushButtonLine) }
+                                    .shadow(color: OnePlusLinearColor.pushButtonShadow, radius: 0.5, y: 0.5)
+                            }
+                        }
+                        .overlay { shape.fill(enabled && isPressed ? OnePlusLinearColor.pressed : .clear) }
                     }
             case .plain, .segment:
                 label
@@ -291,7 +299,7 @@ public struct OnePlusLinearList<Content: View>: View {
         })
         .background(style == .window ? Color.clear : OnePlusLinearColor.panelTile)
         .clipShape(RoundedRectangle(cornerRadius: radius))
-        .linearOuterRing(OnePlusLinearColor.line, radius: radius)
+        .linearOuterRing(style == .panel ? OnePlusLinearColor.panelLine : OnePlusLinearColor.line, radius: radius)
     }
 }
 

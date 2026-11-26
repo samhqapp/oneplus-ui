@@ -171,16 +171,23 @@ final class OnePlusLinearTests: XCTestCase {
     }
 
     func testTextTokensMeetAPCAOnEveryV15Surface() throws {
-        let surfaces = [OnePlusLinearColor.window, OnePlusLinearColor.sidebar, OnePlusLinearColor.panelShell,
-                        OnePlusLinearColor.panelTile, OnePlusLinearColor.panelFooter, OnePlusLinearColor.button]
-        let roles: [(String, Color, Double)] = [
+        let windowSurfaces = [OnePlusLinearColor.window, OnePlusLinearColor.sidebar, OnePlusLinearColor.fillGroup,
+                              OnePlusLinearColor.button]
+        let panelSurfaces = [OnePlusLinearColor.panelShell, OnePlusLinearColor.panelTile, OnePlusLinearColor.panelFooter]
+        let shared: [(String, Color, Double)] = [
             ("ink", OnePlusLinearColor.ink, 60), ("secondary", OnePlusLinearColor.secondary, 60),
-            ("cpuText", OnePlusLinearColor.cpuText, 60), ("muted", OnePlusLinearColor.muted, 45),
-            ("panelMuted", OnePlusLinearColor.panelMuted, 45), ("networkUp", OnePlusLinearColor.networkUp, 45),
+            ("muted", OnePlusLinearColor.muted, 45),
         ]
+        // The panel's data text sits only on panel surfaces; the window's paid-tier text uses `upgradeText`.
+        let windowRoles = shared + [("upgradeText", OnePlusLinearColor.upgradeText, 60)]
+        let panelRoles = shared + [
+            ("cpuText", OnePlusLinearColor.cpuText, 60), ("panelMuted", OnePlusLinearColor.panelMuted, 45),
+            ("networkUp", OnePlusLinearColor.networkUp, 45),
+        ]
+        let pairs = windowSurfaces.map { ($0, windowRoles) } + panelSurfaces.map { ($0, panelRoles) }
         for name in Self.appearances {
             try XCTUnwrap(NSAppearance(named: name)).performAsCurrentDrawingAppearance {
-                for surface in surfaces {
+                for (surface, roles) in pairs {
                     let ground = NSColor(surface).usingColorSpace(.sRGB)!
                     for (role, ink, minimum) in roles {
                         XCTAssertGreaterThanOrEqual(abs(apcaLc(NSColor(ink).usingColorSpace(.sRGB)!, ground)), minimum, "\(role) \(name)")

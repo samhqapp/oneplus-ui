@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.8.0
+
+- Light main window (owner picks, 2026-11-26): `window` `#F3F3F5`, `sidebar` `#EBEBED`, group `line` 6.5%, so
+  white cards stand out on a gray window.
+- Light "Hairline only" controls under `.raisedKeys`: push, primary, keys, segments, selects, fields, steppers, and
+  toggles are a flat fill plus one 1 pt line. No gradient, edge, or drop shadow. New `flatKey`, `flatThumb`,
+  `flatWell`, `flatLine`, and `OnePlusFieldWell`. Dark and the menu panel are unchanged.
+- New `panelLine` keeps the panel's rings at their old weight. New `upgradeText` for the About paid tier.
+- Field and select text lift 0.5 pt only in Dark; in Light it sat 0.8 pt high. New
+  `OnePlusLinearLabelCenteringTests` fails when a push, primary, key, segment, or select label is more than 0.5 pt
+  off center.
+
 ## 1.7.2
 
 - `onePlusPopover` sizes its window from the content's fitting size before it shows, so the open animation no

@@ -212,7 +212,7 @@ public struct OnePlusLinearStepper<Content: View>: View {
         }
         .padding(OnePlusLinearWell.inset)
         .frame(height: well.height)
-        .background(OnePlusLinearColor.fillTrack, in: RoundedRectangle(cornerRadius: well.radius))
+        .background { OnePlusFieldWell(shape: RoundedRectangle(cornerRadius: well.radius)) }
         .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
     }
 

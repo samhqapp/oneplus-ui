@@ -29,8 +29,8 @@ public enum OnePlusLinearColor {
     }
 
     // Surfaces
-    public static let window = color("window", light: 0xFCFCFD, dark: 0x141416)
-    public static let sidebar = color("sidebar", light: 0xF5F5F6, dark: 0x101012)
+    public static let window = color("window", light: 0xF3F3F5, dark: 0x141416)
+    public static let sidebar = color("sidebar", light: 0xEBEBED, dark: 0x101012)
     public static let field = color("field", light: 0xFFFFFF, dark: 0x1B1B1E)
     public static let hover = color("hover", light: 0x000000, lightAlpha: 0.035, dark: 0xFFFFFF, darkAlpha: 0.03)
     public static let pressed = color("pressed", light: 0x000000, lightAlpha: 0.07, dark: 0xFFFFFF, darkAlpha: 0.06)
@@ -93,6 +93,12 @@ public enum OnePlusLinearColor {
     /// A raised text button's lit edge and drop: the soft key's in Light; none in Dark, like the menu panel's row keys.
     public static let buttonKeyEdgeTop = color("buttonKeyEdgeTop", light: 0xFFFFFF, dark: 0xFFFFFF, darkAlpha: 0)
     public static let buttonKeyShadow = color("buttonKeyShadow", light: 0x000000, lightAlpha: 0.2, dark: 0x000000, darkAlpha: 0)
+    /// Main-window controls in Light (`.raisedKeys`): a flat fill and one hairline, no gradient, edge, or shadow.
+    /// Dark keeps the soft-key gradients; the menu panel keeps `softKey*` in both appearances.
+    public static let flatKey = color("flatKey", light: 0xF6F6F7, dark: 0x313136)
+    public static let flatThumb = color("flatThumb", light: 0xFFFFFF, dark: 0x313136)
+    public static let flatWell = color("flatWell", light: 0xEEEEF1, dark: 0x1B1B1E)
+    public static let flatLine = color("flatLine", light: 0x000000, lightAlpha: 0.10, dark: 0xFFFFFF, darkAlpha: 0.10)
     public static let softKeyInk = color("softKeyInk", light: 0x1B1B1F, dark: 0xC4C4CA)
     public static let softKeyTrackInk = color("softKeyTrackInk", light: 0x55555C, dark: 0x9A9AA1)
     /// 1 pt line between two unselected tabs, fading out at both ends. Dark only.
@@ -124,7 +130,9 @@ public enum OnePlusLinearColor {
     public static let actionKeyLabelWeight = (light: Font.Weight.regular, dark: Font.Weight.medium)
 
     // Lines
-    public static let line = color("line", light: 0x000000, lightAlpha: 0.085, dark: 0xFFFFFF, darkAlpha: 0.075)
+    public static let line = color("line", light: 0x000000, lightAlpha: 0.065, dark: 0xFFFFFF, darkAlpha: 0.075)
+    /// The menu panel's rings and dividers: the panel keeps its own line when the main window's changes.
+    public static let panelLine = color("panelLine", light: 0x000000, lightAlpha: 0.085, dark: 0xFFFFFF, darkAlpha: 0.075)
     public static let lineSoft = color("lineSoft", light: 0x000000, lightAlpha: 0.06, dark: 0xFFFFFF, darkAlpha: 0.055)
     public static let lineStrong = color("lineStrong", light: 0x000000, lightAlpha: 0.14, dark: 0xFFFFFF, darkAlpha: 0.12)
     public static let barTrack = color("barTrack", light: 0x000000, lightAlpha: 0.075, dark: 0xFFFFFF, darkAlpha: 0.085)
@@ -200,7 +208,8 @@ public enum OnePlusLinearColor {
     public static let warningLine = color("warningLine", light: 0x000000, lightAlpha: 0.07, dark: 0xFFFFFF, darkAlpha: 0.07)
     /// Warning state as text or a chart color, such as "Retrying". Not used by the banner.
     public static let warning = color("warning", light: 0xA86500, dark: 0xF2BC55)
-    /// A native macOS push button (`.push`): white in Light, gray in Dark, a thin line and a soft drop shadow.
+    /// A native macOS push button (`.push`): gray in Dark with a thin line and a soft drop shadow. In Light it is
+    /// flat: the white fill and the 1 pt `flatLine`, no shadow (the prominent key has no line).
     public static let pushButton = color("pushButton", light: 0xFFFFFF, dark: 0x5F5F62)
     public static let pushButtonLine = color("pushButtonLine", light: 0x000000, lightAlpha: 0.14, dark: 0xFFFFFF, darkAlpha: 0.10)
     public static let pushButtonShadow = color("pushButtonShadow", light: 0x000000, lightAlpha: 0.14, dark: 0x000000, darkAlpha: 0.35)
@@ -217,6 +226,8 @@ public enum OnePlusLinearColor {
     public static let cpu = color("cpu", light: 0x2A7DE1, dark: 0x4C8FE6)
     /// CPU numbers as text. Dark is lighter than the chart line to reach Lc 60.
     public static let cpuText = color("cpuText", light: 0x2A7DE1, dark: 0x8DB8EF)
+    /// The paid tier on an About window: `cpuText`, one step darker in Light to keep Lc 60 on the gray window.
+    public static let upgradeText = color("upgradeText", light: 0x1F6FD1, dark: 0x8DB8EF)
     public static let gpu = color("gpu", light: 0x8A63D2, dark: 0x9A88D2)
     public static let memory = color("memory", light: 0xD2508F, dark: 0xC97FA4)
     public static let disk = color("disk", light: 0x5A64D8, dark: 0x8890E0)
@@ -238,7 +249,8 @@ public enum OnePlusLinearMetrics {
     public static let sectionCaption: CGFloat = 11.5
     public static let tileValue: CGFloat = 22
     public static let tileValueLine: CGFloat = 26
-    /// A key well's 1 pt lit bottom lip reads as outside the hole, so its text and glyphs center 0.5 pt higher.
+    /// Dark only: a key well's 1 pt lit bottom lip reads as outside the hole, so its text and glyphs center 0.5 pt
+    /// higher. Light's flat well has no lip, so its text sits on the true center.
     public static let keyWellContentLift: CGFloat = 0.5
     /// A native macOS push button: 22 pt tall, 11 pt side padding, radius 5, 0.5 pt line, 8 pt between keys.
     public static let pushButton: CGFloat = 22
