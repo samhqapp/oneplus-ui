@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.2
+
+- `onePlusPopover` sizes its window from the content's fitting size before it shows, so the open animation no
+  longer ends on a default-sized window with empty space above the content.
+
 ## 1.7.1
 
 - Sheet close light starts on the content's left edge (sheet inset), still on the title's centerline.

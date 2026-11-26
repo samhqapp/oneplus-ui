@@ -11,7 +11,7 @@ public extension View {
     }
 }
 
-private struct OnePlusPopoverAnchor: NSViewRepresentable {
+struct OnePlusPopoverAnchor: NSViewRepresentable {
     @Binding var isPresented: Bool
     let arrowEdge: Edge
     let content: () -> AnyView
@@ -33,8 +33,8 @@ private struct OnePlusPopoverAnchor: NSViewRepresentable {
 
     @MainActor
     final class Coordinator: NSObject, NSPopoverDelegate {
-        private var popover: NSPopover?
-        private var host: NSHostingController<AnyView>?
+        private(set) var popover: NSPopover?
+        private(set) var host: NSHostingController<AnyView>?
         var onClose: () -> Void = {}
 
         func show(_ content: AnyView, from view: NSView, edge: Edge) {
@@ -42,7 +42,10 @@ private struct OnePlusPopoverAnchor: NSViewRepresentable {
             guard view.window != nil else { return }
             let host = NSHostingController(rootView: content)
             host.sizingOptions = .preferredContentSize
+            host.view.layoutSubtreeIfNeeded()
             let popover = NSPopover()
+            // The window frame read below is the open animation's end; a default-sized popover leaves a gap.
+            popover.contentSize = host.view.fittingSize
             popover.contentViewController = host
             popover.behavior = .transient
             popover.animates = false
