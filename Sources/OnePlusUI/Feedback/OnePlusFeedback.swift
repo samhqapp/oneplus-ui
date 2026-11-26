@@ -52,15 +52,19 @@ public struct OnePlusBanner<Action: View>: View {
     }
     public var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: tone == .information ? "info.circle" : tone == .warning ? "exclamationmark.triangle" : "exclamationmark.circle")
-                .foregroundStyle(tone == .information ? OnePlusColor.secondary : tone == .warning ? OnePlusColor.warn : OnePlusColor.danger)
+            Image(systemName: tone == .information ? "info.circle" : tone == .warning ? "exclamationmark.triangle.fill" : "exclamationmark.circle")
+                .symbolRenderingMode(tone == .warning ? .multicolor : .monochrome)
+                .foregroundStyle(tone == .information ? OnePlusColor.secondary : tone == .warning ? Color.primary : OnePlusColor.danger)
                 .accessibilityHidden(true)
             Text(message).onePlusText(.row).fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 8)
             action.buttonStyle(OnePlusButtonStyle(.ghost, size: .small))
         }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
-            .background(OnePlusColor.panel, in: RoundedRectangle(cornerRadius: 6))
-            .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(tone == .error ? OnePlusColor.dangerLine : OnePlusColor.line, lineWidth: 1) }
+            .background(tone == .warning ? OnePlusLinearColor.warningFill : OnePlusColor.panel, in: RoundedRectangle(cornerRadius: 6))
+            .overlay {
+                RoundedRectangle(cornerRadius: 6).strokeBorder(tone == .error ? OnePlusColor.dangerLine
+                                                               : tone == .warning ? OnePlusLinearColor.warningLine : OnePlusColor.line, lineWidth: 1)
+            }
     }
 }
 

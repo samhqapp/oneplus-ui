@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.0
+
+- Warning banners use the macOS 15 notice look (owner pick, 2026-11-26): `OnePlusLinearBanner(.warning)` and
+  `OnePlusBanner` `.warning` get a light gray `warningFill`, a 1 pt `warningLine`, and the yellow multicolor
+  triangle, in place of the amber tint. `OnePlusLinearColor.warning` stays for warning text and charts.
+- New `OnePlusLinearButtonStyle(.push)` and `(.pushProminent)`: native macOS push keys (22 pt, radius 5), white
+  or gray and system blue, for banner actions.
+
 ## 1.5.2
 
 - Popup menus open like the menu bar panel (owner, 2026-11-26): a 140 ms fade with a 4 pt move out of the

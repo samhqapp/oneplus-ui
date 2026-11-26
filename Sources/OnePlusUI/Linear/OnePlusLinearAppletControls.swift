@@ -273,7 +273,8 @@ public extension OnePlusLinearEmptyState where Action == EmptyView {
 }
 
 /// An applet banner: a filled 10 pt group with a leading glyph, a 13 pt medium title, an optional 12 pt line,
-/// and an optional trailing action. `.info` uses the group fill; `.warning` an amber tint and a triangle glyph;
+/// and an optional trailing action (`.push` / `.pushProminent` keys). `.info` uses the group fill; `.warning`
+/// the macOS 15 notice look (`warningFill`, a 1 pt `warningLine`, the yellow multicolor triangle);
 /// `.error` a red tint and an octagon glyph, so the state never relies on color alone.
 public struct OnePlusLinearBanner<Action: View>: View {
     public enum Kind: Sendable { case info, warning, error }
@@ -287,6 +288,7 @@ public struct OnePlusLinearBanner<Action: View>: View {
     public var body: some View {
         HStack(spacing: OnePlusLinearMetrics.appletRowGap) {
             Image(systemName: glyph).font(.system(size: 13))
+                .symbolRenderingMode(kind == .warning ? .multicolor : .monochrome)
                 .foregroundStyle(tint)
                 .accessibilityLabel(kind == .info ? "Information" : kind == .warning ? "Warning" : "Error")
             VStack(alignment: .leading, spacing: 2) {
@@ -301,6 +303,10 @@ public struct OnePlusLinearBanner<Action: View>: View {
         }
         .padding(.horizontal, OnePlusLinearMetrics.appletRowPadding).padding(.vertical, 9)
         .background(fill, in: RoundedRectangle(cornerRadius: OnePlusLinearMetrics.appletGroupRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: OnePlusLinearMetrics.appletGroupRadius)
+                .strokeBorder(kind == .warning ? OnePlusLinearColor.warningLine : .clear, lineWidth: 1)
+        }
         .accessibilityElement(children: .contain)
     }
     private var glyph: String {
@@ -313,7 +319,7 @@ public struct OnePlusLinearBanner<Action: View>: View {
     private var tint: Color {
         switch kind {
         case .info: OnePlusLinearColor.appletSecondary
-        case .warning: OnePlusLinearColor.warning
+        case .warning: Color.primary
         case .error: OnePlusLinearColor.destructiveText
         }
     }

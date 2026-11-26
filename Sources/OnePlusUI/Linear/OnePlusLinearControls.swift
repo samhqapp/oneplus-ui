@@ -30,6 +30,11 @@ public struct OnePlusLinearButtonStyle: ButtonStyle {
         /// A segment on a `fillTrack` well: no fill at rest, a clear `fillSegmentHover` step on hover (darker in
         /// Light, lighter in Dark, so it never melts into the well), `fillSegmentPressed` while pressed.
         case segment
+        /// A native macOS push button (`Open Settings` on a warning banner): 22 pt, radius 5, 13 pt regular,
+        /// `pushButton` fill, a 0.5 pt line, and a soft drop shadow.
+        case push
+        /// The default push button (`Fix`): the `.push` geometry in system blue with white text.
+        case pushProminent
     }
     let kind: Kind
     let radius: CGFloat
@@ -82,7 +87,7 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
         case .filled:
             guard enabled else { return OnePlusColor.primaryFill }
             return isPressed ? OnePlusColor.primaryPressed : isHovered ? OnePlusColor.primaryHover : OnePlusColor.primaryFill
-        case .destructive, .inline, .inlineDestructive:
+        case .destructive, .inline, .inlineDestructive, .push, .pushProminent:
             return .clear
         case .resetBlock:
             guard enabled else { return OnePlusLinearColor.fillGroup }
@@ -156,6 +161,20 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
                 label.linearText(OnePlusLinearMetrics.caption,
                                  color: enabled && isPressed ? OnePlusLinearColor.destructivePressedText : OnePlusLinearColor.destructiveText)
                     .fixedSize()
+            case .push, .pushProminent:
+                let prominent = kind == .pushProminent
+                let shape = RoundedRectangle(cornerRadius: OnePlusLinearMetrics.pushButtonRadius, style: .continuous)
+                label.font(.system(size: OnePlusLinearMetrics.body))
+                    .foregroundStyle(prominent ? OnePlusLinearColor.pushProminentInk : OnePlusLinearColor.ink)
+                    .fixedSize()
+                    .padding(.horizontal, OnePlusLinearMetrics.pushButtonPadding).frame(height: OnePlusLinearMetrics.pushButton)
+                    .background {
+                        shape.fill(prominent ? OnePlusLinearColor.pushProminent : OnePlusLinearColor.pushButton)
+                            .overlay { shape.strokeBorder(prominent ? OnePlusLinearColor.pushProminentLine : OnePlusLinearColor.pushButtonLine,
+                                                          lineWidth: OnePlusLinearMetrics.pushButtonLine) }
+                            .shadow(color: OnePlusLinearColor.pushButtonShadow, radius: 0.5, y: 0.5)
+                            .overlay { shape.fill(enabled && isPressed ? OnePlusLinearColor.pressed : .clear) }
+                    }
             case .plain, .segment:
                 label
             }

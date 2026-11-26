@@ -194,9 +194,20 @@ public enum OnePlusLinearColor {
     /// Applet text on the lighter dark group fill: the mockup values, which keep Lc 60 and Lc 45 there.
     public static let appletSecondary = color("appletSecondary", light: 0x68686F, dark: 0xC1C1C7)
     public static let appletMuted = color("appletMuted", light: 0x82828A, dark: 0xAAABB2)
-    /// The warning banner: an amber tint fill and its glyph. Banner text stays `ink`.
-    public static let warningFill = color("warningFill", light: 0xE89B0C, lightAlpha: 0.14, dark: 0xF0B040, darkAlpha: 0.16)
+    /// The warning banner (macOS 15 notice look, owner pick 2026-11-26): a light gray fill, a thin gray line, and
+    /// the yellow multicolor triangle. Banner text stays `ink` and `appletSecondary`.
+    public static let warningFill = color("warningFill", light: 0xF7F7F7, dark: 0x2A2A2A)
+    public static let warningLine = color("warningLine", light: 0x000000, lightAlpha: 0.07, dark: 0xFFFFFF, darkAlpha: 0.07)
+    /// Warning state as text or a chart color, such as "Retrying". Not used by the banner.
     public static let warning = color("warning", light: 0xA86500, dark: 0xF2BC55)
+    /// A native macOS push button (`.push`): white in Light, gray in Dark, a thin line and a soft drop shadow.
+    public static let pushButton = color("pushButton", light: 0xFFFFFF, dark: 0x5F5F62)
+    public static let pushButtonLine = color("pushButtonLine", light: 0x000000, lightAlpha: 0.14, dark: 0xFFFFFF, darkAlpha: 0.10)
+    public static let pushButtonShadow = color("pushButtonShadow", light: 0x000000, lightAlpha: 0.14, dark: 0x000000, darkAlpha: 0.35)
+    /// The default push button (`.pushProminent`): system blue with white text.
+    public static let pushProminent = color("pushProminent", light: 0x007AFF, dark: 0x0A84FF)
+    public static let pushProminentLine = color("pushProminentLine", light: 0x000000, lightAlpha: 0, dark: 0xFFFFFF, darkAlpha: 0.12)
+    public static let pushProminentInk = color("pushProminentInk", light: 0xFFFFFF, dark: 0xFFFFFF)
     /// The error banner: a red tint fill. Its glyph and text use `destructiveText`.
     public static let destructiveFill = color("destructiveFill", light: 0xD64035, lightAlpha: 0.10, dark: 0xFF6F64, darkAlpha: 0.14)
     /// A finished state as text, such as "Completed". Keeps Lc 60 on the window and the group fill.
@@ -229,6 +240,12 @@ public enum OnePlusLinearMetrics {
     public static let tileValueLine: CGFloat = 26
     /// A key well's 1 pt lit bottom lip reads as outside the hole, so its text and glyphs center 0.5 pt higher.
     public static let keyWellContentLift: CGFloat = 0.5
+    /// A native macOS push button: 22 pt tall, 11 pt side padding, radius 5, 0.5 pt line, 8 pt between keys.
+    public static let pushButton: CGFloat = 22
+    public static let pushButtonPadding: CGFloat = 11
+    public static let pushButtonRadius: CGFloat = 5
+    public static let pushButtonLine: CGFloat = 0.5
+    public static let pushButtonGap: CGFloat = 8
 
     // Main window
     public static let sidebarWidth: CGFloat = 215
