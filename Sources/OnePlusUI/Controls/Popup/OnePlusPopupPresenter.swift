@@ -149,7 +149,21 @@ final class OnePlusPopupPresenter {
             panel.setFrame(frame, display: true)
         }
         installMonitors(window: window, panel: panel)
+        // Opens like the menu bar panel: a fade with a 4 pt move out of the trigger.
+        let final = panel.frame
+        let reduced = OnePlusMotion.reducesMotion
+        if !reduced {
+            panel.setFrame(final.offsetBy(dx: 0, dy: below ? OnePlusMotion.panelOffset : -OnePlusMotion.panelOffset),
+                           display: false)
+        }
+        panel.alphaValue = 0
         panel.orderFront(nil)
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = reduced ? OnePlusMotion.panelOpenReduced : OnePlusMotion.panelOpen
+            context.timingFunction = OnePlusMotion.easeOutTiming
+            panel.animator().alphaValue = 1
+            if !reduced { panel.animator().setFrame(final, display: true) }
+        }
     }
 
     private func select(_ id: UUID) {
@@ -161,9 +175,25 @@ final class OnePlusPopupPresenter {
     private func close(reason: OnePlusPopupCloseReason) {
         guard panel != nil || session != nil else { return }
         removeMonitorsAndObservers()
-        if let panel, let parentWindow { parentWindow.removeChildWindow(panel) }
-        panel?.orderOut(nil)
-        panel?.contentView = nil
+        if let panel {
+            parentWindow?.removeChildWindow(panel)
+            // A picked row closes at once so its action shows; other closes fade out in 100 ms.
+            if reason == .selection || OnePlusMotion.reducesMotion {
+                panel.orderOut(nil)
+                panel.contentView = nil
+            } else {
+                NSAnimationContext.runAnimationGroup({ context in
+                    context.duration = OnePlusMotion.panelClose
+                    context.timingFunction = OnePlusMotion.easeInTiming
+                    panel.animator().alphaValue = 0
+                }, completionHandler: {
+                    MainActor.assumeIsolated {
+                        panel.orderOut(nil)
+                        panel.contentView = nil
+                    }
+                })
+            }
+        }
         let completion = onClose
         panel = nil
         session = nil

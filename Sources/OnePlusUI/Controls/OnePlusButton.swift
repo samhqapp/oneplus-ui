@@ -86,7 +86,8 @@ private struct OnePlusButtonBody<Label: View>: View {
         .labelStyle(OnePlusButtonLabelStyle(pointSize: pointSize, iconOnly: isIcon))
         .foregroundStyle(foreground)
         .tint(foreground)
-        .padding(.horizontal, isIcon ? 0 : style.horizontalPadding)
+        // A link draws no fill, so it sits flush with the text around it.
+        .padding(.horizontal, isIcon || style.variant == .link ? 0 : style.horizontalPadding)
         .frame(minWidth: isIcon ? height : style.minWidth)
         .frame(height: height)
         .background(background, in: RoundedRectangle(cornerRadius: radius))

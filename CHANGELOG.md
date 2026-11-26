@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.2
+
+- Popup menus open like the menu bar panel (owner, 2026-11-26): a 140 ms fade with a 4 pt move out of the
+  trigger, and a 100 ms fade out. A picked row still closes at once. Reduce Motion fades only.
+- New `View.onePlusPopover(isPresented:arrowEdge:content:)`: an opaque popover with the same fast open and
+  close, in place of SwiftUI's slower system zoom.
+- `OnePlusButtonStyle(.link)` has no side padding, so a link lines up with the text around it.
+
 ## 1.5.1
 
 - Popups are fully opaque (owner, 2026-11-25): `OnePlusPopupColor.background` drops its transparency, so
