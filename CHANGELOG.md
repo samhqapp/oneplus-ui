@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.1
+
+- "Big header" (owner pick, 2026-11-27): `OnePlusLinearToolHeader` with actions (a launch tile) draws a 108 pt icon,
+  a 28 pt title, and a 15 pt description of at most 3 lines centered on the icon, the tile's height. Without
+  actions it is unchanged. New `launchHeader*` metrics and a sized `icon: (CGFloat) -> Icon` init.
+  `OnePlusLinearToolHeaderTests` checks the height, that no 70-character description is cut, and the plain look.
+
 ## 1.8.0
 
 - Light main window (owner picks, 2026-11-26): `window` `#F3F3F5`, `sidebar` `#EBEBED`, group `line` 6.5%, so

@@ -40,6 +40,14 @@ public enum OnePlusLinearEditorialMetrics {
     public static let headerDetailLines = 2
     public static let headerTileGap: CGFloat = 20
     public static let launchTile = CGSize(width: 176, height: 108)
+    /// "Big header" beside a launch tile (owner pick, 2026-11-27): the icon is the tile's height, a 28 pt title 6 pt
+    /// over a 15 pt description of at most 3 lines, the text centered on the icon.
+    public static let launchHeaderIcon: CGFloat = launchTile.height
+    public static let launchHeaderTitle: CGFloat = 28
+    public static let launchHeaderTitleTracking: CGFloat = -0.7
+    public static let launchHeaderTitleGap: CGFloat = 6
+    public static let launchHeaderDetail: CGFloat = 15
+    public static let launchHeaderDetailLines = 3
     public static let launchTileRadius: CGFloat = 12
     public static let launchTilePadding: CGFloat = 14
     /// The shortcut key caps draw 1.2 times their 20 pt size, 6 pt above the action name.
@@ -119,20 +127,38 @@ public struct OnePlusLinearPageTitle: View {
 
 /// The editorial tool page header, "Icon beside the title": the 48 pt icon, then the large title over a description
 /// of at most 2 lines, all top-aligned with the trailing actions (an `OnePlusLinearLaunchTile`, or nothing).
+/// With actions it is the "Big header": the icon and text block fill the launch tile's height.
+/// The sized `icon` init gets the icon size, for icons that frame themselves.
 public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
+    private typealias M = OnePlusLinearEditorialMetrics
     private let title: String
     private let detail: String
-    private let icon: Icon
+    private let icon: (CGFloat) -> Icon
     private let actions: Actions
-    public init(_ title: String, detail: String, @ViewBuilder icon: () -> Icon, @ViewBuilder actions: () -> Actions) {
-        self.title = title; self.detail = detail; self.icon = icon(); self.actions = actions()
+    public init(_ title: String, detail: String, @ViewBuilder icon: @escaping (CGFloat) -> Icon, @ViewBuilder actions: () -> Actions) {
+        self.title = title; self.detail = detail; self.icon = icon; self.actions = actions()
     }
+    public init(_ title: String, detail: String, @ViewBuilder icon: () -> Icon, @ViewBuilder actions: () -> Actions) {
+        let view = icon()
+        self.init(title, detail: detail, icon: { _ in view }, actions: actions)
+    }
+    private var big: Bool { Actions.self != EmptyView.self }
     public var body: some View {
-        HStack(alignment: .top, spacing: OnePlusLinearEditorialMetrics.headerTileGap) {
-            HStack(alignment: .top, spacing: OnePlusLinearEditorialMetrics.headerGap) {
-                icon.frame(width: OnePlusLinearEditorialMetrics.headerTileIcon, height: OnePlusLinearEditorialMetrics.headerTileIcon)
-                    .accessibilityHidden(true)
-                OnePlusLinearPageTitle(title, subtitle: detail, subtitleLines: OnePlusLinearEditorialMetrics.headerDetailLines)
+        let size = big ? M.launchHeaderIcon : M.headerTileIcon
+        HStack(alignment: .top, spacing: M.headerTileGap) {
+            HStack(alignment: big ? .center : .top, spacing: M.headerGap) {
+                icon(size).frame(width: size, height: size).accessibilityHidden(true)
+                if big {
+                    VStack(alignment: .leading, spacing: M.launchHeaderTitleGap) {
+                        Text(title).font(.system(size: M.launchHeaderTitle, weight: .semibold)).tracking(M.launchHeaderTitleTracking)
+                            .foregroundStyle(OnePlusLinearColor.ink).lineLimit(1).minimumScaleFactor(0.75)
+                            .accessibilityAddTraits(.isHeader)
+                        Text(detail).linearText(M.launchHeaderDetail, color: OnePlusLinearColor.secondary)
+                            .lineLimit(M.launchHeaderDetailLines).truncationMode(.tail).fixedSize(horizontal: false, vertical: true)
+                    }
+                } else {
+                    OnePlusLinearPageTitle(title, subtitle: detail, subtitleLines: M.headerDetailLines)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             actions
