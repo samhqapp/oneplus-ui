@@ -20,6 +20,17 @@ final class OnePlusSheetHeaderTests: XCTestCase {
         }
     }
 
+    /// The close light starts on the content's left edge (it once sat 7 pt further left, at the window light spot).
+    func testCloseLightLeftEdgeIsContentLeftEdge() throws {
+        let bitmap = try render(OnePlusSheet("Extracted Text", close: {}) { Color.blue.frame(width: 40, height: 20) })
+        let row = Int(OnePlusMetrics.appletCenterline * 2)
+        let below = Int((OnePlusMetrics.sheetTitleRow + 10) * 2)
+        let light = try XCTUnwrap((0..<bitmap.pixelsWide).first { isInk(bitmap, $0, row) })
+        let content = try XCTUnwrap((0..<bitmap.pixelsWide).first { isInk(bitmap, $0, below) })
+        XCTAssertEqual(CGFloat(light) / 2, CGFloat(content) / 2, accuracy: 1,
+                       "Pad OnePlusSheetCloseLight by the sheet's content inset, not the window traffic-light inset")
+    }
+
     private func render(_ view: some View) throws -> NSBitmapImageRep {
         let host = NSHostingView(rootView: view)
         let size = host.fittingSize

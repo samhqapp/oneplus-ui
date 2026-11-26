@@ -17,17 +17,67 @@ extension EnvironmentValues {
         get { self[OnePlusPageScrollBottomInsetKey.self] }
         set { self[OnePlusPageScrollBottomInsetKey.self] = newValue }
     }
+    /// Set by `OnePlusSheet`: its scroll views fade out at an edge that has more content past it.
+    @Entry var onePlusScrollEdgeFade = false
 }
 
 private struct OnePlusScrollModifier: ViewModifier {
     let axes: Axis.Set
     @Environment(\.onePlusPageScrollBottomInset) private var bottomInset
+    @Environment(\.onePlusScrollEdgeFade) private var edgeFade
     func body(content: Content) -> some View {
-        content
+        let scroll = content
             .environment(\.onePlusPageScrollBottomInset, 0)
             .scrollIndicators(.never)
             .contentMargins(.bottom, bottomInset, for: .scrollContent)
             .background(OnePlusScrollConfigurator(axes: axes))
+        if edgeFade { scroll.modifier(OnePlusScrollEdgeFadeModifier()) } else { scroll }
+    }
+}
+
+/// Which vertical edges of a scroll view have more content past them.
+struct OnePlusScrollOverflow: Equatable {
+    var top = false
+    var bottom = false
+    init(top: Bool = false, bottom: Bool = false) { self.top = top; self.bottom = bottom }
+    init(_ geometry: ScrollGeometry) {
+        top = geometry.contentOffset.y + geometry.contentInsets.top > 0.5
+        bottom = geometry.contentSize.height + geometry.contentInsets.bottom
+            - geometry.contentOffset.y - geometry.containerSize.height > 0.5
+    }
+}
+
+/// Fades the content to clear over `sheetScrollFade` at an edge with more content past it; the fade leaves at the end
+/// of the scroll. Paint only, no layout change. Reduce Transparency: a quiet hairline. Reduce Motion: no animation.
+private struct OnePlusScrollEdgeFadeModifier: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var overflow = OnePlusScrollOverflow()
+    func body(content: Content) -> some View {
+        content
+            .onScrollGeometryChange(for: OnePlusScrollOverflow.self, of: OnePlusScrollOverflow.init) { _, new in
+                withAnimation(reduceMotion ? nil : .easeOut(duration: OnePlusMotion.hoverOut)) { overflow = new }
+            }
+            .mask {
+                if reduceTransparency { Color.black } else {
+                    VStack(spacing: 0) {
+                        edge(from: overflow.top ? 0 : 1)
+                        Color.black
+                        edge(from: overflow.bottom ? 0 : 1).scaleEffect(y: -1)
+                    }
+                }
+            }
+            .overlay(alignment: .top) { hairline(overflow.top) }
+            .overlay(alignment: .bottom) { hairline(overflow.bottom) }
+    }
+    private func edge(from opacity: Double) -> some View {
+        LinearGradient(colors: [.black.opacity(opacity), .black], startPoint: .top, endPoint: .bottom)
+            .frame(height: OnePlusMetrics.sheetScrollFade)
+    }
+    @ViewBuilder private func hairline(_ shown: Bool) -> some View {
+        if reduceTransparency, shown {
+            OnePlusLinearColor.quietDivider.frame(height: OnePlusMetrics.sheetScrollHairline).allowsHitTesting(false)
+        }
     }
 }
 

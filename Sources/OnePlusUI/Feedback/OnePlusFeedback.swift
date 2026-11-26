@@ -76,8 +76,9 @@ public extension OnePlusBanner where Action == EmptyView {
 public enum OnePlusSheetWidth: CGFloat, Sendable { case panel = 340, small = 420, medium = 560, large = 700 }
 
 /// The one sheet frame. Native macOS sheet look: no bar and no lines, a small centered title, and a red close light
-/// at the window close-light spot, both on the 22 pt centerline of a 44 pt row. Footer keys sit right with no line.
-/// The sheet stays within 90% of its window's height; the title and keys stay fixed and the middle scrolls.
+/// on the content's left edge, both on the 22 pt centerline of a 44 pt row. Compact push-key footer with no line.
+/// The sheet stays within 90% of its window's height; the title and keys stay fixed and the middle scrolls, with a
+/// soft fade at each scroll edge that has more content past it.
 /// Present inside SwiftUI's native `.sheet` modifier.
 public struct OnePlusSheet<Body: View, Footer: View>: View {
     @Environment(\.displayScale) private var displayScale
@@ -102,9 +103,10 @@ public struct OnePlusSheet<Body: View, Footer: View>: View {
     }
     private var hasFooter: Bool { Footer.self != EmptyView.self }
     private var middle: some View {
-        content.padding(.horizontal, inset).padding(.bottom, hasFooter ? OnePlusMetrics.contentGap : inset)
+        content.padding(.horizontal, inset).padding(.bottom, hasFooter ? OnePlusMetrics.sheetFooterGap : inset)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
+    private var titleSideInset: CGFloat { inset * 2 + OnePlusMetrics.sheetCloseLight }
     public var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .leading) {
@@ -113,16 +115,17 @@ public struct OnePlusSheet<Body: View, Footer: View>: View {
                     Text(title).onePlusText(.sectionTitle).lineLimit(1).accessibilityAddTraits(.isHeader)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.horizontal, OnePlusMetrics.trafficLightLeadingInset * 2 + OnePlusMetrics.sheetCloseLight)
-                if let close { OnePlusSheetCloseLight(action: close).padding(.leading, OnePlusMetrics.trafficLightLeadingInset) }
+                .padding(.horizontal, titleSideInset)
+                if let close { OnePlusSheetCloseLight(action: close).padding(.leading, inset) }
             }.frame(height: OnePlusMetrics.sheetTitleRow)
             ViewThatFits(in: .vertical) {
                 middle
                 ScrollView { middle }.onePlusScrollIndicators()
             }
+            .environment(\.onePlusScrollEdgeFade, true)
             if hasFooter {
-                HStack(spacing: OnePlusMetrics.actionSpacing) { Spacer(); footer }
-                    .padding(.horizontal, inset).padding(.bottom, inset)
+                HStack(spacing: OnePlusLinearMetrics.pushButtonGap) { Spacer(); footer }
+                    .padding(.horizontal, inset).padding(.bottom, OnePlusMetrics.sheetFooterGap)
             }
         }
         .frame(width: width)

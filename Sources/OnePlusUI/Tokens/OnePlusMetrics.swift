@@ -75,6 +75,12 @@ public enum OnePlusMetrics {
     public static let sheetInset: CGFloat = 20
     public static let sheetPanelInset: CGFloat = 12
     public static let sheetMaxHeightFraction: CGFloat = 0.9
+    /// Compact footer: 12 pt above and below 22 pt push keys.
+    public static let sheetFooterGap: CGFloat = 12
+    /// Soft fade at a sheet scroll edge while more content sits past it.
+    public static let sheetScrollFade: CGFloat = 16
+    /// Reduce Transparency: a hairline replaces the scroll-edge fade.
+    public static let sheetScrollHairline: CGFloat = 1
 
     public static func titleStart(afterZoom trailingX: CGFloat) -> CGFloat {
         trailingX + sidebarTitleGapAfterZoom

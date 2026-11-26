@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.1
+
+- Sheet close light starts on the content's left edge (sheet inset), still on the title's centerline.
+- Compact sheet footer: 12 pt above and below, push-key gap. New `OnePlusMetrics.sheetFooterGap`.
+- Every `onePlusScrollIndicators` scroll inside a sheet fades over 16 pt at an edge with more content past it, and
+  the fade leaves at the end of the scroll. Paint only; Reduce Transparency shows a hairline, Reduce Motion no
+  animation. New `sheetScrollFade`, `sheetScrollHairline`.
+
 ## 1.7.0
 
 - One sheet frame (owner pick, 2026-11-26): `OnePlusSheet` takes the native macOS sheet look: no header bar and no
