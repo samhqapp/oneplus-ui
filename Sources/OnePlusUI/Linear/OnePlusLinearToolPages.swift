@@ -55,51 +55,14 @@ public struct OnePlusLinearEditorialFixedBody<Content: View>: View {
     }
 }
 
-/// A sheet in the main-window language: a 48 pt title row with the 13 pt semibold title and a close key, the body
-/// on the window color with the editorial insets, and right-aligned footer keys. No separators.
-/// Present inside SwiftUI's native `.sheet` modifier.
+/// `OnePlusSheet` with the editorial controls (raised keys, inset groups) for main-window tools.
 public struct OnePlusLinearSheet<Body: View, Footer: View>: View {
-    private let title: String
-    private let width: CGFloat
-    private let close: (() -> Void)?
-    private let content: Body
-    private let footer: Footer
+    private let sheet: OnePlusSheet<Body, Footer>
     public init(_ title: String, width: OnePlusSheetWidth = .medium, close: (() -> Void)? = nil,
                 @ViewBuilder content: () -> Body, @ViewBuilder footer: () -> Footer) {
-        self.title = title; self.width = width.rawValue; self.close = close
-        self.content = content(); self.footer = footer()
+        sheet = OnePlusSheet(title, width: width, close: close, content: content, footer: footer)
     }
-    /// A panel-width sheet sits inside a 356 pt menu panel, so it takes the tight 12 pt inset, not the window gutter.
-    private var isPanel: Bool { width == OnePlusSheetWidth.panel.rawValue }
-    private var gutter: CGFloat { isPanel ? OnePlusLinearSpace.group : OnePlusLinearMetrics.gutter }
-    private var bottom: CGFloat { isPanel ? OnePlusLinearSpace.group : OnePlusLinearEditorialMetrics.bottom }
-    public var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: OnePlusLinearMetrics.appletActionGap) {
-                Text(title).linearText(weight: .semibold).lineLimit(1).accessibilityAddTraits(.isHeader)
-                Spacer(minLength: OnePlusLinearSpace.group)
-                if let close {
-                    OnePlusLinearIconButton(systemImage: "xmark", help: "Close", size: OnePlusLinearMetrics.toolbarButton,
-                                            action: close)
-                        .keyboardShortcut(.cancelAction)
-                }
-            }
-            .padding(.horizontal, gutter)
-            .frame(height: OnePlusLinearMetrics.appletTitlebar)
-            content.padding(.horizontal, gutter)
-                .padding(.bottom, bottom)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            if Footer.self != EmptyView.self {
-                HStack(spacing: OnePlusLinearMetrics.appletActionGap) { Spacer(); footer }
-                    .padding(.horizontal, gutter)
-                    .padding(.bottom, bottom)
-            }
-        }
-        .frame(width: width).background(OnePlusLinearColor.window)
-        .onePlusLinearEditorialPage()
-        .onePlusFocusPolicy()
-        .onePlusAppAppearance()
-    }
+    public var body: some View { sheet.onePlusLinearEditorialPage() }
 }
 
 public extension OnePlusLinearSheet where Footer == EmptyView {

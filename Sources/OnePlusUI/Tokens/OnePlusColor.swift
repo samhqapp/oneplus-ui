@@ -23,6 +23,10 @@ public enum OnePlusColor {
 
     public static let window = Color(nsColor: dynamic("window", dark: 0x161616, light: 0xF5F5F5))
     public static let sidebar = Color(nsColor: dynamic("sidebar", dark: 0x1D1D1D, light: 0xE7E7E7))
+    /// The sheet close light, drawn like the native window close button.
+    public static let closeLight = Color(nsColor: dynamic("closeLight", dark: 0xEC4845, light: 0xFF5F57))
+    public static let closeLightEdge = Color(nsColor: dynamic("closeLightEdge", dark: 0xC63A37, light: 0xE14640))
+    public static let closeLightGlyph = Color(nsColor: dynamic("closeLightGlyph", dark: 0x8C1A16, light: 0x8C1A16))
     public static let panel = Color(nsColor: dynamic("panel", dark: 0x202020, light: 0xFAFAFA))
     public static let tableAlternate = Color(nsColor: dynamic("tableAlternate", dark: 0x242424, light: 0xF2F2F2))
     public static let panelHover = Color(nsColor: dynamic("panelHover", dark: 0x262626, light: 0xFFFFFF))

@@ -39,8 +39,6 @@ final class OnePlusChromeAlignmentTests: XCTestCase {
                     }, name: title, titleX: 88, appearance: appearance, scale: scale,
                                     probes: ["button", "switch"], applet: true)
                 }
-                try checkHeader(OnePlusSheet("HEADER", close: {}) { Color.clear.frame(height: 40) },
-                                name: "sheet", titleX: 20, appearance: appearance, scale: scale, probes: [])
             }
         }
     }

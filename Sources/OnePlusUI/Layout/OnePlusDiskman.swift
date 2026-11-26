@@ -121,7 +121,6 @@ public struct OnePlusStorageTile<Content: View>: View {
 
 public extension OnePlusSheet {
     init(diskmanFolderTitle title: String, @ViewBuilder content: () -> Body, @ViewBuilder footer: () -> Footer) {
-        self.title = title; width = OnePlusDiskmanMetrics.folderSheetWidth; close = nil
-        self.content = content(); self.footer = footer()
+        self.init(title, points: OnePlusDiskmanMetrics.folderSheetWidth, close: nil, content: content, footer: footer)
     }
 }

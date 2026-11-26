@@ -75,9 +75,13 @@ public extension OnePlusBanner where Action == EmptyView {
 /// `.panel` fits a sheet inside the 356 pt menu panel.
 public enum OnePlusSheetWidth: CGFloat, Sendable { case panel = 340, small = 420, medium = 560, large = 700 }
 
+/// The one sheet frame. Native macOS sheet look: no bar and no lines, a small centered title, and a red close light
+/// at the window close-light spot, both on the 22 pt centerline of a 44 pt row. Footer keys sit right with no line.
+/// The sheet stays within 90% of its window's height; the title and keys stay fixed and the middle scrolls.
 /// Present inside SwiftUI's native `.sheet` modifier.
 public struct OnePlusSheet<Body: View, Footer: View>: View {
     @Environment(\.displayScale) private var displayScale
+    @State private var parentHeight: CGFloat?
     let title: String
     let width: CGFloat
     let close: (() -> Void)?
@@ -85,35 +89,88 @@ public struct OnePlusSheet<Body: View, Footer: View>: View {
     let footer: Footer
     public init(_ title: String, width: OnePlusSheetWidth = .medium, close: (() -> Void)? = nil,
                 @ViewBuilder content: () -> Body, @ViewBuilder footer: () -> Footer) {
-        self.title = title; self.width = width.rawValue; self.close = close
+        self.init(title, points: width.rawValue, close: close, content: content, footer: footer)
+    }
+    init(_ title: String, points width: CGFloat, close: (() -> Void)?,
+         @ViewBuilder content: () -> Body, @ViewBuilder footer: () -> Footer) {
+        self.title = title; self.width = width; self.close = close
         self.content = content(); self.footer = footer()
+    }
+    /// A panel-width sheet sits inside a 356 pt menu panel, so it takes the tight inset.
+    private var inset: CGFloat {
+        width == OnePlusSheetWidth.panel.rawValue ? OnePlusMetrics.sheetPanelInset : OnePlusMetrics.sheetInset
+    }
+    private var hasFooter: Bool { Footer.self != EmptyView.self }
+    private var middle: some View {
+        content.padding(.horizontal, inset).padding(.bottom, hasFooter ? OnePlusMetrics.contentGap : inset)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
     public var body: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .top) {
+            ZStack(alignment: .leading) {
                 OnePlusHeaderTitleLayout(text: title, pointSize: OnePlusTextRole.sectionTitle.size(for: .regular),
-                                         height: 24, scale: displayScale) {
+                                         height: OnePlusMetrics.sheetTitleRow, scale: displayScale, centersCaps: true) {
                     Text(title).onePlusText(.sectionTitle).lineLimit(1).accessibilityAddTraits(.isHeader)
                 }
-                Spacer()
-                if let close {
-                    Button(action: close) { Image(systemName: "xmark") }
-                        .buttonStyle(OnePlusButtonStyle(.icon, size: .small))
-                        .help("Close").accessibilityLabel("Close").keyboardShortcut(.cancelAction)
-                }
-            }.padding(.horizontal, 20).padding(.top, OnePlusMetrics.contentTop)
-                .frame(height: OnePlusMetrics.appletTitlebar, alignment: .top)
-                .environment(\.onePlusHeaderTopAligned, true)
-            OnePlusColor.lineSoft.frame(height: 1)
-            content.padding(20).frame(maxWidth: .infinity, alignment: .leading)
-            if Footer.self != EmptyView.self {
-                OnePlusColor.lineSoft.frame(height: 1)
-                HStack(spacing: 8) { Spacer(); footer }.padding(20)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, OnePlusMetrics.trafficLightLeadingInset * 2 + OnePlusMetrics.sheetCloseLight)
+                if let close { OnePlusSheetCloseLight(action: close).padding(.leading, OnePlusMetrics.trafficLightLeadingInset) }
+            }.frame(height: OnePlusMetrics.sheetTitleRow)
+            ViewThatFits(in: .vertical) {
+                middle
+                ScrollView { middle }.onePlusScrollIndicators()
             }
-        }.frame(width: width).background(OnePlusColor.window).onePlusDensity(.regular)
-            .onePlusNeutralControls()
-            .onePlusFocusPolicy()
-            .onePlusAppAppearance()
+            if hasFooter {
+                HStack(spacing: OnePlusMetrics.actionSpacing) { Spacer(); footer }
+                    .padding(.horizontal, inset).padding(.bottom, inset)
+            }
+        }
+        .frame(width: width)
+        .frame(maxHeight: parentHeight.map { $0 * OnePlusMetrics.sheetMaxHeightFraction })
+        .background(OnePlusColor.window).background(OnePlusSheetParentHeight(height: $parentHeight))
+        .onePlusDensity(.regular)
+        .onePlusNeutralControls()
+        .onePlusFocusPolicy()
+        .onePlusAppAppearance()
+    }
+}
+
+/// The red close light of a sheet: the native window close button's size, color, and spot; the × shows on hover.
+struct OnePlusSheetCloseLight: View {
+    let action: () -> Void
+    @State private var hovered = false
+    var body: some View {
+        Button(action: action) {
+            Circle().fill(OnePlusColor.closeLight)
+                .overlay(Circle().strokeBorder(OnePlusColor.closeLightEdge, lineWidth: OnePlusMetrics.sheetCloseLightEdge))
+                .overlay {
+                    if hovered {
+                        Image(systemName: "xmark").font(.system(size: OnePlusMetrics.sheetCloseGlyph, weight: .bold))
+                            .foregroundStyle(OnePlusColor.closeLightGlyph)
+                    }
+                }
+                .frame(width: OnePlusMetrics.sheetCloseLight, height: OnePlusMetrics.sheetCloseLight)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain).focusable(false).onHover { hovered = $0 }
+        .help("Close").accessibilityLabel("Close").keyboardShortcut(.cancelAction)
+    }
+}
+
+/// Reads the height of the window a sheet is attached to.
+private struct OnePlusSheetParentHeight: NSViewRepresentable {
+    @Binding var height: CGFloat?
+    func makeNSView(context: Context) -> Reader { Reader { height = $0 } }
+    func updateNSView(_ nsView: Reader, context: Context) {}
+    final class Reader: NSView {
+        let report: @MainActor (CGFloat?) -> Void
+        init(_ report: @escaping @MainActor (CGFloat?) -> Void) { self.report = report; super.init(frame: .zero) }
+        required init?(coder: NSCoder) { nil }
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            let height = window?.sheetParent?.frame.height
+            Task { @MainActor in self.report(height) }
+        }
     }
 }
 

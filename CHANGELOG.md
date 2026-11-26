@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.7.0
+
+- One sheet frame (owner pick, 2026-11-26): `OnePlusSheet` takes the native macOS sheet look: no header bar and no
+  lines, a small centered title, and a 14 pt red close light at the window close-light spot (× on hover, Esc
+  closes, no focus ring), both on the 22 pt centerline of a 44 pt row. Footer keys sit right with no line.
+  The sheet stays within 90% of its window's height; the middle scrolls.
+- `OnePlusLinearSheet` is now a thin wrapper: `OnePlusSheet` plus the editorial controls.
+- New tokens: `OnePlusMetrics.sheet*`, `OnePlusColor.closeLight`, `closeLightEdge`, `closeLightGlyph`.
+
 ## 1.6.0
 
 - Warning banners use the macOS 15 notice look (owner pick, 2026-11-26): `OnePlusLinearBanner(.warning)` and

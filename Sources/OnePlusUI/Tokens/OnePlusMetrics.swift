@@ -67,6 +67,14 @@ public enum OnePlusMetrics {
     public static let controlHorizontalPadding: CGFloat = 10
     public static let contentControlHorizontalPadding: CGFloat = 14
     public static let actionSpacing: CGFloat = 8
+    /// Sheets: no bar or lines; the close light and the centered title share the 22 pt centerline of a 44 pt row.
+    public static let sheetTitleRow: CGFloat = 44
+    public static let sheetCloseLight: CGFloat = 14
+    public static let sheetCloseLightEdge: CGFloat = 0.5
+    public static let sheetCloseGlyph: CGFloat = 7.5
+    public static let sheetInset: CGFloat = 20
+    public static let sheetPanelInset: CGFloat = 12
+    public static let sheetMaxHeightFraction: CGFloat = 0.9
 
     public static func titleStart(afterZoom trailingX: CGFloat) -> CGFloat {
         trailingX + sidebarTitleGapAfterZoom
