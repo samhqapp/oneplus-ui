@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.9.1
+
+- Fix: a pointer click on `OnePlusLinearEditorialToolRow` and `OnePlusLinearToolRow` did nothing. The open button's
+  clear label had no content shape, so only AXPress and Return reached it. `OnePlusToolRowClickTests` clicks the
+  row's text and checks that a clear label without a content shape takes no click.
+- "Soft spring" page switch: the old page leaves at once (never two pages on screen) and the new one fades in, while
+  `OnePlusLinearEditorialBody` and `OnePlusLinearPaneBody` bring each block in one after another (fade plus a 6 pt
+  rise, 180 ms ease-out, 30 ms apart, at most 5 steps). New `springSection*` tokens. Reduce Motion: instant.
+
 ## 1.9.0
 
 - Tool page header "Small icon in the name line" (owner pick, 2026-11-27): `OnePlusLinearToolHeader` draws a 28 pt

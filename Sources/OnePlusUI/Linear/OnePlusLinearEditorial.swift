@@ -77,7 +77,9 @@ public struct OnePlusLinearEditorialBody<Content: View, Footer: View>: View {
         GeometryReader { viewport in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    VStack(alignment: .leading, spacing: OnePlusLinearEditorialMetrics.blockGap) { content }
+                    VStack(alignment: .leading, spacing: OnePlusLinearEditorialMetrics.blockGap) {
+                        OnePlusLinearPageSections(content: content)
+                    }
                     if Footer.self != EmptyView.self {
                         Spacer(minLength: OnePlusLinearEditorialMetrics.blockGap)
                         footer
@@ -397,7 +399,8 @@ public struct OnePlusLinearEditorialToolRow: View {
     private var hovering: Bool { interactive && (hover || sample == .hover) }
     public var body: some View {
         ZStack {
-            Button(action: open) { Color.clear.frame(maxWidth: .infinity, maxHeight: .infinity) }
+            // A clear label takes no clicks without a content shape; AXPress still works, so only the pointer broke.
+            Button(action: open) { Color.clear.frame(maxWidth: .infinity, maxHeight: .infinity).contentShape(Rectangle()) }
                 .buttonStyle(.plain).focusEffectDisabled()
                 .accessibilityLabel("Open \(name)")
             HStack(spacing: OnePlusLinearMetrics.toolRowGap) {

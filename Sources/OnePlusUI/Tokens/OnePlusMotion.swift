@@ -63,9 +63,16 @@ public enum OnePlusMotion {
     // Main window "Soft spring". Native snap still applies everywhere else.
     /// Tool row hover fill: in 120 ms, out 220 ms.
     public static let springRowHover: (TimeInterval, TimeInterval) = (0.12, 0.22)
-    /// Page switch: the old page fades out moving 6 pt up, the new one fades in from 6 pt below, 200 ms ease-out.
+    /// Page switch: the old page leaves at once (never two pages on screen) and the new one fades in, 200 ms ease-out.
     public static let springPage: TimeInterval = 0.2
     public static let springPageOffset: CGFloat = 6
+    /// Page entrance: each block of the new page (title, then each section) fades in rising `springPageOffset`,
+    /// 180 ms ease-out, the next block 30 ms later, at most `springSectionSteps` steps. Layout is final in frame one.
+    public static let springSection: TimeInterval = 0.18
+    public static let springSectionStagger: TimeInterval = 0.03
+    public static let springSectionSteps = 5
+    /// Blocks that appear later than this after the page (a filter change) show at once.
+    public static let springSectionWindow: TimeInterval = 0.3
     /// Switch knob: a soft spring with a small overshoot.
     public static let springSwitch = Animation.spring(response: 0.3, dampingFraction: 0.72)
     /// The panel row mark (`onePlusLinearRowMark`): in 0.3 s after the panel opens, over 0.2 s, held 1.2 s,

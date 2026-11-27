@@ -52,8 +52,9 @@ public struct OnePlusLinearContentSwitch<Value: Hashable, Content: View>: View {
     }
 }
 
-/// Swaps the main window page when `value` changes. On a `.spring` surface the old page fades out moving 6 pt up
-/// while the new one fades in from 6 pt below; otherwise, and under Reduce Motion, the switch is instant.
+/// Swaps the main window page when `value` changes. On a `.spring` surface the old page leaves at once and the new
+/// one fades in, while its body blocks rise in one after another (`onePlusPageSections`); otherwise, and under
+/// Reduce Motion, the switch is instant.
 public struct OnePlusLinearPageSwitch<Value: Hashable, Content: View>: View {
     private let value: Value
     private let content: Content
@@ -62,13 +63,48 @@ public struct OnePlusLinearPageSwitch<Value: Hashable, Content: View>: View {
     public init(_ value: Value, @ViewBuilder content: () -> Content) { self.value = value; self.content = content() }
     public var body: some View {
         let moves = style == .spring && !reduceMotion
-        let offset = OnePlusMotion.springPageOffset
         ZStack {
-            content.id(value)
-                .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: offset)),
-                                        removal: .opacity.combined(with: .offset(y: -offset))))
+            content.id(value).transition(.asymmetric(insertion: .opacity, removal: .identity))
         }
         .animation(moves ? OnePlusMotion.animation(OnePlusMotion.springPage) : nil, value: value)
+    }
+}
+
+/// Lays out `content`'s blocks in order and, on a `.spring` surface, brings them in one after another when the
+/// page first appears: each fades in rising 6 pt. Blocks that appear later (a filter change) show at once.
+struct OnePlusLinearPageSections<Content: View>: View {
+    let content: Content
+    @State private var start = Date()
+
+    var body: some View {
+        Group(subviews: content) { blocks in
+            ForEach(blocks) { block in
+                let order = blocks.firstIndex { $0.id == block.id }.map { blocks.distance(from: blocks.startIndex, to: $0) } ?? 0
+                block.modifier(OnePlusLinearSectionEntrance(order: order, start: start))
+            }
+        }
+    }
+}
+
+private struct OnePlusLinearSectionEntrance: ViewModifier {
+    let order: Int
+    let start: Date
+    @State private var shown = false
+    @Environment(\.onePlusLinearMotion) private var style
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var entering: Bool {
+        style == .spring && !reduceMotion && Date().timeIntervalSince(start) < OnePlusMotion.springSectionWindow
+    }
+
+    func body(content: Content) -> some View {
+        let hidden = !shown && entering
+        content.opacity(hidden ? 0 : 1).offset(y: hidden ? OnePlusMotion.springPageOffset : 0)
+            .onAppear {
+                guard entering else { shown = true; return }
+                let delay = Double(min(order, OnePlusMotion.springSectionSteps)) * OnePlusMotion.springSectionStagger
+                withAnimation(OnePlusMotion.animation(OnePlusMotion.springSection).delay(delay)) { shown = true }
+            }
     }
 }
 

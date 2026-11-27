@@ -289,7 +289,7 @@ public struct OnePlusLinearPaneBody<Content: View>: View {
     public init(@ViewBuilder content: () -> Content) { self.content = content() }
     public var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: OnePlusLinearMetrics.sectionGap) { content }
+            VStack(alignment: .leading, spacing: OnePlusLinearMetrics.sectionGap) { OnePlusLinearPageSections(content: content) }
                 .padding(.top, OnePlusLinearMetrics.bodyTop)
                 .padding(.horizontal, OnePlusLinearMetrics.gutter)
                 .padding(.bottom, OnePlusLinearMetrics.sectionGap)
@@ -322,7 +322,7 @@ public struct OnePlusLinearToolRow: View {
 
     public var body: some View {
         ZStack {
-            Button(action: open) { Color.clear.frame(maxWidth: .infinity, maxHeight: .infinity) }
+            Button(action: open) { Color.clear.frame(maxWidth: .infinity, maxHeight: .infinity).contentShape(Rectangle()) }
                 .buttonStyle(.plain).focusEffectDisabled()
                 .accessibilityLabel("Open \(name)")
             HStack(spacing: OnePlusLinearMetrics.toolRowGap) {
