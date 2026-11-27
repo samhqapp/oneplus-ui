@@ -34,26 +34,21 @@ public enum OnePlusLinearEditorialMetrics {
     public static let titleTracking: CGFloat = -0.6
     public static let titleGap: CGFloat = 4
     public static let disabledIconOpacity: Double = 0.45
-    /// The tool page header ("Icon beside the title"): a 48 pt icon 16 pt left of the title
-    /// and a description of at most 2 lines, top-aligned with the Open tile 20 pt to the right.
-    public static let headerTileIcon: CGFloat = 48
-    public static let headerDetailLines = 2
+    /// The tool page header, "Small icon in the name line" (owner pick, 2026-11-27): a 28 pt icon 10 pt before the
+    /// 24 pt name in a 32 pt line, then a 15 pt description of at most 3 lines 6 pt below, top-aligned with the
+    /// "Short tile" 20 pt to the right.
+    public static let headerNameIcon: CGFloat = 28
+    public static let headerNameGap: CGFloat = 10
+    public static let headerNameLine: CGFloat = 32
+    public static let headerDetailGap: CGFloat = 6
+    public static let headerDetail: CGFloat = 15
+    public static let headerDetailLines = 3
     public static let headerTileGap: CGFloat = 20
-    public static let launchTile = CGSize(width: 176, height: 108)
-    /// "Big header" beside a launch tile (owner pick, 2026-11-27): the icon is the tile's height, a 28 pt title 6 pt
-    /// over a 15 pt description of at most 3 lines, the text centered on the icon.
-    public static let launchHeaderIcon: CGFloat = launchTile.height
-    public static let launchHeaderTitle: CGFloat = 28
-    public static let launchHeaderTitleTracking: CGFloat = -0.7
-    public static let launchHeaderTitleGap: CGFloat = 6
-    public static let launchHeaderDetail: CGFloat = 15
-    public static let launchHeaderDetailLines = 3
+    /// The "Short tile": `Open` and the arrow on top, the shortcut keys below; the caption is its tooltip.
+    public static let launchTile = CGSize(width: 148, height: 72)
     public static let launchTileRadius: CGFloat = 12
-    public static let launchTilePadding: CGFloat = 14
-    /// The shortcut key caps draw 1.2 times their 20 pt size, 6 pt above the action name.
-    public static let launchTileKeyScale: CGFloat = 1.2
-    public static let launchTileKeyGap: CGFloat = 6
-    public static let launchTileName: CGFloat = 20
+    public static let launchTilePadding: CGFloat = 12
+    public static let launchTileName: CGFloat = 15
     /// The reset block (`OnePlusLinearButtonStyle(.resetBlock)`): one full-width inset row, 40 pt, radius 10.
     public static let resetBlock: CGFloat = 40
     public static let resetBlockRadius: CGFloat = OnePlusLinearMetrics.appletGroupRadius
@@ -125,10 +120,9 @@ public struct OnePlusLinearPageTitle: View {
     }
 }
 
-/// The editorial tool page header, "Icon beside the title": the 48 pt icon, then the large title over a description
-/// of at most 2 lines, all top-aligned with the trailing actions (an `OnePlusLinearLaunchTile`, or nothing).
-/// With actions it is the "Big header": the icon and text block fill the launch tile's height.
-/// The sized `icon` init gets the icon size, for icons that frame themselves.
+/// The editorial tool page header, "Small icon in the name line": the 28 pt icon before the name, like an app name,
+/// then a description of at most 3 lines, top-aligned with the trailing actions (an `OnePlusLinearLaunchTile`, or
+/// nothing). The sized `icon` init gets the icon size, for icons that frame themselves.
 public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
     private typealias M = OnePlusLinearEditorialMetrics
     private let title: String
@@ -142,23 +136,18 @@ public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
         let view = icon()
         self.init(title, detail: detail, icon: { _ in view }, actions: actions)
     }
-    private var big: Bool { Actions.self != EmptyView.self }
     public var body: some View {
-        let size = big ? M.launchHeaderIcon : M.headerTileIcon
         HStack(alignment: .top, spacing: M.headerTileGap) {
-            HStack(alignment: big ? .center : .top, spacing: M.headerGap) {
-                icon(size).frame(width: size, height: size).accessibilityHidden(true)
-                if big {
-                    VStack(alignment: .leading, spacing: M.launchHeaderTitleGap) {
-                        Text(title).font(.system(size: M.launchHeaderTitle, weight: .semibold)).tracking(M.launchHeaderTitleTracking)
-                            .foregroundStyle(OnePlusLinearColor.ink).lineLimit(1).minimumScaleFactor(0.75)
-                            .accessibilityAddTraits(.isHeader)
-                        Text(detail).linearText(M.launchHeaderDetail, color: OnePlusLinearColor.secondary)
-                            .lineLimit(M.launchHeaderDetailLines).truncationMode(.tail).fixedSize(horizontal: false, vertical: true)
-                    }
-                } else {
-                    OnePlusLinearPageTitle(title, subtitle: detail, subtitleLines: M.headerDetailLines)
+            VStack(alignment: .leading, spacing: M.headerDetailGap) {
+                HStack(spacing: M.headerNameGap) {
+                    icon(M.headerNameIcon).frame(width: M.headerNameIcon, height: M.headerNameIcon).accessibilityHidden(true)
+                    Text(title).font(.system(size: M.title, weight: .semibold)).tracking(M.titleTracking)
+                        .foregroundStyle(OnePlusLinearColor.ink).lineLimit(1).minimumScaleFactor(0.75)
+                        .accessibilityAddTraits(.isHeader)
                 }
+                .frame(height: M.headerNameLine)
+                Text(detail).linearText(M.headerDetail, color: OnePlusLinearColor.secondary)
+                    .lineLimit(M.headerDetailLines).truncationMode(.tail).fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             actions
@@ -166,9 +155,9 @@ public struct OnePlusLinearToolHeader<Icon: View, Actions: View>: View {
     }
 }
 
-/// The "Key tile" of the tool page header: a large raised key with "Open" and an arrow on
-/// top, then the tool's global shortcut as key caps over its action name. With no shortcut, the tool name sits at
-/// the bottom in 20 pt semibold.
+/// The "Short tile" of the tool page header: a raised key with "Open" and an arrow on top, then the tool's global
+/// shortcut as key caps. With no shortcut, the tool name sits at the bottom in 15 pt semibold. The caption is the
+/// tooltip and the accessibility label.
 public struct OnePlusLinearLaunchTile: View {
     private let shortcut: String?
     private let caption: String
@@ -189,9 +178,6 @@ public struct OnePlusLinearLaunchTile: View {
                 Spacer(minLength: 0)
                 if let shortcut {
                     OnePlusLinearKeyCombo(shortcut)
-                        .scaleEffect(OnePlusLinearEditorialMetrics.launchTileKeyScale, anchor: .bottomLeading)
-                        .padding(.bottom, OnePlusLinearEditorialMetrics.launchTileKeyGap)
-                    Text(caption).linearText(OnePlusLinearMetrics.caption, color: OnePlusLinearColor.secondary).lineLimit(1)
                 } else {
                     Text(name ?? caption).font(.system(size: OnePlusLinearEditorialMetrics.launchTileName, weight: .semibold))
                         .foregroundStyle(OnePlusLinearColor.softKeyInk).lineLimit(1).minimumScaleFactor(0.7)
@@ -199,6 +185,7 @@ public struct OnePlusLinearLaunchTile: View {
             }
         }
         .buttonStyle(OnePlusLinearLaunchTileStyle())
+        .help(caption)
         .accessibilityLabel(caption)
         .accessibilityHint(shortcut.map { "Shortcut \($0)" } ?? "")
     }

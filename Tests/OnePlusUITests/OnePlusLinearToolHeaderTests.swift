@@ -3,7 +3,7 @@ import SwiftUI
 import XCTest
 @testable import OnePlusUI
 
-/// The tool page header: beside a launch tile it is exactly the tile's height; with no actions it keeps the 48 pt look.
+/// The tool page header, "Small icon in the name line": the name line, then a description that is never cut at 3 lines.
 @MainActor
 final class OnePlusLinearToolHeaderTests: XCTestCase {
     private typealias M = OnePlusLinearEditorialMetrics
@@ -23,41 +23,31 @@ final class OnePlusLinearToolHeaderTests: XCTestCase {
         ("Marketplace Window Manager", "WWW MMMM Measure every window and margin with rulers, in pixels or mm."),
     ]
 
-    private func height<V: View>(_ view: V) -> CGFloat {
-        let host = NSHostingView(rootView: view.frame(width: width))
-        return host.fittingSize.height
+    private func height<V: View>(_ view: V, width: CGFloat) -> CGFloat {
+        NSHostingView(rootView: view.frame(width: width)).fittingSize.height
     }
 
-    func testHeaderBesideTileMatchesTileHeight() {
+    private func detailHeight(_ detail: String, width: CGFloat) -> CGFloat {
+        height(Text(detail).linearText(M.headerDetail).lineLimit(M.headerDetailLines).fixedSize(horizontal: false, vertical: true),
+               width: width)
+    }
+
+    func testDescriptionBesideTileIsNeverCut() {
+        let textWidth = width - M.headerTileGap - M.launchTile.width
+        for (name, detail) in tools {
+            let full = height(Text(detail).linearText(M.headerDetail).fixedSize(horizontal: false, vertical: true), width: textWidth)
+            XCTAssertEqual(detailHeight(detail, width: textWidth), full, accuracy: 0.5, "\(name) needs more than 3 lines")
+        }
+    }
+
+    func testHeaderIsNameLineOverDescriptionBesideTile() {
+        let textWidth = width - M.headerTileGap - M.launchTile.width
         for (name, detail) in tools {
             let header = OnePlusLinearToolHeader(name, detail: detail) { size in Color.gray.frame(width: size, height: size) } actions: {
                 OnePlusLinearLaunchTile(shortcut: "⇧⌘3", caption: "Pick Color") {}
             }
-            XCTAssertEqual(height(header), M.launchTile.height, accuracy: 1, name)
-            XCTAssertEqual(M.launchHeaderIcon, M.launchTile.height)
-        }
-    }
-
-    func testDescriptionBesideTileIsNeverCut() {
-        let textWidth = width - M.launchHeaderIcon - M.headerGap - M.headerTileGap - M.launchTile.width
-        for (name, detail) in tools {
-            let text = { (lines: Int?) in
-                Text(detail).linearText(M.launchHeaderDetail).lineLimit(lines).fixedSize(horizontal: false, vertical: true)
-                    .frame(width: textWidth, alignment: .leading)
-            }
-            let host = { (lines: Int?) in NSHostingView(rootView: text(lines)).fittingSize.height }
-            XCTAssertEqual(host(M.launchHeaderDetailLines), host(nil), accuracy: 0.5, "\(name) needs more than 3 lines")
-        }
-    }
-
-    func testHeaderWithoutActionsIsUnchanged() {
-        for (name, detail) in tools {
-            let header = OnePlusLinearToolHeader(name, detail: detail) { Color.gray } actions: { EmptyView() }
-            let reference = HStack(alignment: .top, spacing: M.headerGap) {
-                Color.gray.frame(width: M.headerTileIcon, height: M.headerTileIcon)
-                OnePlusLinearPageTitle(name, subtitle: detail, subtitleLines: M.headerDetailLines)
-            }.frame(maxWidth: .infinity, alignment: .leading)
-            XCTAssertEqual(height(header), height(reference), accuracy: 0.01, name)
+            let text = M.headerNameLine + M.headerDetailGap + detailHeight(detail, width: textWidth)
+            XCTAssertEqual(height(header, width: width), max(text, M.launchTile.height), accuracy: 1, name)
         }
     }
 }

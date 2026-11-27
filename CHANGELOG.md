@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.9.0
+
+- Tool page header "Small icon in the name line" (owner pick, 2026-11-27): `OnePlusLinearToolHeader` draws a 28 pt
+  icon 10 pt before the 24 pt name in a 32 pt line, then a 15 pt description of at most 3 lines, with or without a
+  tile. Replaces the "Big header" and the 48 pt "Icon beside the title".
+- "Short tile": `OnePlusLinearLaunchTile` is 148 x 72 with 12 pt padding, `Open` and the arrow over the shortcut
+  caps (or the tool name in 15 pt). The caption is now the tooltip and accessibility label, not a visible line.
+- New `headerName*`, `headerDetail*` metrics; removed `headerTileIcon`, `launchHeader*`, and `launchTileKey*`.
+
 ## 1.8.1
 
 - "Big header" (owner pick, 2026-11-27): `OnePlusLinearToolHeader` with actions (a launch tile) draws a 108 pt icon,
