@@ -120,6 +120,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
     private let style: Style
     private let width: CGFloat?
     private let placeholder: String
+    private let prefix: String?
     @State private var expanded = false
     @State private var hover = false
     @State private var anchor = OnePlusPopupAnchorReference()
@@ -130,10 +131,17 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
     @Environment(\.isEnabled) private var enabled
 
     /// `placeholder` shows while `selection` matches no choice; the menu then lists only the real choices, none checked.
+    /// `prefix` puts the setting's name inside the field, dim before the value ("Speed: Normal"), in place of a
+    /// separate label beside it.
     public init(choices: [(Value, String)], selection: Binding<Value>, accessibilityLabel: String,
-                style: Style = .field, width: CGFloat? = nil, placeholder: String = "Select") {
+                style: Style = .field, width: CGFloat? = nil, placeholder: String = "Select", prefix: String? = nil) {
         self.choices = choices; _selection = selection; label = accessibilityLabel; self.style = style; self.width = width
-        self.placeholder = placeholder
+        self.placeholder = placeholder; self.prefix = prefix
+    }
+
+    private var fieldText: Text {
+        guard let prefix else { return Text(title) }
+        return Text(prefix + ": ").foregroundStyle(OnePlusLinearColor.muted) + Text(title)
     }
 
     private var title: String { choices.first { $0.0 == selection }?.1 ?? placeholder }
@@ -156,7 +164,7 @@ public struct OnePlusLinearSelect<Value: Hashable>: View {
         switch style {
         case .field:
             OnePlusControlContentLayout(pointSize: OnePlusLinearMetrics.body, spacing: 8, iconIndex: 1) {
-                Text(title).linearText().lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
+                fieldText.linearText().lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(OnePlusLinearColor.appletSecondary)
             }

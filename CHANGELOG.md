@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.5
+
+- `OnePlusLinearSelect(prefix:)` puts the setting's name inside the field, dim before the value ("Speed: Normal"),
+  so a toolbar needs no separate label beside each select.
+
 ## 1.9.4
 
 - `OnePlusKeyWell` is public, so an app's own field (a search field with a clear button) can sit in the same sunken
