@@ -107,8 +107,8 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
             ForEach(choices, id: \.0) { value, title in
                 let on = value == selection
                 Button { if isChoiceEnabled(value) { selection = value } } label: {
-                    Text(title).linearText(look == nil ? OnePlusLinearMetrics.caption + 0.5 : OnePlusLinearMetrics.body,
-                                           weight: on ? .medium : .regular,
+                    Text(title).linearSteadyText(look == nil ? OnePlusLinearMetrics.caption + 0.5 : OnePlusLinearMetrics.body,
+                                           selected: on,
                                            color: on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
                         .offset(y: look == nil ? 0 : Self.opticalOffset(title))
                         .fixedSize(horizontal: sizing != .equal, vertical: false)

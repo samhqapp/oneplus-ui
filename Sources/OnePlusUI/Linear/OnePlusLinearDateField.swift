@@ -56,7 +56,7 @@ public struct OnePlusLinearDateField: View {
         let on = picked == part
         return Button { picked = part; focused = true } label: {
             Text(Self.formatter(part).string(from: selection))
-                .linearText(weight: on ? .medium : .regular).monospacedDigit()
+                .linearSteadyText(selected: on).monospacedDigit()
                 .frame(maxHeight: .infinity)
                 .background {
                     if on {

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.3
+
+- Fix: picking a segment in a `.fitted` or `.snug` `OnePlusLinearSegmented` (and a date field part) moved its
+  neighbors, because the label turned medium and grew. New `linearSteadyText(_:selected:color:)` holds the medium
+  width with an invisible copy. `OnePlusSteadyTextTests` guards it.
+
 ## 1.9.2
 
 - Settings rows follow macOS System Settings (owner pick, 2026-11-28): `OnePlusLinearAppletRow` is 36 pt with one

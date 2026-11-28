@@ -411,6 +411,13 @@ extension View {
             .foregroundStyle(color).monospacedDigit()
     }
 
+    /// `linearText` whose width never changes when it turns medium: an invisible medium copy holds the room, so a
+    /// segment or tab that becomes selected never moves its neighbors (owner rule, 2026-11-28: no shift on state change).
+    public func linearSteadyText(_ size: CGFloat = OnePlusLinearMetrics.body, selected: Bool, color: Color = OnePlusLinearColor.ink) -> some View {
+        linearText(size, weight: .medium, color: .clear).hidden().accessibilityHidden(true)
+            .overlay { linearText(size, weight: selected ? .medium : .regular, color: color) }
+    }
+
     /// A 1 pt ring outside the shape's edge, like CSS `box-shadow: 0 0 0 1px`.
     func linearOuterRing(_ color: Color, radius: CGFloat) -> some View {
         overlay { RoundedRectangle(cornerRadius: radius + 0.5).stroke(color, lineWidth: 1).padding(-0.5).allowsHitTesting(false) }
