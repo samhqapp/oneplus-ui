@@ -27,8 +27,8 @@ final class OnePlusLinearAppletTests: XCTestCase {
             ("section", AnyView(OnePlusLinearAppletSection("Window") {
                 OnePlusLinearAppletRow("A", value: "1"); OnePlusLinearAppletRow("B", value: "2") }), 16 + 6 + 72),
             ("tab row", AnyView(OnePlusLinearAppletTabRow(tabs: [OnePlusTab(0, "History", count: 6)], selection: .constant(0))), 32),
-            ("toolbar", AnyView(OnePlusLinearAppletToolbar { OnePlusLinearSearchField("Search colors", text: .constant(""), style: .applet) }), 12 + 26 + 12),
-            ("select", AnyView(OnePlusLinearSelect(choices: [(0, "HEX")], selection: .constant(0), accessibilityLabel: "Format", width: 92)), 26),
+            ("toolbar", AnyView(OnePlusLinearAppletToolbar { OnePlusLinearSearchField("Search colors", text: .constant(""), style: .applet) }), 12 + 24 + 12),
+            ("select", AnyView(OnePlusLinearSelect(choices: [(0, "HEX")], selection: .constant(0), accessibilityLabel: "Format", width: 92)), 24),
             ("soft button", AnyView(Button("Pick Color") {}.buttonStyle(OnePlusLinearButtonStyle(.soft))), 24),
             ("destructive", AnyView(Button("Reset to Factory Defaults") {}.buttonStyle(OnePlusLinearButtonStyle(.destructive))), 16),
         ]
@@ -36,17 +36,17 @@ final class OnePlusLinearAppletTests: XCTestCase {
 
         let controls: [(String, AnyView, CGSize)] = [
             ("segmented", AnyView(OnePlusLinearSegmented(choices: [(0, "px"), (1, "mm"), (2, "in")], selection: .constant(0),
-                                                         accessibilityLabel: "Unit")), CGSize(width: 112, height: 22)),
+                                                         accessibilityLabel: "Unit")), CGSize(width: 112, height: 24)),
             ("switch", AnyView(Toggle("Shadow", isOn: .constant(true)).toggleStyle(OnePlusLinearSwitchStyle())), CGSize(width: 40, height: 24)),
             ("color well", AnyView(OnePlusLinearColorWell("Ruler color", color: .constant(.yellow))), CGSize(width: 40, height: 22)),
-            ("slider", AnyView(OnePlusLinearSlider("Opacity", value: .constant(0.5))), CGSize(width: 140, height: 22)),
+            ("slider", AnyView(OnePlusLinearSlider("Opacity", value: .constant(0.5))), CGSize(width: 140, height: 24)),
         ]
         for (name, view, expected) in controls {
             let measured = size(view)
             XCTAssertEqual(measured.width, expected.width, accuracy: 0.01, name)
             XCTAssertEqual(measured.height, expected.height, accuracy: 0.01, name)
         }
-        XCTAssertEqual(size(OnePlusStepperField("Width", value: .constant(1920), in: 1...10000, unit: "px")).height, 22, accuracy: 0.01)
+        XCTAssertEqual(size(OnePlusStepperField("Width", value: .constant(1920), in: 1...10000, unit: "px")).height, 24, accuracy: 0.01)
     }
 
     /// Quiet Raised labels: segment labels on the track, stepper values and units on the field.
@@ -69,16 +69,16 @@ final class OnePlusLinearAppletTests: XCTestCase {
     func testPanelSegmentedKeepsItsSizeWithoutTheAppletLook() {
         let panel = NSHostingView(rootView: OnePlusLinearSegmented(choices: [(0, "Auto"), (1, "Cool"), (2, "Max")],
                                                                    selection: .constant(0), accessibilityLabel: "Fan"))
-        XCTAssertEqual(panel.fittingSize, CGSize(width: 128, height: 22))
+        XCTAssertEqual(panel.fittingSize, CGSize(width: 124, height: 24))
     }
 
     /// Group, field, and button edges at the mockup lines, scanned down x = 24 (inside the corners, left of the text).
-    /// The first run is the sample close light (a chord near its right edge); 59 to 69 is the "i" of History.
+    /// The first run is the sample close light (a chord near its right edge); 92 to 116 is the 24 pt search field.
     func testRulerDefaultsAndColorPickerSurfacesLandOnTheMockupLines() throws {
         let cases: [(String, AnyView, CGSize, [ClosedRange<CGFloat>])] = [
             ("ruler", AnyView(LinearRulerDefaultsSample()), CGSize(width: 420, height: 500), [17...27, 70...142, 180...324, 362...434]),
             ("color picker", AnyView(LinearColorPickerSample()), CGSize(width: 420, height: 362),
-             [17...27, 59...69, 78...80, 92...118, 130...346]),
+             [17...27, 78...80, 92...116, 128...344]),
         ]
         for appearance in Self.appearances {
             for scale: CGFloat in [1, 2] {

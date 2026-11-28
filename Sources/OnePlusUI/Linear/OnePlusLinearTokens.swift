@@ -249,9 +249,6 @@ public enum OnePlusLinearMetrics {
     public static let sectionCaption: CGFloat = 11.5
     public static let tileValue: CGFloat = 22
     public static let tileValueLine: CGFloat = 26
-    /// Dark only: a key well's 1 pt lit bottom lip reads as outside the hole, so its text and glyphs center 0.5 pt
-    /// higher. Light's flat well has no lip, so its text sits on the true center.
-    public static let keyWellContentLift: CGFloat = 0.5
     /// A native macOS push button: 22 pt tall, 11 pt side padding, radius 5, 0.5 pt line, 8 pt between keys.
     public static let pushButton: CGFloat = 22
     public static let pushButtonPadding: CGFloat = 11
@@ -394,7 +391,9 @@ public enum OnePlusLinearMetrics {
     }()
     public static let appletTabStrip: CGFloat = 32
     public static let appletToolbarGap: CGFloat = 12
-    public static let appletField: CGFloat = 26
+    /// The compact control height: applet and panel fields, selects, search, steppers, and segments match the
+    /// 24 pt button beside them.
+    public static let appletField: CGFloat = 24
     public static let appletButton: CGFloat = 24
     /// The plain red text action: one 13 pt line.
     public static let appletDestructive: CGFloat = 16

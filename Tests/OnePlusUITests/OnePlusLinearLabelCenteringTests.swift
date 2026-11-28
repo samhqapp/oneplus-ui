@@ -25,10 +25,8 @@ final class OnePlusLinearLabelCenteringTests: XCTestCase {
                 let offset = try labelOffset(view.environment(\.onePlusLinearControlLook, .raisedKeys),
                                              appearance: appearance, trimTrailingGlyph: axis == .vertical)
                 let context = "\(name) \(appearance == .aqua ? "Light" : "Dark")"
-                // Only Dark's sunken well lifts its text off the shaded groove; Light's flat well has none.
-                let lift = axis == .vertical && appearance == .darkAqua ? OnePlusLinearMetrics.keyWellContentLift : 0
                 if axis == .both { XCTAssertEqual(offset.x, 0, accuracy: 0.5, "\(context) label is off-center horizontally") }
-                XCTAssertEqual(offset.y, -lift, accuracy: 0.5, "\(context) label is off-center vertically")
+                XCTAssertEqual(offset.y, 0, accuracy: 0.5, "\(context) label is off-center vertically")
             }
         }
     }

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.9.7
+
+- Fields, selects, search fields, and steppers are the height of the button beside them in every size step: 28 pt
+  on a page (Raised keys), 24 pt in an applet and in the menu panel. `OnePlusLinearMetrics.appletField` is 24.
+- Under Raised keys, Dark fields draw the same flat well as Light (`flatWell` with the `flatLine` hairline), not a
+  near-black sunken hole, so a field and the soft key beside it read as one family. Text sits on the true center.
+- Applet text fields use the select's face (`quietField` with its hairline) instead of the bare track.
+- Removed `OnePlusLinearControlLook.quietRaisedActionRow` and `OnePlusLinearMetrics.keyWellContentLift`: every
+  applet row is now the same 24 pt, and no well lifts its text.
+- New test: a field, select, search, or stepper fails if it is not the button's height in its size step.
+
 ## 1.9.6
 
 - The "Pro" tag is drawn from glyph outlines with even space around the letters, a whole-point pill and a 1 pt inset

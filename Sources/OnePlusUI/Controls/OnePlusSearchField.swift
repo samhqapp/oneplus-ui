@@ -84,8 +84,8 @@ public struct OnePlusLinearSearchField: View {
         OnePlusNativeSearch(prompt: prompt, text: $text, focusTrigger: focusTrigger &+ shortcutFocusTrigger, identifier: identifier,
                             hint: applet ? nil : "⌘K", fontSize: applet ? OnePlusLinearMetrics.body : OnePlusLinearMetrics.control,
                             enabled: enabled, linear: true, appletLook: applet ? appletLook : nil)
-            .frame(height: keys ? look?.height : applet ? OnePlusLinearMetrics.appletField : OnePlusLinearMetrics.searchHeight)
-            .background { if keys, let look { OnePlusKeyWell(shape: RoundedRectangle(cornerRadius: look.radius)) } }
+            .frame(height: applet ? (look ?? .quietRaised).height : OnePlusLinearMetrics.searchHeight)
+            .background { if keys, let look { OnePlusFieldWell(shape: RoundedRectangle(cornerRadius: look.radius)) } }
             .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
             .background { Button("Focus search") { shortcutFocusTrigger &+= 1 }.keyboardShortcut(applet ? "f" : "k").hidden() }
     }

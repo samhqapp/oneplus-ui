@@ -8,10 +8,7 @@ import XCTest
 @MainActor
 final class OnePlusLinearFieldInsetTests: XCTestCase {
     private let size = CGSize(width: 160, height: OnePlusLinearControlLook.raisedKeys.height)
-    /// Dark lifts the well content 0.5 pt off its lit lip; Light's flat well centers it.
-    private func opticalCenter(_ appearance: NSAppearance.Name) -> CGFloat {
-        size.height / 2 - (appearance == .darkAqua ? OnePlusLinearMetrics.keyWellContentLift : 0)
-    }
+    private func opticalCenter(_ appearance: NSAppearance.Name) -> CGFloat { size.height / 2 }
 
     func testRaisedKeysFieldAndSelectCenterTextWithEqualInsets() throws {
         for appearance in [NSAppearance.Name.aqua, .darkAqua] {

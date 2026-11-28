@@ -37,17 +37,10 @@ public struct OnePlusLinearControlLook: Sendable, Equatable {
 
     public static let quietRaised = OnePlusLinearControlLook(
         field: OnePlusLinearColor.quietField, fieldLine: OnePlusLinearColor.quietFieldLine,
-        height: 22, radius: 6, segmentWidth: 36, segmentInset: 2, segmentRadius: 4,
+        height: OnePlusLinearMetrics.appletField, radius: 6, segmentWidth: 36, segmentInset: 2, segmentRadius: 4,
         knob: 14, sliderTrack: 4, sliderWidth: 140, sliderValueWidth: 36,
         switchSize: CGSize(width: 32, height: 18), switchKnob: 14, switchFrame: CGSize(width: 40, height: 24),
         stepperButton: 22, stepperValueWidth: 59, well: CGSize(width: 40, height: 22), wellInset: 3)
-
-    /// An applet row where a field sits beside a soft or ghost button: the field matches the 24 pt button.
-    public static let quietRaisedActionRow: OnePlusLinearControlLook = {
-        var look = quietRaised
-        look.height = OnePlusLinearMetrics.appletButton
-        return look
-    }()
 
     /// The main window and tool pages: every control in a row is 28 pt.
     public static let raisedKeys: OnePlusLinearControlLook = {
@@ -66,10 +59,11 @@ public extension EnvironmentValues {
 }
 
 extension View {
-    /// The bezel shared by applet search and select fields: fill, 1 pt line, control radius.
+    /// The bezel shared by text fields, selects, and applet search: fill, 1 pt line, control radius. Under
+    /// `.raisedKeys` it is the flat field well, one weight with the raised key beside it.
     func linearFieldBezel(_ look: OnePlusLinearControlLook, radius: CGFloat? = nil, focused: Bool = false) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius ?? look.radius)
-        return background { if look.keys { OnePlusKeyWell(shape: shape) } else { shape.fill(look.field) } }
+        return background { if look.keys { OnePlusFieldWell(shape: shape) } else { shape.fill(look.field) } }
             .overlay { shape.strokeBorder(look.keys ? .clear : look.fieldLine, lineWidth: 1) }
             .overlay { OnePlusQuietFocusFill(shape: shape, focused: focused) }
     }
@@ -230,13 +224,14 @@ extension OnePlusQuietWell {
     }
 }
 
-/// The flat `fillTrack` well of a field and the stepper; the flat `flatWell` face in Light under `.raisedKeys`.
+/// The flat `fillTrack` well of the stepper and color well. Under `.raisedKeys` every input (field, select,
+/// search, stepper) is the flat `flatWell` face with one `flatLine` in both appearances, so it never reads as a
+/// dark hole beside a raised key.
 struct OnePlusFieldWell<S: InsettableShape>: View {
     let shape: S
     @Environment(\.onePlusLinearControlLook) private var look
-    @Environment(\.colorScheme) private var colorScheme
     var body: some View {
-        if look?.keys == true, colorScheme == .light {
+        if look?.keys == true {
             OnePlusFlatFace(shape: shape, fill: OnePlusLinearColor.flatWell)
         } else {
             shape.fill(OnePlusLinearColor.fillTrack)
