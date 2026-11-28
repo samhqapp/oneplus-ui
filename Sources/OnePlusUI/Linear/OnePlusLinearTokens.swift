@@ -385,6 +385,13 @@ public enum OnePlusLinearMetrics {
     public static let appletRow: CGFloat = 36
     public static let appletRowPadding: CGFloat = 12
     public static let appletRowGap: CGFloat = 10
+    /// A two-line row (System Settings): 10 pt above and below, about 52 pt in all.
+    public static let appletRowTwoLinePad: CGFloat = 10
+    /// The 13 pt title's line height; a two-line row puts its glyph and control on this line.
+    public static let appletRowTitleLine: CGFloat = {
+        let font = NSFont.systemFont(ofSize: body)
+        return ceil(font.ascender - font.descender + font.leading)
+    }()
     public static let appletTabStrip: CGFloat = 32
     public static let appletToolbarGap: CGFloat = 12
     public static let appletField: CGFloat = 26

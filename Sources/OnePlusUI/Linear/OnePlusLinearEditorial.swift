@@ -13,7 +13,7 @@ public enum OnePlusLinearEditorialMetrics {
     public static let bottom: CGFloat = 24
     public static let blockGap: CGFloat = 20
     public static let captionPadding: CGFloat = 8
-    public static let row: CGFloat = 40
+    public static let row: CGFloat = 36
     public static let toolRow: CGFloat = 48
     public static let toolRowInset: CGFloat = 4
     /// The tool row hover fill: radius 8, 4 pt past the row sides (8 pt past the content), 2 pt inside the
@@ -263,7 +263,7 @@ extension ContainerValues {
 }
 
 /// "Inset, gray glyphs": a tool page settings group. `fillGroup` fill, 1 pt `line` ring, 10 pt radius,
-/// 40 pt rows, and `lineSoft` separators that start at the row text and run to the right edge.
+/// 36 pt rows (52 pt with a second line), and `lineSoft` separators that start at the row text and run to the right edge.
 struct OnePlusLinearInsetGroup<Content: View>: View {
     let content: Content
     var body: some View {

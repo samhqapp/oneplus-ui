@@ -148,8 +148,9 @@ public struct OnePlusLinearAppletGroup<Content: View>: View {
     }
 }
 
-/// A 36 pt group row: the label and an optional second line lead; the control or value trails.
-/// On a tool page (editorial) a `systemImage` draws a plain 13 pt `secondary` glyph before the label.
+/// A group row laid out like System Settings: 36 pt with one line; with a second line (11 pt), 10 pt above and
+/// below and the glyph and control on the title line. On a tool page (editorial) a `systemImage` draws a plain
+/// 13 pt `secondary` glyph before the label.
 public struct OnePlusLinearAppletRow<Trailing: View>: View {
     private let label: String
     private let detail: String?
@@ -160,29 +161,28 @@ public struct OnePlusLinearAppletRow<Trailing: View>: View {
     }
     @Environment(\.onePlusLinearEditorial) private var editorial
     public var body: some View {
-        let glyph = editorial ? systemImage : nil
-        HStack(spacing: 0) {
-            if let glyph { OnePlusLinearRowGlyph(glyph).padding(.leading, OnePlusLinearMetrics.appletRowPadding) }
-            row
-        }
-        .containerValue(\.onePlusLinearRowGlyph, glyph != nil)
-    }
-    private var row: some View {
-        HStack(spacing: OnePlusLinearMetrics.appletRowGap) {
+        let glyph = editorial ? systemImage : nil, twoLines = detail != nil
+        let titleLine = OnePlusLinearMetrics.appletRowTitleLine
+        HStack(alignment: twoLines ? .top : .center, spacing: OnePlusLinearMetrics.appletRowPadding) {
+            if let glyph {
+                OnePlusLinearRowGlyph(glyph).frame(height: twoLines ? titleLine : nil)
+            }
             VStack(alignment: .leading, spacing: 2) {
                 Text(label).linearText().lineLimit(1)
                 if let detail {
-                    Text(detail).linearText(OnePlusLinearMetrics.control,
+                    Text(detail).linearText(OnePlusLinearMetrics.caption,
                                             color: editorial ? OnePlusLinearColor.secondary : OnePlusLinearColor.appletSecondary).lineLimit(2)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            trailing
+            trailing.frame(height: twoLines ? titleLine : nil)
+                .padding(.leading, OnePlusLinearMetrics.appletRowGap - OnePlusLinearMetrics.appletRowPadding)
         }
         .padding(.horizontal, OnePlusLinearMetrics.appletRowPadding)
-        .padding(.vertical, detail == nil ? 0 : 8)
-        .frame(minHeight: editorial ? OnePlusLinearEditorialMetrics.row : OnePlusLinearMetrics.appletRow)
+        .padding(.vertical, twoLines ? OnePlusLinearMetrics.appletRowTwoLinePad : 0)
+        .frame(minHeight: OnePlusLinearMetrics.appletRow)
         .accessibilityElement(children: .contain)
+        .containerValue(\.onePlusLinearRowGlyph, glyph != nil)
     }
 }
 

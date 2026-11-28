@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.9.2
+
+- Settings rows follow macOS System Settings (owner pick, 2026-11-28): `OnePlusLinearAppletRow` is 36 pt with one
+  line (tool pages were 40). With a second line it has 10 pt above and below (about 52 pt), the detail at 11 pt, and
+  the glyph and control sit on the title line, not centered. New `appletRowTwoLinePad` and `appletRowTitleLine`;
+  `OnePlusLinearEditorialMetrics.row` is 36.
+- Calm feature card (Marketplace Pro): `OnePlusLinearCalmCard`, `OnePlusLinearCalmCardItem`, `OnePlusLinearAddTile`,
+  `onePlusShadedTile(_:)`, `onePlusProTag(_:)`, `OnePlusLinearCalmCardMetrics`, and the `proCoral`,
+  `proCoralGradient`, and `calmCard*` colors.
+
 ## 1.9.1
 
 - Fix: a pointer click on `OnePlusLinearEditorialToolRow` and `OnePlusLinearToolRow` did nothing. The open button's
