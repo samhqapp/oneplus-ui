@@ -114,10 +114,11 @@ struct OnePlusFlatFace<S: InsettableShape>: View {
 
 /// The sunken key well of a main-window field, select, or segment track. Dark: the panel soft-key tab track's
 /// dark-to-light fill, shaded top, and gradient edge. Light: the flat `flatWell` face.
-struct OnePlusKeyWell<S: InsettableShape>: View {
+public struct OnePlusKeyWell<S: InsettableShape>: View {
     let shape: S
     @Environment(\.colorScheme) private var colorScheme
-    var body: some View {
+    public init(shape: S) { self.shape = shape }
+    public var body: some View {
         if colorScheme == .light {
             OnePlusFlatFace(shape: shape, fill: OnePlusLinearColor.flatWell)
         } else {

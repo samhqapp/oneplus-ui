@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.4
+
+- `OnePlusKeyWell` is public, so an app's own field (a search field with a clear button) can sit in the same sunken
+  key well as the raised-keys fields and selects.
+
 ## 1.9.3
 
 - Fix: picking a segment in a `.fitted` or `.snug` `OnePlusLinearSegmented` (and a date field part) moved its
