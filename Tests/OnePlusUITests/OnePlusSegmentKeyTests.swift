@@ -1,4 +1,6 @@
 import XCTest
+import SwiftUI
+import AppKit
 @testable import OnePlusUI
 
 /// The segmented key look (owner pick 2026-11-28): a round seam in the middle of a track was the bug.
@@ -39,5 +41,19 @@ final class OnePlusSegmentKeyTests: XCTestCase {
         }
         let only = OnePlusSegmentKey.hoverCorners(index: 0, count: 1, outer: outer)
         XCTAssertEqual(only.topLeading, outer); XCTAssertEqual(only.topTrailing, outer)
+    }
+
+    /// "Custom" in a 36 pt equal segment showed "Cust…": equal segments grow to the widest label plus 7 pt a side.
+    @MainActor func testEqualSegmentsFitTheWidestLabel() {
+        XCTAssertEqual(OnePlusEqualSegmentsLayout.segmentWidth(ideals: [20, 24], minWidth: 36), 36, "short labels keep the look's width")
+        XCTAssertEqual(OnePlusEqualSegmentsLayout.segmentWidth(ideals: [20, 57.3], minWidth: 36), 58, "widest label wins")
+        let label = NSHostingView(rootView: Text("Custom").linearText(OnePlusLinearMetrics.control, color: .primary)).fittingSize.width
+        let control = NSHostingView(rootView: OnePlusLinearSegmented(
+            choices: [(0, "Light"), (1, "Dark"), (2, "Auto"), (3, "Custom")], selection: .constant(0), accessibilityLabel: "Mode")
+            .environment(\.onePlusLinearControlLook, .quietRaised)).fittingSize.width
+        XCTAssertGreaterThanOrEqual(control, 4 * (label + 2 * OnePlusLinearSegmented<Int>.equalPadding) + 2 * OnePlusLinearWell.inset - 1)
+        let short = NSHostingView(rootView: OnePlusLinearSegmented(
+            choices: [(0, "Off"), (1, "On")], selection: .constant(0), accessibilityLabel: "Short")).fittingSize.width
+        XCTAssertEqual(short, 2 * OnePlusLinearMetrics.segment.width + 2 * OnePlusLinearWell.inset, "panel controls keep 40 pt segments")
     }
 }

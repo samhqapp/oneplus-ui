@@ -106,7 +106,10 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
         // NSSegmentedControl: 11 pt in a panel, 12 pt on a page (24 and 28 pt).
         let well = OnePlusLinearWell(look)
         let values = choices.map(\.0)
-        HStack(spacing: 0) {
+        let segments = sizing == .equal && width == nil
+            ? AnyLayout(OnePlusEqualSegmentsLayout(minWidth: look?.segmentWidth ?? OnePlusLinearMetrics.segment.width))
+            : AnyLayout(HStackLayout(spacing: 0))
+        segments {
             ForEach(choices, id: \.0) { value, title in
                 let index = values.firstIndex(of: value) ?? 0
                 let on = value == selection
@@ -114,11 +117,10 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                     Text(title).linearText(look == nil ? OnePlusLinearMetrics.caption : OnePlusLinearMetrics.control,
                                            color: on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
                         .modifier(OnePlusPixelOffset(y: look == nil ? 0 : Self.opticalOffset(title)))
-                        .fixedSize(horizontal: sizing != .equal, vertical: false)
-                        .padding(.horizontal, sizing == .fitted ? 10 : sizing == .snug ? Self.snugPadding : 0)
-                        .frame(width: sizing == .equal && width == nil ? look?.segmentWidth ?? OnePlusLinearMetrics.segment.width : nil,
-                               height: well.innerHeight)
-                        .frame(maxWidth: width == nil ? nil : .infinity)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .padding(.horizontal, sizing == .fitted ? 10 : sizing == .snug ? Self.snugPadding : Self.equalPadding)
+                        .frame(height: well.innerHeight)
+                        .frame(maxWidth: width == nil && sizing != .equal ? nil : .infinity)
                         .contentShape(Rectangle())
                 }
                 .segmentFrame(index)
@@ -160,6 +162,8 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
 
     /// `.snug` side padding: about what an 11 pt "Auto" gets in a 40 pt segment, so every label has the same room.
     static var snugPadding: CGFloat { 8 }
+    /// Least side room of an `.equal` label: 7 keeps "Auto" in a 40 pt panel segment and "mm" in a 36 pt one.
+    static var equalPadding: CGFloat { 7 }
 
     /// Lifts a 12 pt label onto the control's optical center: 1 pt for x-height-only labels, 0.5 pt for labels with
     /// capitals or digits. The view applies it in whole device pixels, so glyphs never land on a half pixel and blur.
@@ -266,5 +270,32 @@ private struct OnePlusStepperArrowStyle: ButtonStyle {
             }
             .contentShape(Rectangle())
             .onePlusHover($hover)
+    }
+}
+
+/// `.equal` segments: every segment gets the look's width, or the widest label with its side room (7 pt) when that is wider,
+/// so a label like "Custom" never truncates to "Cust…".
+struct OnePlusEqualSegmentsLayout: Layout {
+    var minWidth: CGFloat
+
+    static func segmentWidth(ideals: [CGFloat], minWidth: CGFloat) -> CGFloat {
+        max(minWidth, (ideals.max() ?? 0).rounded(.up))
+    }
+
+    private func segmentWidth(_ subviews: Subviews) -> CGFloat {
+        Self.segmentWidth(ideals: subviews.map { $0.sizeThatFits(.unspecified).width }, minWidth: minWidth)
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        CGSize(width: segmentWidth(subviews) * CGFloat(subviews.count),
+               height: subviews.map { $0.sizeThatFits(.unspecified).height }.max() ?? 0)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let width = segmentWidth(subviews)
+        for (index, subview) in subviews.indices.enumerated() {
+            subviews[subview].place(at: CGPoint(x: bounds.minX + CGFloat(index) * width, y: bounds.midY), anchor: .leading,
+                                    proposal: ProposedViewSize(width: width, height: bounds.height))
+        }
     }
 }

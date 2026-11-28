@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.11
+
+- Equal segments never truncate a label: every segment takes the look's width, or the widest label plus 7 pt a
+  side when that is wider (`OnePlusLinearSegmented`, `.equal` sizing). "Custom" in a 36 pt segment showed "Cust…".
+  Short labels such as "Off", "On", "mm" keep their 36 and 40 pt segments.
+
 ## 1.9.10
 
 - Segmented text is smaller and crisp, like native: 12 pt on a page (was 13), 11 pt in the menu panel (was 11.5),
