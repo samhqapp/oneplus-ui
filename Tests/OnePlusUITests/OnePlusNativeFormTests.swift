@@ -49,14 +49,12 @@ import XCTest
                 .environment(\.onePlusControlHeight, height))
             host.frame = .init(x: 0, y: 0, width: 100, height: height)
             host.layoutSubtreeIfNeeded()
-            let first = try XCTUnwrap(stepper(in: native)), second = try XCTUnwrap(stepper(in: host))
-            print("Stepper host \(height): native \(first.controlSize) \(first.frame), SwiftUI \(second.controlSize) \(second.frame), intrinsic \(second.intrinsicContentSize)")
-            XCTAssertEqual(first.controlSize, second.controlSize)
-            XCTAssertEqual(first.frame.size, second.frame.size)
-            for control in [first, second] {
-                XCTAssertGreaterThanOrEqual(control.frame.minY, 0)
-                XCTAssertLessThanOrEqual(control.frame.maxY, height)
-            }
+            let first = try XCTUnwrap(stepper(in: native))
+            XCTAssertGreaterThanOrEqual(first.frame.minY, 0)
+            XCTAssertLessThanOrEqual(first.frame.maxY, height)
+            // SwiftUI draws the chevron `OnePlusLinearStepper` (1.3.36), not an NSStepper; it must still fit the host.
+            XCTAssertNil(stepper(in: host))
+            XCTAssertLessThanOrEqual(host.fittingSize.height, height)
         }
     }
 

@@ -35,12 +35,13 @@ final class OnePlusFocusPolicyTests: XCTestCase {
         XCTAssertFalse(window.makeFirstResponder(field), "Hidden hosts must not focus their first input.")
         let policy = OnePlusFocusPolicy.shared
         defer { policy.refresh() }
+        // No AppKit focus ring in any mode (owner, 2026-11-20); keyboard focus shows only a style's own fill.
         policy.update(fullKeyboardAccess: true, voiceOver: false)
-        XCTAssertEqual(field.focusRingType, .default)
+        XCTAssertEqual(field.focusRingType, .none)
         policy.update(fullKeyboardAccess: false, voiceOver: false)
         XCTAssertEqual(field.focusRingType, .none)
         policy.update(fullKeyboardAccess: false, voiceOver: true)
-        XCTAssertEqual(field.focusRingType, .default)
+        XCTAssertEqual(field.focusRingType, .none)
     }
 
     func testFocusSampleHasRestingPaintWhenAccessibilityModesAreOff() throws {
@@ -84,7 +85,7 @@ final class OnePlusFocusPolicyTests: XCTestCase {
             XCTAssertTrue(window.makeFirstResponder(table))
             OnePlusFocusPolicy.dismissPointerFocus(in: window, at: .init(x: 20, y: 20))
             XCTAssertTrue(window.firstResponder === table)
-            XCTAssertEqual(table.focusRingType, keyboard || voice ? .default : .none)
+            XCTAssertEqual(table.focusRingType, .none)
             OnePlusFocusPolicy.dismissPointerFocus(in: window, at: .init(x: 280, y: 120))
             XCTAssertTrue(window.firstResponder === window)
             window.presented = false

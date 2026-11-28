@@ -26,7 +26,7 @@ final class OnePlusLinearTests: XCTestCase {
             ("process row", AnyView(OnePlusLinearProcessRow("Xcode", icon: nil, cpu: "4.8", memory: "3.9 GB")), 30),
             ("action bar", AnyView(OnePlusLinearActionBar([OnePlusLinearAction("Ruler", systemImage: "ruler") {}])), 28),
             ("footer", AnyView(OnePlusLinearPanelFooter { Text("tabs") } trailing: { Text("Open App") }), 44),
-            ("segmented", AnyView(OnePlusLinearSegmented(choices: [(0, "Auto")], selection: .constant(0), accessibilityLabel: "Fan")), 22),
+            ("segmented", AnyView(OnePlusLinearSegmented(choices: [(0, "Auto")], selection: .constant(0), accessibilityLabel: "Fan")), 24),
             ("icon tabs", AnyView(OnePlusLinearIconTabs(tabs: [OnePlusMenuTab(0, "Home", systemImage: "house")], selection: .constant(0))), 30),
             ("switch", AnyView(Toggle("Kwake", isOn: .constant(true)).toggleStyle(OnePlusLinearSwitchStyle())), 16),
             ("search", AnyView(OnePlusLinearSearchField(text: .constant(""))), 28),
@@ -37,7 +37,8 @@ final class OnePlusLinearTests: XCTestCase {
         }
         let segmented = NSHostingView(rootView: OnePlusLinearSegmented(choices: [(0, "Auto"), (1, "Cool"), (2, "Max")],
                                                                        selection: .constant(0), accessibilityLabel: "Fan"))
-        XCTAssertEqual(segmented.fittingSize.width, 3 * 40 + 2 * 2 + 4, accuracy: 0.01)
+        // Segments touch on the well (no gaps), inside its 2 pt inset.
+        XCTAssertEqual(segmented.fittingSize.width, 3 * 40 + 2 * 2, accuracy: 0.01)
         let tabs = NSHostingView(rootView: OnePlusLinearIconTabs(tabs: LinearPanelSampleTabs.tabs, selection: .constant("home")))
         XCTAssertEqual(tabs.fittingSize.width, 5 * 26 + 4 * 2 + 4, accuracy: 0.01)
     }
@@ -69,7 +70,8 @@ final class OnePlusLinearTests: XCTestCase {
     func testPanelMatchesMockupSizeAndInsets() {
         let host = NSHostingView(rootView: LinearPanelSample())
         XCTAssertEqual(host.fittingSize.width, 356, accuracy: 0.01)
-        XCTAssertEqual(host.fittingSize.height, 602, accuracy: 0.5)
+        // Toolbar direction (2026-11-19): the tab bar sits on top and the 24 pt "System" header is gone.
+        XCTAssertEqual(host.fittingSize.height, 584, accuracy: 0.5)
     }
 
     func testSelectedTabUnderlineSitsOnTheToolbarLine() throws {
