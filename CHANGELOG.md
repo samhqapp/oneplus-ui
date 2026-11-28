@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.9.9
+
+- `OnePlusContextMenu`: a right-click menu with optional pickers on top ("Pickers on top", owner pick 2026-11-28).
+  It opens at the click in a non-activating panel, so it never steals focus; arrow keys, Return, and Esc work; it
+  closes on a click outside or a pick and stays 4 pt inside the screen. 236 pt min width, 12 pt corners, 24 pt rows,
+  a 130 ms scale-in from the click point and a 90 ms fade out. Header parts: `OnePlusContextMenuTile`,
+  `OnePlusContextMenuSwatch`, `OnePlusContextMenuSeparator`.
+- `OnePlusFloatingToolbar`: a small 30 pt capsule of 26 x 24 buttons, such as a text format pill over a selection.
+  It rises 4 pt and scales from 0.96 over 140 ms.
+
 ## 1.9.8
 
 - Segmented controls take the "macOS native key" look (owner pick 2026-11-28): segments touch on the track, one
