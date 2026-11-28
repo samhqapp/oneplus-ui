@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.6
+
+- The "Pro" tag is drawn from glyph outlines with even space around the letters, a whole-point pill and a 1 pt inset
+  border, so its edge no longer shimmers and the text no longer touches the left side (`OnePlusProTag`).
+- Inset groups clip their content to the rounded shape, so a full-width band no longer pokes out of the corners.
+
 ## 1.9.5
 
 - `OnePlusLinearSelect(prefix:)` puts the setting's name inside the field, dim before the value ("Speed: Normal"),

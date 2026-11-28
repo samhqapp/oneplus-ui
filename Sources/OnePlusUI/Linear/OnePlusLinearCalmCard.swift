@@ -1,3 +1,5 @@
+import AppKit
+import CoreText
 import SwiftUI
 
 public enum OnePlusLinearCalmCardMetrics {
@@ -61,14 +63,51 @@ public extension View {
 
     /// A small coral "Pro" capsule on the bottom-right corner of an icon of `size` points.
     func onePlusProTag(_ size: CGFloat) -> some View {
-        overlay(alignment: .bottomTrailing) {
-            Text("Pro").font(.system(size: max(7, size * 0.2), weight: .bold, design: .rounded)).foregroundStyle(.white)
-                .padding(.horizontal, size * 0.07).padding(.vertical, size * 0.025)
-                .background(Capsule().fill(OnePlusLinearColor.proCoralGradient))
-                .overlay(Capsule().strokeBorder(.white.opacity(0.9), lineWidth: max(0.75, size / 40)))
-                .offset(x: size * 0.06, y: size * 0.04)
-                .accessibilityHidden(true)
+        let tag = OnePlusProTag(icon: size)
+        return overlay(alignment: .bottomTrailing) {
+            ZStack(alignment: .topLeading) {
+                Capsule().fill(OnePlusLinearColor.proCoralGradient)
+                Capsule().strokeBorder(.white.opacity(0.9), lineWidth: 1)
+                Path(tag.letters).fill(.white)
+            }
+            .frame(width: tag.pill.width, height: tag.pill.height)
+            .offset(x: tag.offset, y: tag.offset)
+            .accessibilityHidden(true)
         }
+    }
+}
+
+/// The "Pro" tag drawn from glyph outlines, so its padding is measured on the ink, not the text box: the same space
+/// left and right, the same above and below. The pill and its offset are whole points, so its edge never falls
+/// between pixels.
+public struct OnePlusProTag {
+    public let pill: CGSize
+    /// The letters in pill coordinates (y down).
+    public let letters: CGPath
+    public let offset: CGFloat
+
+    public init(icon: CGFloat) {
+        let font = NSFont.systemFont(ofSize: max(8, (icon * 0.17).rounded()), weight: .bold)
+        let rounded = font.fontDescriptor.withDesign(.rounded).flatMap { NSFont(descriptor: $0, size: font.pointSize) } ?? font
+        let line = CTLineCreateWithAttributedString(NSAttributedString(string: "Pro", attributes: [.font: rounded]))
+        let glyphs = CGMutablePath()
+        for run in CTLineGetGlyphRuns(line) as! [CTRun] {
+            let count = CTRunGetGlyphCount(run)
+            var ids = [CGGlyph](repeating: 0, count: count), points = [CGPoint](repeating: .zero, count: count)
+            CTRunGetGlyphs(run, CFRange(), &ids)
+            CTRunGetPositions(run, CFRange(), &points)
+            let runFont = (CTRunGetAttributes(run) as NSDictionary)[kCTFontAttributeName] as! CTFont
+            for (id, point) in zip(ids, points) {
+                guard let outline = CTFontCreatePathForGlyph(runFont, id, nil) else { continue }
+                glyphs.addPath(outline, transform: CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: point.x, ty: -point.y))
+            }
+        }
+        let ink = glyphs.boundingBoxOfPath
+        let side = (icon * 0.08).rounded(), top = max(2, (icon * 0.04).rounded())
+        pill = CGSize(width: (ink.width + side * 2).rounded(.up), height: (ink.height + top * 2).rounded(.up))
+        var place = CGAffineTransform(translationX: (pill.width - ink.width) / 2 - ink.minX, y: (pill.height - ink.height) / 2 - ink.minY)
+        letters = glyphs.copy(using: &place) ?? glyphs
+        offset = (icon * 0.06).rounded()
     }
 }
 

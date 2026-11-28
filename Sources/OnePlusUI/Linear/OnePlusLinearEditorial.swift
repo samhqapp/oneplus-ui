@@ -285,6 +285,7 @@ struct OnePlusLinearInsetGroup<Content: View>: View {
         }
         .frame(maxWidth: .infinity)
         .background(shape.fill(OnePlusLinearColor.fillGroup))
+        .clipShape(shape)
         .overlay(shape.strokeBorder(OnePlusLinearColor.line, lineWidth: 1))
     }
 }
