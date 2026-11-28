@@ -26,4 +26,18 @@ final class OnePlusSegmentKeyTests: XCTestCase {
         XCTAssertTrue(OnePlusSegmentKey.showsDivider(before: 2, selected: 0, hovered: nil))
         XCTAssertFalse(OnePlusSegmentKey.showsDivider(before: 2, selected: 0, hovered: 2))
     }
+
+    func testMiddleSegmentHoverIsLessRoundThanTheEdges() {
+        let outer = OnePlusLinearWell(.raisedKeys).innerRadius
+        let first = OnePlusSegmentKey.hoverCorners(index: 0, count: 3, outer: outer)
+        let middle = OnePlusSegmentKey.hoverCorners(index: 1, count: 3, outer: outer)
+        let last = OnePlusSegmentKey.hoverCorners(index: 2, count: 3, outer: outer)
+        XCTAssertEqual(first.topLeading, outer, "the first segment's outer side follows the key radius")
+        XCTAssertEqual(last.bottomTrailing, outer, "the last segment's outer side follows the key radius")
+        for corner in [first.topTrailing, middle.topLeading, middle.bottomTrailing, last.bottomLeading] {
+            XCTAssertLessThan(corner, outer, "a side that faces another segment stays small: use OnePlusSegmentKey.hoverCorners")
+        }
+        let only = OnePlusSegmentKey.hoverCorners(index: 0, count: 1, outer: outer)
+        XCTAssertEqual(only.topLeading, outer); XCTAssertEqual(only.topTrailing, outer)
+    }
 }

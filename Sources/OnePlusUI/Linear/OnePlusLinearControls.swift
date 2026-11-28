@@ -39,13 +39,15 @@ public struct OnePlusLinearButtonStyle: ButtonStyle {
     let kind: Kind
     let radius: CGFloat
     let selected: Bool
-    public init(_ kind: Kind = .plain, radius: CGFloat? = nil, selected: Bool = false) {
-        self.kind = kind; self.selected = selected
+    let corners: RectangleCornerRadii?
+    /// `corners` replaces `radius` for the hover and press fill, for a part of a group (`OnePlusSegmentKey.hoverCorners`).
+    public init(_ kind: Kind = .plain, radius: CGFloat? = nil, selected: Bool = false, corners: RectangleCornerRadii? = nil) {
+        self.kind = kind; self.selected = selected; self.corners = corners
         self.radius = radius ?? (kind == .resetBlock ? OnePlusLinearEditorialMetrics.resetBlockRadius : OnePlusLinearMetrics.radius)
     }
     public func makeBody(configuration: Configuration) -> some View {
         OnePlusLinearButtonBody(label: configuration.label, pressed: configuration.isPressed,
-                                kind: kind, baseRadius: radius, selected: selected)
+                                kind: kind, baseRadius: radius, selected: selected, corners: corners)
     }
 }
 
@@ -68,6 +70,11 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
         return kind == .filled && panelStyle == .fillSteps ? OnePlusLinearPanelStyle.tileRadius : baseRadius
     }
     let selected: Bool
+    let corners: RectangleCornerRadii?
+    private var fillShape: UnevenRoundedRectangle {
+        UnevenRoundedRectangle(cornerRadii: corners ?? RectangleCornerRadii(topLeading: radius, bottomLeading: radius,
+                                                                            bottomTrailing: radius, topTrailing: radius))
+    }
 
     private var isPressed: Bool { pressed || sample == .pressed }
     private var isHovered: Bool { hover || sample == .hover }
@@ -190,10 +197,10 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
         }
         .background {
             // A selection change crossfades the old and new fills; hover fades with its own timing.
-            RoundedRectangle(cornerRadius: radius).fill(fill).linearMotion(OnePlusMotion.selection, value: selected)
+            fillShape.fill(fill).linearMotion(OnePlusMotion.selection, value: selected)
         }
         .overlay {
-            RoundedRectangle(cornerRadius: radius)
+            fillShape
                 .fill(enabled && (focused || sample == .focus) && OnePlusFocusPolicy.shared.showsFocus ? OnePlusLinearColor.hover : .clear)
                 .allowsHitTesting(false)
         }

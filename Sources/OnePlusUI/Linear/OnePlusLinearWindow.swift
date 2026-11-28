@@ -197,7 +197,7 @@ public struct OnePlusLinearTextTabs<Value: Hashable>: View {
                         .offset(x: tab.minX, y: tab.maxY + 1 - OnePlusLinearMetrics.tabUnderline)
                 }
             }
-            .linearMotion(OnePlusMotion.tabSlide, value: selection)
+            .linearMotion(OnePlusMotion.tabSlide, value: selection, curve: OnePlusMotion.glideCurve)
             .allowsHitTesting(false).accessibilityHidden(true)
         }
         .accessibilityElement(children: .contain)

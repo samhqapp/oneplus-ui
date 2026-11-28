@@ -20,8 +20,9 @@ public extension View {
     /// Animates changes of `value` inside this view with the ease-out curve when the surface allows motion.
     /// An instant surface keeps whatever transaction the host sent.
     /// `spring` replaces the ease-out on a `.spring` surface.
-    func linearMotion<V: Equatable>(_ duration: TimeInterval, value: V, enabled: Bool = true, spring: Animation? = nil) -> some View {
-        modifier(OnePlusLinearMotionModifier(duration: duration, value: value, enabled: enabled, spring: spring))
+    func linearMotion<V: Equatable>(_ duration: TimeInterval, value: V, enabled: Bool = true, spring: Animation? = nil,
+                                    curve: UnitCurve = OnePlusMotion.easeOut) -> some View {
+        modifier(OnePlusLinearMotionModifier(duration: duration, value: value, enabled: enabled, spring: spring, curve: curve))
     }
 }
 
@@ -32,8 +33,9 @@ private struct OnePlusLinearMotionModifier<V: Equatable>: ViewModifier {
     let value: V
     let enabled: Bool
     let spring: Animation?
+    let curve: UnitCurve
     func body(content: Content) -> some View {
-        let eased = enabled ? OnePlusMotion.resolved(duration, style: style, reduceMotion: reduceMotion) : nil
+        let eased = enabled ? OnePlusMotion.resolved(duration, style: style, reduceMotion: reduceMotion, curve: curve) : nil
         let animation = style == .spring && eased != nil ? spring ?? eased : eased
         content.transaction(value: value) { transaction in
             if let animation { transaction.animation = animation }
@@ -99,12 +101,28 @@ private struct OnePlusLinearSectionEntrance: ViewModifier {
 
     func body(content: Content) -> some View {
         let hidden = !shown && entering
-        content.opacity(hidden ? 0 : 1).offset(y: hidden ? OnePlusMotion.springPageOffset : 0)
+        content.opacity(hidden ? 0 : 1).modifier(OnePlusPixelOffset(y: hidden ? OnePlusMotion.springPageOffset : 0))
             .onAppear {
                 guard entering else { shown = true; return }
                 let delay = Double(min(order, OnePlusMotion.springSectionSteps)) * OnePlusMotion.springSectionStagger
-                withAnimation(OnePlusMotion.animation(OnePlusMotion.springSection).delay(delay)) { shown = true }
+                withAnimation(OnePlusMotion.animation(OnePlusMotion.springSection, curve: OnePlusMotion.glideCurve).delay(delay)) { shown = true }
             }
+    }
+}
+
+/// An offset that moves in whole device pixels. A rise or slide with a smooth offset puts text between pixels for
+/// most of its frames, and on a 1x display every glyph then blurs and shimmers; here it steps one pixel at a time.
+struct OnePlusPixelOffset: ViewModifier, @MainActor Animatable {
+    var x: CGFloat = 0
+    var y: CGFloat = 0
+    @Environment(\.displayScale) private var scale
+    var animatableData: AnimatablePair<CGFloat, CGFloat> {
+        get { AnimatablePair(x, y) }
+        set { x = newValue.first; y = newValue.second }
+    }
+
+    func body(content: Content) -> some View {
+        content.offset(x: (x * scale).rounded() / scale, y: (y * scale).rounded() / scale)
     }
 }
 

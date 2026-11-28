@@ -200,7 +200,8 @@ enum OnePlusPopupPlacement {
 enum OnePlusPopupMetrics {
     static let padding: CGFloat = 5
     static let radius: CGFloat = 10
-    static let itemRadius: CGFloat = 6
+    /// Concentric with the menu: `radius` - `padding`.
+    static let itemRadius: CGFloat = 5
     static let itemPadding: CGFloat = 9
     static let itemHeight: CGFloat = 26
     static let compactItemHeight: CGFloat = 24

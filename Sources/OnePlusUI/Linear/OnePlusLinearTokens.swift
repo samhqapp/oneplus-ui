@@ -364,6 +364,8 @@ public enum OnePlusLinearMetrics {
     public static let footerInset: CGFloat = 9
     /// The segment divider ends this far from the key's top and bottom edges (12 pt tall in a 24 pt control).
     public static let segmentDividerInset: CGFloat = 4
+    /// A segment hover fill's radius on every side that faces another segment (`OnePlusSegmentKey.hoverCorners`).
+    public static let segmentHoverRadius: CGFloat = 2
     public static let iconTab: CGFloat = 26
     public static let iconButton: CGFloat = 28
     public static let button: CGFloat = 28
@@ -443,13 +445,6 @@ extension View {
         }
     }
 
-    /// The divider before a segment, centered on its leading edge; it fades with the key.
-    func linearSegmentDivider(_ visible: Bool, height: CGFloat, color: Color = OnePlusLinearColor.segmentDivider) -> some View {
-        overlay(alignment: .leading) {
-            color.frame(width: 1, height: height).offset(x: -0.5).opacity(visible ? 1 : 0).allowsHitTesting(false)
-        }
-    }
-
     /// The quiet track that holds a segmented control or icon tab group.
     func linearTrack(radius: CGFloat) -> some View {
         padding(2)
@@ -481,25 +476,44 @@ public struct OnePlusSegmentKey: View {
     public static func showsDivider(before index: Int, selected: Int?, hovered: Int?) -> Bool {
         index > 0 && ![index - 1, index].contains { $0 == selected || $0 == hovered }
     }
+
+    /// The hover fill's corners for segment `index` of `count` (owner, 2026-11-28): the outer side of the first and
+    /// last segment follows the key's concentric `outer` radius; every side that faces another segment stays at the
+    /// small `segmentHoverRadius`, so a middle segment never looks like a separate round pill.
+    public static func hoverCorners(index: Int, count: Int, outer: CGFloat) -> RectangleCornerRadii {
+        let inner = min(outer, OnePlusLinearMetrics.segmentHoverRadius)
+        let leading = index == 0 ? outer : inner, trailing = index == count - 1 ? outer : inner
+        return RectangleCornerRadii(topLeading: leading, bottomLeading: leading, bottomTrailing: trailing, topTrailing: trailing)
+    }
 }
 
-/// The selected segment's bounds, so one key can sit under it and slide when it changes.
-struct OnePlusSegmentKeyAnchor: PreferenceKey {
-    static let defaultValue: Anchor<CGRect>? = nil
-    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) { value = value ?? nextValue() }
+/// Every segment's bounds by index, so the dividers and one key can be drawn under the labels.
+struct OnePlusSegmentFrames: PreferenceKey {
+    static let defaultValue: [Int: Anchor<CGRect>] = [:]
+    static func reduce(value: inout [Int: Anchor<CGRect>], nextValue: () -> [Int: Anchor<CGRect>]) {
+        value.merge(nextValue()) { $1 }
+    }
 }
 
 extension View {
-    /// Marks this segment as the one under the key.
-    func segmentKeyAnchor(_ selected: Bool) -> some View {
-        anchorPreference(key: OnePlusSegmentKeyAnchor.self, value: .bounds) { selected ? $0 : nil }
+    /// Reports this segment's bounds to `segmentTrack`.
+    func segmentFrame(_ index: Int) -> some View {
+        anchorPreference(key: OnePlusSegmentFrames.self, value: .bounds) { [index: $0] }
     }
 
-    /// Draws one key under the marked segment. Only its frame changes, so an animated pick slides it in any direction.
-    func segmentKey(_ key: OnePlusSegmentKey) -> some View {
-        backgroundPreferenceValue(OnePlusSegmentKeyAnchor.self) { anchor in
+    /// Draws the dividers, then one key over them under the `selected` segment, all behind the labels. Only the
+    /// key's frame changes on a pick, so it slides in any direction and passes over the dividers like the native control.
+    func segmentTrack(_ key: OnePlusSegmentKey, selected: Int?, hovered: Int?, dividerHeight: CGFloat,
+                      dividerColor: Color = OnePlusLinearColor.segmentDivider) -> some View {
+        backgroundPreferenceValue(OnePlusSegmentFrames.self) { frames in
             GeometryReader { proxy in
-                if let anchor {
+                ForEach(frames.keys.sorted(), id: \.self) { index in
+                    let rect = proxy[frames[index]!]
+                    dividerColor.frame(width: 1, height: dividerHeight)
+                        .offset(x: rect.minX - 0.5, y: rect.midY - dividerHeight / 2)
+                        .opacity(OnePlusSegmentKey.showsDivider(before: index, selected: selected, hovered: hovered) ? 1 : 0)
+                }
+                if let selected, let anchor = frames[selected] {
                     let rect = proxy[anchor]
                     key.frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY)
                 }

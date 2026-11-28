@@ -140,7 +140,9 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
                     }
                     .linearSegmentSelected(!fill && on, radius: radius)
                 }
-                .buttonStyle(OnePlusLinearButtonStyle(radius: radius)).focusEffectDisabled()
+                .buttonStyle(OnePlusLinearButtonStyle(radius: radius, corners: OnePlusSegmentKey.hoverCorners(
+                    index: tabs.firstIndex { $0.id == tab.id } ?? 0, count: tabs.count, outer: radius)))
+                .focusEffectDisabled()
                 .help(tab.title).accessibilityLabel(tab.title)
                 .accessibilityAddTraits(on ? .isSelected : [])
                 .modifier(OnePlusLinearOptionalIdentifier(value: tab.accessibilityIdentifier))

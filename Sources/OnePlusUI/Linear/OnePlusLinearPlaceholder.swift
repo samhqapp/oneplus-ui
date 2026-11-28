@@ -94,13 +94,13 @@ private struct OnePlusPush<Trigger: Equatable>: ViewModifier {
 
     func body(content: Content) -> some View {
         content.keyframeAnimator(initialValue: OnePlusPushFrame(), trigger: trigger) { view, frame in
-            view.offset(x: frame.x).opacity(frame.opacity)
+            view.modifier(OnePlusPixelOffset(x: frame.x)).opacity(frame.opacity)
         } keyframes: { _ in
             let start = reduceMotion ? 0 : (edge == .trailing ? OnePlusMotion.pushOffset : -OnePlusMotion.pushOffset)
             let duration = reduceMotion ? 0 : OnePlusMotion.push
             KeyframeTrack(\.x) {
                 MoveKeyframe(start)
-                LinearKeyframe(0, duration: duration, timingCurve: OnePlusMotion.easeOut)
+                LinearKeyframe(0, duration: duration, timingCurve: OnePlusMotion.glideCurve)
             }
             KeyframeTrack(\.opacity) {
                 MoveKeyframe(reduceMotion ? 1 : 0)

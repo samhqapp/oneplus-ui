@@ -89,21 +89,19 @@ public struct OnePlusSegmented<Value: Hashable>: View {
     public var body: some View {
         let padding = labelPadding
         let values = choices.map(\.0)
-        let selectedIndex = values.firstIndex(of: selection)
-        let hoveredIndex = hovered.flatMap { values.firstIndex(of: $0) }
         let innerHeight = (controlHeight ?? density.controlHeight) - 4
         HStack(spacing: 0) {
             ForEach(choices.indices, id: \.self) { index in
                 let choice = choices[index]
                 Button { pick(choice.0) } label: {
                     OnePlusSegmentLabel(title: choice.1, symbol: symbols[choice.0], selected: selection == choice.0,
-                                        padding: padding, expands: width != nil)
+                                        padding: padding, expands: width != nil,
+                                        corners: OnePlusSegmentKey.hoverCorners(index: index, count: choices.count,
+                                                                                outer: OnePlusMetrics.segmentRadius))
                 }
-                .segmentKeyAnchor(selection == choice.0)
+                .segmentFrame(index)
                 // The label draws its own hover fill; a style fill would sit on top of the key.
                 .buttonStyle(.plain)
-                .linearSegmentDivider(OnePlusSegmentKey.showsDivider(before: index, selected: selectedIndex, hovered: hoveredIndex),
-                                      height: OnePlusSegmentKey.dividerHeight(inner: innerHeight))
                 .onHover { inside in
                     OnePlusMotion.withHover(inside) { if inside { hovered = choice.0 } else if hovered == choice.0 { hovered = nil } }
                 }
@@ -114,12 +112,14 @@ public struct OnePlusSegmented<Value: Hashable>: View {
                 .help(choice.1)
             }
         }
-        .segmentKey(OnePlusSegmentKey(radius: OnePlusMetrics.segmentRadius, fill: OnePlusColor.selectedControl))
+        .segmentTrack(OnePlusSegmentKey(radius: OnePlusMetrics.segmentRadius, fill: OnePlusColor.selectedControl),
+                      selected: values.firstIndex(of: selection), hovered: hovered.flatMap { values.firstIndex(of: $0) },
+                      dividerHeight: OnePlusSegmentKey.dividerHeight(inner: innerHeight))
         .padding(2).frame(width: width).fixedSize(horizontal: width == nil, vertical: false).frame(height: controlHeight ?? density.controlHeight)
         .background(OnePlusColor.track, in: RoundedRectangle(cornerRadius: 6))
         .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(OnePlusColor.line, lineWidth: 1) }
         .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
-        .linearMotion(OnePlusMotion.segment, value: picks)
+        .linearMotion(OnePlusMotion.segment, value: picks, curve: OnePlusMotion.glideCurve)
         .onMoveCommand { direction in
             guard enabled else { return }
             let delta = direction == .left || direction == .up ? -1 : 1
@@ -144,6 +144,7 @@ private struct OnePlusSegmentLabel: View {
     let selected: Bool
     let padding: CGFloat
     let expands: Bool
+    let corners: RectangleCornerRadii
     @Environment(\.onePlusDensity) private var density
     @Environment(\.onePlusControlHeight) private var controlHeight
     @Environment(\.onePlusControlState) private var sample
@@ -158,7 +159,7 @@ private struct OnePlusSegmentLabel: View {
             .lineLimit(1).fixedSize(horizontal: true, vertical: false).padding(.horizontal, padding)
             .frame(maxWidth: expands ? .infinity : nil).frame(height: (controlHeight ?? density.controlHeight) - 4)
             .background(!selected && hovering ? OnePlusColor.raised : .clear,
-                        in: RoundedRectangle(cornerRadius: OnePlusMetrics.segmentRadius))
+                        in: UnevenRoundedRectangle(cornerRadii: corners))
             .contentShape(Rectangle()).onePlusHover($hover)
     }
 }

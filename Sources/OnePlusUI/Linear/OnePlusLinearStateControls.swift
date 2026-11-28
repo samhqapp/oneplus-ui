@@ -102,21 +102,18 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
     }
     public var body: some View {
         // Every look draws the menu panel's segmented control: segments touching on a `fillTrack` well, one raised
-        // `OnePlusSegmentKey`, short dividers between unlit segments. Only the size follows the look: 24 pt with 11.5 pt labels in a panel, the look's
-        // height with 13 pt labels on a page.
+        // `OnePlusSegmentKey`, short dividers between unlit segments. Labels are regular in every state, like
+        // NSSegmentedControl: 11 pt in a panel, 12 pt on a page (24 and 28 pt).
         let well = OnePlusLinearWell(look)
         let values = choices.map(\.0)
-        let selectedIndex = values.firstIndex(of: selection)
-        let hoveredIndex = hovered.flatMap { values.firstIndex(of: $0) }
         HStack(spacing: 0) {
             ForEach(choices, id: \.0) { value, title in
                 let index = values.firstIndex(of: value) ?? 0
                 let on = value == selection
                 Button { pick(value) } label: {
-                    Text(title).linearSteadyText(look == nil ? OnePlusLinearMetrics.caption + 0.5 : OnePlusLinearMetrics.body,
-                                           selected: on,
+                    Text(title).linearText(look == nil ? OnePlusLinearMetrics.caption : OnePlusLinearMetrics.control,
                                            color: on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
-                        .offset(y: look == nil ? 0 : Self.opticalOffset(title))
+                        .modifier(OnePlusPixelOffset(y: look == nil ? 0 : Self.opticalOffset(title)))
                         .fixedSize(horizontal: sizing != .equal, vertical: false)
                         .padding(.horizontal, sizing == .fitted ? 10 : sizing == .snug ? Self.snugPadding : 0)
                         .frame(width: sizing == .equal && width == nil ? look?.segmentWidth ?? OnePlusLinearMetrics.segment.width : nil,
@@ -124,10 +121,10 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                         .frame(maxWidth: width == nil ? nil : .infinity)
                         .contentShape(Rectangle())
                 }
-                .segmentKeyAnchor(on)
-                .buttonStyle(OnePlusLinearButtonStyle(.segment, radius: well.innerRadius, selected: on))
-                .linearSegmentDivider(OnePlusSegmentKey.showsDivider(before: index, selected: selectedIndex, hovered: hoveredIndex),
-                                      height: OnePlusSegmentKey.dividerHeight(inner: well.innerHeight))
+                .segmentFrame(index)
+                .buttonStyle(OnePlusLinearButtonStyle(.segment, radius: well.innerRadius, selected: on,
+                                                      corners: OnePlusSegmentKey.hoverCorners(index: index, count: values.count,
+                                                                                              outer: well.innerRadius)))
                 .onHover { inside in
                     OnePlusMotion.withHover(inside) { if inside { hovered = value } else if hovered == value { hovered = nil } }
                 }
@@ -138,9 +135,11 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
         }
         .frame(minWidth: width.map { $0 - 2 * OnePlusLinearWell.inset }, idealWidth: width.map { $0 - 2 * OnePlusLinearWell.inset })
         .fixedSize(horizontal: width != nil, vertical: false)
-        .segmentKey(OnePlusSegmentKey(radius: well.innerRadius))
+        .segmentTrack(OnePlusSegmentKey(radius: well.innerRadius), selected: values.firstIndex(of: selection),
+                      hovered: hovered.flatMap { values.firstIndex(of: $0) },
+                      dividerHeight: OnePlusSegmentKey.dividerHeight(inner: well.innerHeight))
         // Only a click or arrow key slides the key; a value set from code (launch, load, sync) lands at once.
-        .linearMotion(OnePlusMotion.segment, value: picks)
+        .linearMotion(OnePlusMotion.segment, value: picks, curve: OnePlusMotion.glideCurve)
         .padding(OnePlusLinearWell.inset)
         .background(OnePlusLinearColor.fillTrack, in: RoundedRectangle(cornerRadius: well.radius))
         .accessibilityElement(children: .contain).accessibilityLabel(label)
@@ -162,10 +161,10 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
     /// `.snug` side padding: about what an 11 pt "Auto" gets in a 40 pt segment, so every label has the same room.
     static var snugPadding: CGFloat { 8 }
 
-    /// A label with no capitals or digits has no cap height, so its x-height sits 1.25 pt below the line box
-    /// center at 13 pt; this lifts it onto the true center. Labels with capitals or digits are already centered.
+    /// Lifts a 12 pt label onto the control's optical center: 1 pt for x-height-only labels, 0.5 pt for labels with
+    /// capitals or digits. The view applies it in whole device pixels, so glyphs never land on a half pixel and blur.
     public static func opticalOffset(_ title: String) -> CGFloat {
-        title.contains { $0.isUppercase || $0.isNumber } ? 0 : -1.25
+        title.contains { $0.isUppercase || $0.isNumber } ? -0.5 : -1
     }
 }
 

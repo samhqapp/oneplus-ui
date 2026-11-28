@@ -61,9 +61,9 @@ final class OnePlusLinearAppletTests: XCTestCase {
     }
 
     func testSegmentLabelsCenterTheirXHeight() {
-        XCTAssertEqual(OnePlusLinearSegmented<Int>.opticalOffset("mm"), -1.25)
-        XCTAssertEqual(OnePlusLinearSegmented<Int>.opticalOffset("Fast"), 0)
-        XCTAssertEqual(OnePlusLinearSegmented<Int>.opticalOffset("1x"), 0)
+        XCTAssertEqual(OnePlusLinearSegmented<Int>.opticalOffset("mm"), -1)
+        XCTAssertEqual(OnePlusLinearSegmented<Int>.opticalOffset("Fast"), -0.5)
+        XCTAssertEqual(OnePlusLinearSegmented<Int>.opticalOffset("1x"), -0.5)
     }
 
     func testPanelSegmentedKeepsItsSizeWithoutTheAppletLook() {

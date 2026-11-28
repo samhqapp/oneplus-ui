@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.9.10
+
+- Segmented text is smaller and crisp, like native: 12 pt on a page (was 13), 11 pt in the menu panel (was 11.5),
+  regular weight when selected (was medium), no tracking (was -0.08). Labels move onto the optical center in
+  whole device pixels (was a 1.25 pt offset, a half pixel at 2x that blurred the glyphs). Date parts match.
+- Hover corners are concentric: a middle segment's hover fill uses a 2 pt radius
+  (`OnePlusLinearMetrics.segmentHoverRadius`); the first and last segments match the track only on their outer side.
+  Covers `OnePlusLinearSegmented`, `OnePlusSegmented`, and the panel icon tabs. Popup menu rows use 5 pt (menu 10
+  minus its 5 pt padding, was 6).
+- The selection key glides on `OnePlusMotion.glideCurve` (ease-out 0, 0, 0.58, 1, 200 ms): the old curve moved a
+  third of the way in the first frame, then crawled. Dividers now draw under the key, so they never flash on top of
+  it while it slides. The text tabs underline and the page section rise use the same curve.
+- The page section rise and the placeholder push move in whole device pixels, so text does not shimmer while it
+  moves on a 1x display.
+
 ## 1.9.9
 
 - `OnePlusContextMenu`: a right-click menu with optional pickers on top ("Pickers on top", owner pick 2026-11-28).

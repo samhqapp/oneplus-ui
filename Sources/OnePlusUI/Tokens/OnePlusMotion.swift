@@ -7,6 +7,10 @@ import SwiftUI
 public enum OnePlusMotion {
     /// Ease-out `cubic-bezier(0.25, 1, 0.5, 1)` for every move, fade, and crossfade.
     public static let easeOut = UnitCurve.bezier(startControlPoint: UnitPoint(x: 0.25, y: 1), endControlPoint: UnitPoint(x: 0.5, y: 1))
+    /// Core Animation's ease-out `cubic-bezier(0, 0, 0.58, 1)` for anything that slides or rises (segment key, tab
+    /// underline, page block rise, push). `easeOut` starts at 4 times its average speed, so a 200 ms slide jumped a
+    /// third of the way in its first 60 fps frame; this one starts at 1.7 times, about 14% in the first frame.
+    public static let glideCurve = UnitCurve.easeOut
     /// Ease-in `cubic-bezier(0.4, 0, 1, 1)` for the panel close.
     public static let easeIn = UnitCurve.bezier(startControlPoint: UnitPoint(x: 0.4, y: 0), endControlPoint: UnitPoint(x: 1, y: 1))
 
@@ -82,11 +86,12 @@ public enum OnePlusMotion {
     public static let rowMarkHold = 1.2
     public static let rowMarkOut = 0.5
 
-    public static func animation(_ duration: TimeInterval) -> Animation { .timingCurve(easeOut, duration: duration) }
+    public static func animation(_ duration: TimeInterval, curve: UnitCurve = easeOut) -> Animation { .timingCurve(curve, duration: duration) }
 
     /// The animation for one change, or nil when the surface is instant or Reduce Motion is on.
-    public static func resolved(_ duration: TimeInterval, style: OnePlusLinearMotionStyle, reduceMotion: Bool) -> Animation? {
-        style != .instant && !reduceMotion ? animation(duration) : nil
+    public static func resolved(_ duration: TimeInterval, style: OnePlusLinearMotionStyle, reduceMotion: Bool,
+                                curve: UnitCurve = easeOut) -> Animation? {
+        style != .instant && !reduceMotion ? animation(duration, curve: curve) : nil
     }
 
     /// Runs a hover state change: the fill fades in (`entering`) or out with the hover timing.
