@@ -88,7 +88,9 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
     private let sizing: OnePlusLinearSegmentSizing
     private let width: CGFloat?
     private let isChoiceEnabled: (Value) -> Bool
-    @Namespace private var thumb
+    @State private var hovered: Value?
+    /// Counts clicks and arrow keys; only a change of this slides the key.
+    @State private var picks = 0
     @FocusState private var focusedSegment: Value?
     @Environment(\.onePlusLinearControlLook) private var look
     /// `width` is a minimum for the whole control: segments share the extra room, so controls in one column line up.
@@ -99,14 +101,18 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
         self.width = width; self.isChoiceEnabled = isChoiceEnabled
     }
     public var body: some View {
-        // Every look draws the menu panel's segmented control: segments touching on a `fillTrack` well, one flat
-        // `fillThumb` thumb. Only the size follows the look: 24 pt with 11.5 pt labels in a panel, the look's
+        // Every look draws the menu panel's segmented control: segments touching on a `fillTrack` well, one raised
+        // `OnePlusSegmentKey`, short dividers between unlit segments. Only the size follows the look: 24 pt with 11.5 pt labels in a panel, the look's
         // height with 13 pt labels on a page.
         let well = OnePlusLinearWell(look)
+        let values = choices.map(\.0)
+        let selectedIndex = values.firstIndex(of: selection)
+        let hoveredIndex = hovered.flatMap { values.firstIndex(of: $0) }
         HStack(spacing: 0) {
             ForEach(choices, id: \.0) { value, title in
+                let index = values.firstIndex(of: value) ?? 0
                 let on = value == selection
-                Button { if isChoiceEnabled(value) { selection = value } } label: {
+                Button { pick(value) } label: {
                     Text(title).linearSteadyText(look == nil ? OnePlusLinearMetrics.caption + 0.5 : OnePlusLinearMetrics.body,
                                            selected: on,
                                            color: on ? OnePlusLinearColor.ink : OnePlusLinearColor.secondary)
@@ -117,15 +123,14 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
                                height: well.innerHeight)
                         .frame(maxWidth: width == nil ? nil : .infinity)
                         .contentShape(Rectangle())
-                        .background {
-                            // One thumb moves between segments, so Quiet motion slides it.
-                            if on {
-                                RoundedRectangle(cornerRadius: well.innerRadius).fill(OnePlusLinearColor.fillThumb)
-                                    .matchedGeometryEffect(id: "thumb", in: thumb)
-                            }
-                        }
                 }
-                .buttonStyle(OnePlusLinearButtonStyle(.segment, radius: well.innerRadius))
+                .segmentKeyAnchor(on)
+                .buttonStyle(OnePlusLinearButtonStyle(.segment, radius: well.innerRadius, selected: on))
+                .linearSegmentDivider(OnePlusSegmentKey.showsDivider(before: index, selected: selectedIndex, hovered: hoveredIndex),
+                                      height: OnePlusSegmentKey.dividerHeight(inner: well.innerHeight))
+                .onHover { inside in
+                    OnePlusMotion.withHover(inside) { if inside { hovered = value } else if hovered == value { hovered = nil } }
+                }
                 .focused($focusedSegment, equals: value).focusEffectDisabled()
                 .disabled(!isChoiceEnabled(value))
                 .accessibilityAddTraits(on ? .isSelected : [])
@@ -133,7 +138,9 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
         }
         .frame(minWidth: width.map { $0 - 2 * OnePlusLinearWell.inset }, idealWidth: width.map { $0 - 2 * OnePlusLinearWell.inset })
         .fixedSize(horizontal: width != nil, vertical: false)
-        .linearMotion(OnePlusMotion.segment, value: selection)
+        .segmentKey(OnePlusSegmentKey(radius: well.innerRadius))
+        // Only a click or arrow key slides the key; a value set from code (launch, load, sync) lands at once.
+        .linearMotion(OnePlusMotion.segment, value: picks)
         .padding(OnePlusLinearWell.inset)
         .background(OnePlusLinearColor.fillTrack, in: RoundedRectangle(cornerRadius: well.radius))
         .accessibilityElement(children: .contain).accessibilityLabel(label)
@@ -141,9 +148,15 @@ public struct OnePlusLinearSegmented<Value: Hashable>: View {
             guard press.modifiers.isEmpty else { return .ignored }
             if let next = OnePlusSegmented<Value>.nextSelection(in: choices.map(\.0), current: selection,
                                                               direction: press.key == .leftArrow ? -1 : 1,
-                                                              isChoiceEnabled: isChoiceEnabled) { selection = next }
+                                                              isChoiceEnabled: isChoiceEnabled) { pick(next) }
             return .handled
         }
+    }
+
+    private func pick(_ value: Value) {
+        guard isChoiceEnabled(value), value != selection else { return }
+        picks &+= 1
+        selection = value
     }
 
     /// `.snug` side padding: about what an 11 pt "Auto" gets in a 40 pt segment, so every label has the same room.
@@ -169,7 +182,7 @@ struct OnePlusLinearWell {
         radius = look?.radius ?? Self.panelRadius
     }
     var innerHeight: CGFloat { height - 2 * Self.inset }
-    var innerRadius: CGFloat { radius - Self.inset }
+    var innerRadius: CGFloat { OnePlusSegmentKey.radius(track: radius, inset: Self.inset) }
 }
 
 /// The stepper, drawn like the menu panel's segmented control: the value sits on the `fillTrack` well and a

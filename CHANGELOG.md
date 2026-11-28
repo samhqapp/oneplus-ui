@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.9.8
+
+- Segmented controls take the "macOS native key" look (owner pick 2026-11-28): segments touch on the track, one
+  raised key sits 2 pt inside with a concentric radius (track radius - 2), a 0.5 pt ring and a soft shadow, and a
+  short `segmentDivider` line separates unlit segments; it hides beside the key and a hovered segment. Covers
+  `OnePlusLinearSegmented` (24 and 28 pt, so `DenseSegmented` too), `OnePlusSegmented` (radius 4), and the menu
+  panel icon tabs' dividers.
+- The key is one view placed from the selected segment's bounds, so a click or arrow key slides it 200 ms ease-out
+  in either direction. A value set from code lands at once; Reduce Motion never slides.
+- Hover and press fills no longer draw on top of the selected key.
+- New tests: key inset and concentric radius, divider height, and divider hiding beside the key and hover.
+
 ## 1.9.7
 
 - Fields, selects, search fields, and steppers are the height of the button beside them in every size step: 28 pt

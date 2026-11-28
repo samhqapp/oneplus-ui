@@ -94,7 +94,8 @@ private struct OnePlusLinearButtonBody<Label: View>: View {
             guard enabled else { return OnePlusLinearColor.fillGroup }
             return isPressed ? OnePlusLinearColor.softButtonPressed : isHovered ? OnePlusLinearColor.softButtonHover : OnePlusLinearColor.fillGroup
         case .segment:
-            guard enabled else { return .clear }
+            // The key sits under the selected segment; a tint on top would gray it.
+            guard enabled, !selected else { return .clear }
             return isPressed ? OnePlusLinearColor.fillSegmentPressed : isHovered ? OnePlusLinearColor.fillSegmentHover : .clear
         case .plain, .raised, .ghost:
             guard enabled else { return .clear }

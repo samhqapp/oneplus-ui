@@ -126,9 +126,16 @@ public struct OnePlusLinearIconTabs<Value: Hashable>: View {
                     }
                     .overlay(alignment: .leading) {
                         // Between two unselected tabs only, centered in the 2 pt gap.
-                        if fill, !on, let index = tabs.firstIndex(where: { $0.id == tab.id }), index > 0, tabs[index - 1].id != selection {
-                            LinearGradient(colors: [.clear, OnePlusLinearColor.softKeyDivider, .clear], startPoint: .top, endPoint: .bottom)
-                                .frame(width: 1, height: size - 8).offset(x: -1.5).allowsHitTesting(false)
+                        if let index = tabs.firstIndex(where: { $0.id == tab.id }),
+                           OnePlusSegmentKey.showsDivider(before: index, selected: tabs.firstIndex { $0.id == selection }, hovered: nil) {
+                            Group {
+                                if fill {
+                                    LinearGradient(colors: [.clear, OnePlusLinearColor.softKeyDivider, .clear], startPoint: .top, endPoint: .bottom)
+                                } else {
+                                    OnePlusLinearColor.segmentDivider
+                                }
+                            }
+                            .frame(width: 1, height: OnePlusSegmentKey.dividerHeight(inner: size)).offset(x: -1.5).allowsHitTesting(false)
                         }
                     }
                     .linearSegmentSelected(!fill && on, radius: radius)

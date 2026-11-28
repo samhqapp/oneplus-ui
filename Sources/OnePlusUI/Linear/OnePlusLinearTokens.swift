@@ -39,6 +39,8 @@ public enum OnePlusLinearColor {
     public static let segmentSelected = color("segmentSelected", light: 0xFFFFFF, dark: 0x2C2C30)
     public static let segmentRing = color("segmentRing", light: 0x000000, lightAlpha: 0.12, dark: 0xFFFFFF, darkAlpha: 0.07)
     public static let segmentShadow = color("segmentShadow", light: 0x000000, lightAlpha: 0.08, dark: 0x000000, darkAlpha: 0.5)
+    /// The short line between two segments when neither is the key or hovered.
+    public static let segmentDivider = color("segmentDivider", light: 0x000000, lightAlpha: 0.065, dark: 0xFFFFFF, darkAlpha: 0.075)
     public static let kbd = color("kbd", light: 0xFFFFFF, dark: 0xFFFFFF, darkAlpha: 0.06)
     public static let panelShell = color("panelShell", light: 0xFBFBFC, dark: 0x141416)
     public static let panelTile = color("panelTile", light: 0xFFFFFF, dark: 0x1A1A1D)
@@ -360,6 +362,8 @@ public enum OnePlusLinearMetrics {
     public static let actionDivider: CGFloat = 14
     public static let footer: CGFloat = 44
     public static let footerInset: CGFloat = 9
+    /// The segment divider ends this far from the key's top and bottom edges (12 pt tall in a 24 pt control).
+    public static let segmentDividerInset: CGFloat = 4
     public static let iconTab: CGFloat = 26
     public static let iconButton: CGFloat = 28
     public static let button: CGFloat = 28
@@ -433,13 +437,16 @@ extension View {
     }
 
     /// Selected tab chrome. It appears on the new tab at once; it never slides.
-    func linearSegmentSelected(_ selected: Bool, radius: CGFloat) -> some View {
+    func linearSegmentSelected(_ selected: Bool, radius: CGFloat, fill: Color = OnePlusLinearColor.segmentSelected) -> some View {
         background {
-            if selected {
-                RoundedRectangle(cornerRadius: radius).fill(OnePlusLinearColor.segmentSelected)
-                    .shadow(color: OnePlusLinearColor.segmentShadow, radius: 1, y: 1)
-                    .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(OnePlusLinearColor.segmentRing, lineWidth: 0.5) }
-            }
+            if selected { OnePlusSegmentKey(radius: radius, fill: fill) }
+        }
+    }
+
+    /// The divider before a segment, centered on its leading edge; it fades with the key.
+    func linearSegmentDivider(_ visible: Bool, height: CGFloat, color: Color = OnePlusLinearColor.segmentDivider) -> some View {
+        overlay(alignment: .leading) {
+            color.frame(width: 1, height: height).offset(x: -0.5).opacity(visible ? 1 : 0).allowsHitTesting(false)
         }
     }
 
@@ -448,6 +455,56 @@ extension View {
         padding(2)
             .background(OnePlusLinearColor.track, in: RoundedRectangle(cornerRadius: radius))
             .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(OnePlusLinearColor.lineSoft, lineWidth: 1) }
+    }
+}
+
+/// The selected segment's key (DESIGN.md "Segmented control", owner pick 2026-11-28): a fill inset in the track
+/// at the concentric radius, a 0.5 pt `segmentRing`, and a 1 pt `segmentShadow` drop.
+public struct OnePlusSegmentKey: View {
+    let radius: CGFloat
+    let fill: Color
+    public init(radius: CGFloat, fill: Color = OnePlusLinearColor.fillThumb) { self.radius = radius; self.fill = fill }
+    public var body: some View {
+        RoundedRectangle(cornerRadius: radius).fill(fill)
+            .shadow(color: OnePlusLinearColor.segmentShadow, radius: 1, y: 1)
+            .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(OnePlusLinearColor.segmentRing, lineWidth: 0.5) }
+    }
+
+    /// Concentric with the track: the key's radius is the track's minus the inset between them.
+    public static func radius(track: CGFloat, inset: CGFloat) -> CGFloat { max(0, track - inset) }
+
+    /// The divider's height in a key of `inner` height.
+    public static func dividerHeight(inner: CGFloat) -> CGFloat { max(0, inner - 2 * OnePlusLinearMetrics.segmentDividerInset) }
+
+    /// Whether the divider before segment `index` shows: never at the first segment, and never beside the key or a
+    /// hovered segment, so a lit segment never touches a line.
+    public static func showsDivider(before index: Int, selected: Int?, hovered: Int?) -> Bool {
+        index > 0 && ![index - 1, index].contains { $0 == selected || $0 == hovered }
+    }
+}
+
+/// The selected segment's bounds, so one key can sit under it and slide when it changes.
+struct OnePlusSegmentKeyAnchor: PreferenceKey {
+    static let defaultValue: Anchor<CGRect>? = nil
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) { value = value ?? nextValue() }
+}
+
+extension View {
+    /// Marks this segment as the one under the key.
+    func segmentKeyAnchor(_ selected: Bool) -> some View {
+        anchorPreference(key: OnePlusSegmentKeyAnchor.self, value: .bounds) { selected ? $0 : nil }
+    }
+
+    /// Draws one key under the marked segment. Only its frame changes, so an animated pick slides it in any direction.
+    func segmentKey(_ key: OnePlusSegmentKey) -> some View {
+        backgroundPreferenceValue(OnePlusSegmentKeyAnchor.self) { anchor in
+            GeometryReader { proxy in
+                if let anchor {
+                    let rect = proxy[anchor]
+                    key.frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY)
+                }
+            }
+        }
     }
 }
 

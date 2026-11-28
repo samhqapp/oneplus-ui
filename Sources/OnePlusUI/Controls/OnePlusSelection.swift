@@ -43,6 +43,8 @@ public struct OnePlusSegmented<Value: Hashable>: View {
     @Environment(\.onePlusDensity) private var density
     @Environment(\.onePlusControlHeight) private var controlHeight
     @Environment(\.isEnabled) private var enabled
+    @State private var hovered: Value?
+    @State private var picks = 0
 
     public init(choices: [(Value, String)], selection: Binding<Value>, accessibilityLabel: String = "Selection",
                 accessibilityIdentifierPrefix: String? = nil, width: CGFloat? = nil,
@@ -80,20 +82,31 @@ public struct OnePlusSegmented<Value: Hashable>: View {
         guard !choices.isEmpty, symbols.isEmpty else { return 8 }
         let font = NSFont.systemFont(ofSize: OnePlusTextRole.control.size(for: density))
         let labelsWidth = choices.reduce(CGFloat.zero) { $0 + ceil(($1.1 as NSString).size(withAttributes: [.font: font]).width) }
-        let remaining = (width ?? OnePlusMetrics.wideControlColumn) - labelsWidth - 4 - CGFloat(choices.count - 1) * 2
+        let remaining = (width ?? OnePlusMetrics.wideControlColumn) - labelsWidth - 4
         return min(8, max(4, floor(remaining / CGFloat(choices.count)) / 2))
     }
 
     public var body: some View {
         let padding = labelPadding
-        HStack(spacing: 2) {
+        let values = choices.map(\.0)
+        let selectedIndex = values.firstIndex(of: selection)
+        let hoveredIndex = hovered.flatMap { values.firstIndex(of: $0) }
+        let innerHeight = (controlHeight ?? density.controlHeight) - 4
+        HStack(spacing: 0) {
             ForEach(choices.indices, id: \.self) { index in
                 let choice = choices[index]
-                Button { selection = choice.0 } label: {
+                Button { pick(choice.0) } label: {
                     OnePlusSegmentLabel(title: choice.1, symbol: symbols[choice.0], selected: selection == choice.0,
                                         padding: padding, expands: width != nil)
                 }
-                .buttonStyle(OnePlusInteractionStyle(radius: 3, disabledOpacity: 1))
+                .segmentKeyAnchor(selection == choice.0)
+                // The label draws its own hover fill; a style fill would sit on top of the key.
+                .buttonStyle(.plain)
+                .linearSegmentDivider(OnePlusSegmentKey.showsDivider(before: index, selected: selectedIndex, hovered: hoveredIndex),
+                                      height: OnePlusSegmentKey.dividerHeight(inner: innerHeight))
+                .onHover { inside in
+                    OnePlusMotion.withHover(inside) { if inside { hovered = choice.0 } else if hovered == choice.0 { hovered = nil } }
+                }
                 .disabled(!isChoiceEnabled(choice.0))
                 .opacity(enabled && !isChoiceEnabled(choice.0) ? OnePlusMetrics.disabledOpacity : 1)
                 .accessibilityAddTraits(selection == choice.0 ? .isSelected : [])
@@ -101,18 +114,27 @@ public struct OnePlusSegmented<Value: Hashable>: View {
                 .help(choice.1)
             }
         }
+        .segmentKey(OnePlusSegmentKey(radius: OnePlusMetrics.segmentRadius, fill: OnePlusColor.selectedControl))
         .padding(2).frame(width: width).fixedSize(horizontal: width == nil, vertical: false).frame(height: controlHeight ?? density.controlHeight)
         .background(OnePlusColor.track, in: RoundedRectangle(cornerRadius: 6))
         .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(OnePlusColor.line, lineWidth: 1) }
         .opacity(enabled ? 1 : OnePlusMetrics.disabledOpacity)
+        .linearMotion(OnePlusMotion.segment, value: picks)
         .onMoveCommand { direction in
             guard enabled else { return }
             let delta = direction == .left || direction == .up ? -1 : 1
             if let value = Self.nextSelection(in: choices.map(\.0), current: selection, direction: delta,
-                                              isChoiceEnabled: isChoiceEnabled) { selection = value }
+                                              isChoiceEnabled: isChoiceEnabled) { pick(value) }
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label)
+    }
+
+    /// Only a click or arrow key slides the key; a value set from code lands at once.
+    private func pick(_ value: Value) {
+        guard value != selection else { return }
+        picks &+= 1
+        selection = value
     }
 }
 
@@ -135,7 +157,7 @@ private struct OnePlusSegmentLabel: View {
         }.onePlusText(.control, color: selected || hovering ? OnePlusColor.ink : OnePlusColor.secondary)
             .lineLimit(1).fixedSize(horizontal: true, vertical: false).padding(.horizontal, padding)
             .frame(maxWidth: expands ? .infinity : nil).frame(height: (controlHeight ?? density.controlHeight) - 4)
-            .background(selected ? OnePlusColor.selectedControl : hovering ? OnePlusColor.raised : .clear,
+            .background(!selected && hovering ? OnePlusColor.raised : .clear,
                         in: RoundedRectangle(cornerRadius: OnePlusMetrics.segmentRadius))
             .contentShape(Rectangle()).onePlusHover($hover)
     }

@@ -23,8 +23,8 @@ public enum OnePlusMotion {
     public static let selection: TimeInterval = 0.12
     /// Pane toolbar tab underline slides to the new tab. The menu panel tab key changes at once.
     public static let tabSlide: TimeInterval = 0.18
-    /// Segmented control thumb.
-    public static let segment: TimeInterval = 0.16
+    /// Segmented control key slide on a user's pick (owner pick 2026-11-28: Slide, 200 ms ease-out).
+    public static let segment: TimeInterval = 0.2
     /// Switch knob slide and track color crossfade.
     public static let knob: TimeInterval = 0.14
     /// Slider knob on a programmatic change (reset). A dragged knob follows the pointer with no animation.

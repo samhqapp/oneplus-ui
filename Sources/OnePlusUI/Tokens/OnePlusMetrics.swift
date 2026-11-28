@@ -51,7 +51,8 @@ public enum OnePlusMetrics {
     public static let contentGap: CGFloat = 16
     public static let pageHeaderBottom: CGFloat = 0
     public static let spacing: [CGFloat] = [2, 4, 6, 8, 10, 12, 16, 20, 24, 28]
-    public static let segmentRadius: CGFloat = 3
+    /// Concentric with the 6 pt segment track and its 2 pt inset.
+    public static let segmentRadius: CGFloat = 4
     public static let navRowRadius: CGFloat = 5
     public static let iconButtonRadius: CGFloat = 5
     public static let controlRadius: CGFloat = 6

@@ -13,7 +13,7 @@ final class OnePlusMotionTests: XCTestCase {
         XCTAssertEqual(OnePlusMotion.hoverOut, 0.15)
         XCTAssertEqual(OnePlusMotion.selection, 0.12)
         XCTAssertEqual(OnePlusMotion.tabSlide, 0.18)
-        XCTAssertEqual(OnePlusMotion.segment, 0.16)
+        XCTAssertEqual(OnePlusMotion.segment, 0.2)
         XCTAssertEqual(OnePlusMotion.knob, 0.14)
         XCTAssertNil(OnePlusMotion.resolved(0.14, style: .instant, reduceMotion: false))
         XCTAssertNil(OnePlusMotion.resolved(0.14, style: .quiet, reduceMotion: true))
